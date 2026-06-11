@@ -1,0 +1,23 @@
+{
+  "name": "gtd-flow",
+  "version": "0.1.0",
+  "description": "OmniFocus-style GTD plugin for Obsidian",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "deploy": "npm run build && VAULT=\"${OBSIDIAN_VAULT:-$HOME/Library/CloudStorage/SynologyDrive-Marilac/DriveSync/Obsidian/EmptyTestVault}\" && mkdir -p \"$VAULT/.obsidian/plugins/gtd-flow\" && cp main.js manifest.json styles.css \"$VAULT/.obsidian/plugins/gtd-flow/\"",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@codemirror/state": "^6.6.0",
+    "@codemirror/view": "^6.43.1",
+    "@types/node": "^20.0.0",
+    "builtin-modules": "^3.3.0",
+    "esbuild": "^0.21.0",
+    "obsidian": "latest",
+    "tslib": "^2.6.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
+  }
+}

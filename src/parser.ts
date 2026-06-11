@@ -1,0 +1,79 @@
+import { Task, Project, ProjectStatus, ProjectFlow } from "./types";
+
+const TASK_RE = /^(\s*)[-*] \[(.)\] (.*)$/;
+const DEFER_RE = /🛫 *(\d{4}-\d{2}-\d{2})/u;
+const SCHEDULED_RE = /⏳ *(\d{4}-\d{2}-\d{2})/u;
+const DUE_RE = /📅 *(\d{4}-\d{2}-\d{2})/u;
+const DONE_RE = /✅ *(\d{4}-\d{2}-\d{2})/u;
+const REPEAT_RE = /🔁 *([^🛫📅✅⏳➕🔺⏫🔼🔽⏬#]*)/u;
+const TAG_RE = /#([\w/-]+)/gu;
+
+export function parseTaskLine(line: string, lineNo: number): Task | null {
+  const m = line.match(TASK_RE);
+  if (!m) return null;
+  const body = m[3];
+  const task: Task = {
+    text: stripMetadata(body),
+    done: m[2] !== " ",
+    line: lineNo,
+    indent: m[1].length,
+    tags: [...body.matchAll(TAG_RE)].map((t) => t[1]),
+  };
+  // Tasks-plugin ⏳ scheduled acts as defer when there is no explicit 🛫 start
+  task.defer = body.match(DEFER_RE)?.[1] ?? body.match(SCHEDULED_RE)?.[1];
+  task.due = body.match(DUE_RE)?.[1];
+  task.completedOn = body.match(DONE_RE)?.[1];
+  const rep = body.match(REPEAT_RE)?.[1].trim();
+  if (rep) task.repeat = rep;
+  return task;
+}
+
+function stripMetadata(body: string): string {
+  return body
+    .replace(/[🛫📅✅⏳➕] *\d{4}-\d{2}-\d{2}/gu, "")
+    .replace(REPEAT_RE, "")
+    .replace(/[🔺⏫🔼🔽⏬]/gu, "")
+    .replace(TAG_RE, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+interface Frontmatter {
+  [key: string]: unknown;
+}
+
+export function parseProject(
+  path: string,
+  content: string,
+  frontmatter: Frontmatter | undefined
+): Project | null {
+  if (frontmatter?.["type"] !== "project") return null;
+  const tasks: Task[] = [];
+  content.split("\n").forEach((line, i) => {
+    const t = parseTaskLine(line, i);
+    if (t) tasks.push(t);
+  });
+  return {
+    path,
+    name: path.replace(/.*\//, "").replace(/\.md$/, ""),
+    status: asStatus(frontmatter["status"]),
+    flow: asFlow(frontmatter["flow"]),
+    reviewInterval: asString(frontmatter["review-interval"]),
+    lastReviewed: asString(frontmatter["last-reviewed"]),
+    tasks,
+  };
+}
+
+function asStatus(v: unknown): ProjectStatus {
+  return v === "on-hold" || v === "completed" || v === "dropped" ? v : "active";
+}
+
+function asFlow(v: unknown): ProjectFlow {
+  return v === "sequential" ? "sequential" : "parallel";
+}
+
+function asString(v: unknown): string | undefined {
+  if (v == null) return undefined;
+  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  return String(v);
+}

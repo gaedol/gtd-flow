@@ -1,0 +1,206 @@
+.gtd-next-actions .gtd-project {
+  margin-bottom: var(--size-4-4);
+}
+
+.gtd-next-actions .gtd-project-name {
+  font-weight: var(--font-semibold);
+  color: var(--text-accent);
+  cursor: pointer;
+  margin-bottom: var(--size-4-1);
+}
+
+.gtd-next-actions .gtd-task {
+  display: flex;
+  align-items: baseline;
+  gap: var(--size-4-2);
+  padding: var(--size-4-1) 0;
+}
+
+.gtd-next-actions .gtd-task-text {
+  cursor: pointer;
+  flex: 1;
+}
+
+.gtd-next-actions .gtd-task-text:hover {
+  text-decoration: underline;
+}
+
+.gtd-next-actions .gtd-due {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+}
+
+.gtd-next-actions .gtd-due-today {
+  color: var(--color-orange);
+}
+
+.gtd-next-actions .gtd-overdue {
+  color: var(--color-red);
+}
+
+.gtd-next-actions .gtd-tag {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-faint);
+}
+
+.gtd-next-actions .gtd-inbox .gtd-project-name {
+  color: var(--color-cyan);
+}
+
+.gtd-next-actions .gtd-move-btn {
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0 var(--size-4-1);
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.gtd-next-actions .gtd-move-btn:hover {
+  color: var(--text-normal);
+}
+
+.gtd-next-actions .gtd-empty,
+.gtd-forecast .gtd-empty {
+  color: var(--text-muted);
+  padding: var(--size-4-2);
+}
+
+.gtd-forecast .gtd-day {
+  margin-bottom: var(--size-4-4);
+}
+
+.gtd-forecast .gtd-day-header {
+  font-weight: var(--font-semibold);
+  color: var(--text-accent);
+  border-bottom: 1px solid var(--background-modifier-border);
+  margin-bottom: var(--size-4-1);
+  padding-bottom: var(--size-4-1);
+}
+
+.gtd-forecast .gtd-task {
+  display: flex;
+  align-items: baseline;
+  gap: var(--size-4-2);
+  padding: var(--size-4-1) 0;
+}
+
+.gtd-forecast .gtd-task-text {
+  cursor: pointer;
+  flex: 1;
+}
+
+.gtd-forecast .gtd-task-text:hover {
+  text-decoration: underline;
+}
+
+.gtd-forecast .gtd-overdue-row .gtd-task-text {
+  color: var(--color-red);
+}
+
+.gtd-forecast .gtd-avail-icon {
+  color: var(--text-faint);
+  display: flex;
+  align-self: center;
+}
+
+.gtd-forecast .gtd-avail-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.gtd-forecast .gtd-project-ref {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+}
+
+.gtd-review .gtd-review-count {
+  color: var(--text-muted);
+  margin-bottom: var(--size-4-3);
+}
+
+.gtd-review .gtd-review-card {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  padding: var(--size-4-3);
+  margin-bottom: var(--size-4-3);
+}
+
+.gtd-review .gtd-project-name {
+  font-weight: var(--font-semibold);
+  color: var(--text-accent);
+  cursor: pointer;
+}
+
+.gtd-review .gtd-review-meta {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+  margin: var(--size-4-1) 0;
+}
+
+.gtd-review .gtd-review-next {
+  margin-bottom: var(--size-4-2);
+}
+
+.gtd-review .gtd-review-stalled {
+  color: var(--color-orange);
+}
+
+.gtd-review .gtd-empty {
+  color: var(--text-muted);
+  padding: var(--size-4-2);
+}
+
+.gtd-capture-text {
+  width: 100%;
+}
+
+.gtd-flag {
+  color: var(--color-orange);
+  display: flex;
+  align-self: center;
+}
+
+.gtd-flag svg {
+  width: 12px;
+  height: 12px;
+}
+
+.gtd-next-actions .gtd-flagged .gtd-project-name {
+  color: var(--color-orange);
+}
+
+.cm-line.gtd-ln-group,
+li.task-list-item.gtd-ln-group {
+  /* active group container: normal visibility, subtle marker */
+  border-left: 2px solid var(--background-modifier-border);
+}
+
+.gtd-suggest-detail {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+/* in-note availability decorations (Live Preview .cm-line and reading-mode li) */
+.cm-line.gtd-ln-next,
+li.task-list-item.gtd-ln-next {
+  border-left: 2px solid var(--text-accent);
+  background: color-mix(in srgb, var(--text-accent) 7%, transparent);
+}
+
+.cm-line.gtd-ln-deferred,
+.cm-line.gtd-ln-blocked,
+li.task-list-item.gtd-ln-deferred,
+li.task-list-item.gtd-ln-blocked {
+  opacity: 0.55;
+}
+
+.cm-line.gtd-ln-deferred,
+li.task-list-item.gtd-ln-deferred {
+  font-style: italic;
+}
+
+.cm-line.gtd-ln-overdue,
+li.task-list-item.gtd-ln-overdue {
+  border-left: 2px solid var(--color-red);
+}
