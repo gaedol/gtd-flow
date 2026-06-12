@@ -127,7 +127,7 @@ The Tasks plugin is **optional**. GTD Flow works standalone; nothing in it depen
 - **Ribbon icon (telescope)** or command **Open perspectives** — saved filtered views. Each perspective combines filters (available-only, flagged, tag, project-name substring, due within N days) with a grouping (by project, tag, or due date); a dropdown switches between them. Define perspectives in settings; defaults are "Due soon" (due ≤ 7 days, grouped by date) and "Flagged".
 - **Completing a 🔁 repeating task from any GTD Flow view** inserts the next occurrence above the completed line: all dates advance by the interval (`every day/week/month/year`, optional count: `every 2 weeks`); with `when done` the next due date is completion + interval and other dates keep their relative offsets. Recurrence requires at least one date on the task.
 - **Capture from outside Obsidian** via URI: `obsidian://gtd-capture?vault=<name>&text=Buy+milk&due=2026-06-20&defer=2026-06-15` appends to the inbox; without `text` it opens the capture modal.
-- **Ribbon icon (gantt-chart)** or command **Open timeline** — Mermaid Gantt charts with a Day/Week/Month switcher. Week/month: one bar per open task spanning defer → due (single date = 1-day bar; overdue bars surface red on today; available tasks highlighted), one section per project. Day: a plan-of-day — today's available and due tasks stacked from **Day starts at** (default 09:00), each sized by its ⏱ duration (or the **Default task duration** setting, 30 min). All three charts always span their full window (day = **Day starts/ends at**, 09:00–22:00 by default), with ticks every 3 h / day / week respectively.
+- **Ribbon icon (gantt-chart)** or command **Open timeline** — Mermaid Gantt charts with a Day/Week/Month switcher. Week/month: one bar per open task spanning defer → due (single date = 1-day bar; overdue bars surface red on today; available tasks highlighted), one section per project. Day: a plan-of-day — today's available and due tasks in one urgency-ordered stack (overdue → flagged → due today → rest, project shown in parentheses) from **Day starts at** (default 09:00), each sized by its ⏱ duration (or the **Default task duration** setting, 30 min). All three charts always span their full window (day = **Day starts/ends at**, 09:00–22:00 by default), with ticks every 3 h / day / week respectively.
 - **Ribbon icon (eye)** or command **Open review** — queue of active projects whose `last-reviewed + review-interval` has passed (never-reviewed projects with an interval are always due). Each card shows open/available counts, the next action, a stalled warning when no tasks remain, and a **Mark reviewed** button that writes today's date into `last-reviewed`.
 
 Moves append to the target before deleting from the source and verify the source line is unchanged before deleting, so a race can at worst duplicate a task (with a notice), never lose one.
@@ -179,7 +179,8 @@ Obsidian doesn't auto-reload plugins; use the community **Hot Reload** plugin or
 
 `npm run deploy` builds and copies `main.js`, `manifest.json`, `styles.css` into the vault's plugin folder (override the vault with `OBSIDIAN_VAULT=/path/to/vault npm run deploy`). **Do not symlink** the plugin into a cloud-synced vault (iCloud, Synology Drive, Dropbox): file-provider folders break symlinks and the plugin silently disappears.
 
+An **overdue badge** in the status bar shows "N overdue" in red whenever any active project has an open task past its due date; clicking it opens the Forecast.
+
 ## Roadmap
 
-1. Day-timeline ordering (overdue → flagged → due date instead of by project)
-2. Mobile verification
+1. Mobile verification

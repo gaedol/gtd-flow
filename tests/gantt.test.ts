@@ -3,7 +3,7 @@ import { ganttSource } from "../src/gantt";
 import { Project, Task } from "../src/types";
 
 const TODAY = "2026-06-12";
-const OPTS = { dayStart: "09:00", dayEnd: "22:00", defaultDurationMin: 30 };
+const OPTS = { dayStart: "09:00", dayEnd: "22:00", defaultDurationMin: 30, flagTag: "flag" };
 
 function task(text: string, extra: Partial<Task> = {}): Task {
   return { text, done: false, line: 0, indent: 0, tags: [], ...extra };
@@ -72,6 +72,21 @@ describe("ganttSource day", () => {
     const src = ganttSource([p], "day", TODAY, OPTS);
     expect(src).toContain("write report :active, 2026-06-12T09:00, 90m"); // due today = active, not crit
     expect(src).toContain("emails :active, 2026-06-12T10:30, 30m");
+  });
+
+  it("orders by urgency: overdue, flagged, due today, rest — across projects", () => {
+    const a = project("A", {
+      tasks: [task("plain a"), task("flagged", { tags: ["flag"] })],
+    });
+    const b = project("B", {
+      tasks: [task("due today", { due: "2026-06-12" }), task("overdue", { due: "2026-06-01" })],
+    });
+    const src = ganttSource([a, b], "day", TODAY, OPTS);
+    const order = ["overdue (B)", "flagged (A)", "due today (B)", "plain a (A)"].map((l) =>
+      src.indexOf(l)
+    );
+    expect(order.every((i) => i >= 0)).toBe(true);
+    expect([...order].sort((x, y) => x - y)).toEqual(order);
   });
 
   it("excludes blocked and deferred tasks", () => {

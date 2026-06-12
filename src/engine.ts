@@ -49,6 +49,15 @@ export function isAvailable(task: Task, project: Project, today: string): boolea
   return availableTasks(project, today).includes(task);
 }
 
+export function overdueCount(projects: Project[], today: string): number {
+  let n = 0;
+  for (const p of projects) {
+    if (p.status !== "active") continue;
+    for (const t of p.tasks) if (!t.done && t.due && t.due < today) n++;
+  }
+  return n;
+}
+
 // First available task per project, the OmniFocus "next action"
 export function nextAction(project: Project, today: string): Task | undefined {
   return availableTasks(project, today)[0];

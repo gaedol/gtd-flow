@@ -235,6 +235,12 @@
   display: none;
 }
 
+.gtd-statusbar-alert {
+  color: var(--color-red);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+}
+
 /* per-project page styling driven by frontmatter color/banner */
 .gtd-project-styled {
   background-color: color-mix(in srgb, var(--gtd-project-color, transparent) 14%, var(--background-primary));

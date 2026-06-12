@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isAvailable, availableTasks, nextAction, addInterval, isDueForReview, forecast } from "../src/engine";
+import { isAvailable, availableTasks, nextAction, addInterval, isDueForReview, forecast, overdueCount } from "../src/engine";
 import { Project, Task } from "../src/types";
 
 const TODAY = "2026-06-11";
@@ -109,6 +109,14 @@ describe("action groups (indentation)", () => {
       ],
     });
     expect(availableTasks(p, TODAY).map((t) => t.text)).toEqual(["after"]);
+  });
+});
+
+describe("overdueCount", () => {
+  it("counts open overdue tasks in active projects only", () => {
+    const p1 = project({ tasks: [task("a", { due: "2026-06-01" }), task("b", { due: "2026-06-01", done: true })] });
+    const p2 = project({ status: "on-hold", tasks: [task("c", { due: "2026-06-01" })] });
+    expect(overdueCount([p1, p2], TODAY)).toBe(1);
   });
 });
 

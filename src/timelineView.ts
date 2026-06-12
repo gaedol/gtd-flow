@@ -50,6 +50,7 @@ export class TimelineView extends ItemView {
       dayStart: this.plugin.settings.dayStart,
       dayEnd: this.plugin.settings.dayEnd,
       defaultDurationMin: this.plugin.settings.defaultDurationMin,
+      flagTag: this.plugin.settings.flagTag,
     });
     const body = root.createDiv();
     if (!src) {

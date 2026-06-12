@@ -10,6 +10,7 @@ import { CaptureModal } from "./captureModal";
 import { gtdEditorDecorations } from "./editorDecorations";
 import { TaskSuggest } from "./taskSuggest";
 import { archiveDoneTasks } from "./archive";
+import { overdueCount } from "./engine";
 import { insertTaskLine } from "./insertLine";
 import { EditTaskModal } from "./editTaskModal";
 import { NewProjectModal } from "./newProjectModal";
@@ -242,6 +243,16 @@ export default class GtdFlowPlugin extends Plugin {
     } catch (e) {
       console.error("GTD Flow: in-note Live Preview decorations disabled", e);
     }
+    const statusBar = this.addStatusBarItem();
+    statusBar.addClass("gtd-statusbar");
+    statusBar.onclick = () => this.activateView(FORECAST_VIEW);
+    const updateBadge = () => {
+      const n = overdueCount(this.index.all(), todayISO());
+      statusBar.setText(n > 0 ? `${n} overdue` : "");
+      statusBar.toggleClass("gtd-statusbar-alert", n > 0);
+    };
+    this.index.on("changed", updateBadge);
+
     this.index.on("changed", () => this.applyProjectStyles());
     this.registerEvent(this.app.workspace.on("layout-change", () => this.applyProjectStyles()));
     this.registerEvent(this.app.workspace.on("active-leaf-change", () => this.applyProjectStyles()));
