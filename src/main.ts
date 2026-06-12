@@ -134,6 +134,30 @@ export default class GtdFlowPlugin extends Plugin {
       callback: () => new NewProjectModal(this.app, this).open(),
     });
     this.addCommand({
+      id: "convert-to-project",
+      name: "Convert current note to project",
+      checkCallback: (checking) => {
+        const file = this.app.workspace.getActiveFile();
+        if (!file || this.index.get(file.path)) return false;
+        if (!checking) this.convertToProject(file);
+        return true;
+      },
+    });
+    this.registerEvent(
+      this.app.workspace.on("file-menu", (menu, file) => {
+        const folder = normalizePath(this.settings.projectsFolder);
+        if (file instanceof TFile && file.extension === "md" && !this.index.get(file.path)) {
+          menu.addItem((i) =>
+            i.setTitle("Convert to GTD project").setIcon("list-checks").onClick(() => this.convertToProject(file))
+          );
+        } else if (!(file instanceof TFile) && (file.path === folder || folder.startsWith(file.path + "/"))) {
+          menu.addItem((i) =>
+            i.setTitle("New GTD project").setIcon("list-checks").onClick(() => new NewProjectModal(this.app, this).open())
+          );
+        }
+      })
+    );
+    this.addCommand({
       id: "edit-project-properties",
       name: "Edit project properties",
       checkCallback: (checking) => {
@@ -234,6 +258,22 @@ export default class GtdFlowPlugin extends Plugin {
         if (cls) li.classList.add(...cls.split(" "));
       });
     });
+  }
+
+  async convertToProject(file: TFile) {
+    await this.app.fileManager.processFrontMatter(file, (fm) => {
+      fm["type"] = "project";
+      fm["status"] ??= "active";
+      fm["flow"] ??= "parallel";
+      fm["review-interval"] ??= this.settings.defaultReviewInterval || null;
+      fm["last-reviewed"] ??= null;
+    });
+    const folder = normalizePath(this.settings.projectsFolder);
+    if (!file.path.startsWith(folder + "/")) {
+      if (!this.app.vault.getFolderByPath(folder)) await this.app.vault.createFolder(folder);
+      await this.app.fileManager.renameFile(file, `${folder}/${file.name}`);
+    }
+    new Notice(`${file.basename} is now a project`);
   }
 
   async ensureInboxFile(): Promise<TFile> {
