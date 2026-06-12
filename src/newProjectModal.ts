@@ -51,13 +51,14 @@ export class NewProjectModal extends Modal {
       new Notice("A project with that name already exists");
       return;
     }
-    const review = this.plugin.settings.defaultReviewInterval;
+    // all keys present so Obsidian's Properties panel offers them as fields
     const fm = [
       "---",
       "type: project",
       "status: active",
       `flow: ${this.flow}`,
-      ...(review ? [`review-interval: ${review}`] : []),
+      `review-interval: ${this.plugin.settings.defaultReviewInterval}`,
+      "last-reviewed: ",
       "---",
       "",
     ].join("\n");

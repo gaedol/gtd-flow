@@ -115,7 +115,8 @@ The Tasks plugin is **optional**. GTD Flow works standalone; nothing in it depen
 - **Inbox section** (top of the sidebar when non-empty) — folder icon on each task opens a project picker and moves the task line, metadata intact, to the end of the chosen project note.
 - **Move task under cursor to project** — same picker for the task line under the cursor in any note; also works project → project. Captured/moved tasks land at the top or bottom of the list per the **Insert captured/moved tasks at** setting, always above `## Archive`.
 - **Edit task** — pencil icon on rows in Next Actions (incl. inbox), or command **Edit task under cursor**: modal for text, defer/due dates, ⏱ duration, 🔁 rule, and flag. Rewrites the line in place, preserving indent, other tags, and completion state.
-- **New project** — command opening a name + flow modal; creates the note in the projects folder with frontmatter (including the **Default review interval** setting, empty = none) and opens it.
+- **New project** — command opening a name + flow modal; creates the note with the complete frontmatter (every key present, `last-reviewed` empty), so Obsidian's Properties panel shows all fields ready to fill, and opens it.
+- **Edit project properties** — command on a project note (also a "Properties" button on Review cards): modal with status and flow dropdowns, review-interval, and a last-reviewed date picker.
 - **Toggle project on hold / active** — command on the current project note; on-hold projects vanish from Next Actions/Forecast/Timeline until reactivated.
 - **Ribbon icon (calendar-clock)** or command **Open forecast** — day-by-day view over the configured horizon: due tasks (checkbox, red when overdue and surfaced under Today) and deferred tasks becoming available (play icon).
 - **Ribbon icon (telescope)** or command **Open perspectives** — saved filtered views. Each perspective combines filters (available-only, flagged, tag, project-name substring, due within N days) with a grouping (by project, tag, or due date); a dropdown switches between them. Define perspectives in settings; defaults are "Due soon" (due ≤ 7 days, grouped by date) and "Flagged".
@@ -150,6 +151,7 @@ src/
   serialize.ts       pure: task fields → line; duration parsing/formatting
   editTaskModal.ts   edit modal rewriting a task line in place
   newProjectModal.ts name+flow modal creating a project note
+  projectPropertiesModal.ts status/flow/review editor writing frontmatter
   inNote.ts          pure: doc lines → per-line availability CSS classes
   editorDecorations.ts CM6 line decorations for Live Preview (reading mode via post-processor in main)
   settings.ts        settings tab

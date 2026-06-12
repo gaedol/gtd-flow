@@ -13,6 +13,7 @@ import { archiveDoneTasks } from "./archive";
 import { insertTaskLine } from "./insertLine";
 import { EditTaskModal } from "./editTaskModal";
 import { NewProjectModal } from "./newProjectModal";
+import { ProjectPropertiesModal } from "./projectPropertiesModal";
 import { buildLineClasses } from "./inNote";
 import { todayISO } from "./dates";
 import { moveTask, ProjectSuggestModal } from "./moveTask";
@@ -126,6 +127,17 @@ export default class GtdFlowPlugin extends Plugin {
       id: "new-project",
       name: "New project",
       callback: () => new NewProjectModal(this.app, this).open(),
+    });
+    this.addCommand({
+      id: "edit-project-properties",
+      name: "Edit project properties",
+      checkCallback: (checking) => {
+        const file = this.app.workspace.getActiveFile();
+        const project = file ? this.index.get(file.path) : undefined;
+        if (!project) return false;
+        if (!checking) new ProjectPropertiesModal(this.app, this, project).open();
+        return true;
+      },
     });
     this.addCommand({
       id: "toggle-project-hold",

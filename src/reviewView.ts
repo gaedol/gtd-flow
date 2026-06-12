@@ -1,6 +1,7 @@
 import { ItemView, WorkspaceLeaf, TFile } from "obsidian";
 import type GtdFlowPlugin from "./main";
-import { isDueForReview, addInterval, availableTasks } from "./engine";
+import { isDueForReview, availableTasks } from "./engine";
+import { ProjectPropertiesModal } from "./projectPropertiesModal";
 import { todayISO } from "./dates";
 import { Project } from "./types";
 
@@ -75,6 +76,8 @@ export class ReviewView extends ItemView {
       btn.disabled = true;
       await this.markReviewed(p);
     };
+    const props = card.createEl("button", { cls: "gtd-review-btn", text: "Properties" });
+    props.onclick = () => new ProjectPropertiesModal(this.app, this.plugin, p).open();
   }
 
   private async markReviewed(p: Project) {
