@@ -21,5 +21,7 @@ export interface Project {
   flow: ProjectFlow;
   reviewInterval?: string; // e.g. "1w", "3d", "2m"
   lastReviewed?: string; // ISO date
+  color?: string; // page tint, hex
+  banner?: string; // background image: vault path or URL
   tasks: Task[];
 }

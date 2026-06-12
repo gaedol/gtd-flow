@@ -66,6 +66,8 @@ export function parseProject(
     flow: asFlow(frontmatter["flow"]),
     reviewInterval: asString(frontmatter["review-interval"]),
     lastReviewed: asString(frontmatter["last-reviewed"]),
+    color: asString(frontmatter["color"]),
+    banner: asString(frontmatter["banner"]),
     tasks,
   };
 }

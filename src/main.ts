@@ -1,4 +1,4 @@
-import { Plugin, TFile, normalizePath, Notice, WorkspaceLeaf } from "obsidian";
+import { MarkdownView, Plugin, TFile, normalizePath, Notice, WorkspaceLeaf } from "obsidian";
 import { GtdSettings, DEFAULT_SETTINGS, GtdSettingTab } from "./settings";
 import { TaskIndex } from "./taskIndex";
 import { NextActionsView, NEXT_ACTIONS_VIEW } from "./nextActionsView";
@@ -242,6 +242,9 @@ export default class GtdFlowPlugin extends Plugin {
     } catch (e) {
       console.error("GTD Flow: in-note Live Preview decorations disabled", e);
     }
+    this.index.on("changed", () => this.applyProjectStyles());
+    this.registerEvent(this.app.workspace.on("layout-change", () => this.applyProjectStyles()));
+    this.registerEvent(this.app.workspace.on("active-leaf-change", () => this.applyProjectStyles()));
     this.registerMarkdownPostProcessor((el, ctx) => {
       const project = this.index.get(ctx.sourcePath);
       if (!project) return;
@@ -258,6 +261,27 @@ export default class GtdFlowPlugin extends Plugin {
         if (cls) li.classList.add(...cls.split(" "));
       });
     });
+  }
+
+  applyProjectStyles() {
+    for (const leaf of this.app.workspace.getLeavesOfType("markdown")) {
+      const view = leaf.view;
+      if (!(view instanceof MarkdownView)) continue;
+      const el = view.contentEl;
+      const p = view.file ? this.index.get(view.file.path) : undefined;
+      const styled = !!(p && (p.color || p.banner));
+      el.toggleClass("gtd-project-styled", styled);
+      if (p?.color) el.style.setProperty("--gtd-project-color", p.color);
+      else el.style.removeProperty("--gtd-project-color");
+      if (p?.banner) {
+        const url = /^https?:\/\//.test(p.banner)
+          ? p.banner
+          : this.app.vault.adapter.getResourcePath(normalizePath(p.banner));
+        el.style.setProperty("--gtd-project-banner", `url("${url}")`);
+      } else {
+        el.style.removeProperty("--gtd-project-banner");
+      }
+    }
   }
 
   async convertToProject(file: TFile) {

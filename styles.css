@@ -235,6 +235,19 @@
   display: none;
 }
 
+/* per-project page styling driven by frontmatter color/banner */
+.gtd-project-styled {
+  background-color: color-mix(in srgb, var(--gtd-project-color, transparent) 14%, var(--background-primary));
+  background-image: var(--gtd-project-banner, none);
+  background-size: cover;
+  background-position: center;
+}
+
+.gtd-project-styled .markdown-source-view,
+.gtd-project-styled .markdown-reading-view {
+  background: transparent;
+}
+
 /* distinct ribbon icon colors (svg inherits currentColor) */
 .gtd-ribbon-next { color: var(--color-green); }
 .gtd-ribbon-forecast { color: var(--color-blue); }

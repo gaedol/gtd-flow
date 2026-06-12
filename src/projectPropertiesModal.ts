@@ -7,6 +7,8 @@ export class ProjectPropertiesModal extends Modal {
   private flow: ProjectFlow;
   private reviewInterval: string;
   private lastReviewed: string;
+  private color: string;
+  private banner: string;
 
   constructor(app: App, private plugin: GtdFlowPlugin, private project: Project) {
     super(app);
@@ -14,6 +16,8 @@ export class ProjectPropertiesModal extends Modal {
     this.flow = project.flow;
     this.reviewInterval = project.reviewInterval ?? "";
     this.lastReviewed = project.lastReviewed ?? "";
+    this.color = project.color ?? "";
+    this.banner = project.banner ?? "";
   }
 
   onOpen() {
@@ -46,6 +50,27 @@ export class ProjectPropertiesModal extends Modal {
       t.setValue(this.lastReviewed).onChange((v) => (this.lastReviewed = v));
     });
 
+    new Setting(contentEl)
+      .setName("Page color")
+      .setDesc("Tints the project page background.")
+      .addColorPicker((c) =>
+        c.setValue(this.color || "#888888").onChange((v) => (this.color = v))
+      )
+      .addExtraButton((b) =>
+        b.setIcon("x").setTooltip("No color").onClick(() => {
+          this.color = "";
+          this.onClose();
+          this.onOpen();
+        })
+      );
+
+    new Setting(contentEl)
+      .setName("Banner image")
+      .setDesc("Vault path (e.g. assets/kitchen.jpg) or URL; shown as page background.")
+      .addText((t) =>
+        t.setPlaceholder("assets/img.jpg").setValue(this.banner).onChange((v) => (this.banner = v.trim()))
+      );
+
     new Setting(contentEl).addButton((b) =>
       b.setButtonText("Save").setCta().onClick(() => this.save())
     );
@@ -60,6 +85,8 @@ export class ProjectPropertiesModal extends Modal {
       fm["flow"] = this.flow;
       fm["review-interval"] = this.reviewInterval || null;
       fm["last-reviewed"] = this.lastReviewed || null;
+      fm["color"] = this.color || null;
+      fm["banner"] = this.banner || null;
     });
     this.close();
   }
