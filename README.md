@@ -113,7 +113,10 @@ The Tasks plugin is **optional**. GTD Flow works standalone; nothing in it depen
 - **Ribbon icon (list-checks)** or command **Open next actions** — sidebar view of available tasks grouped by project. Checking a box writes `[x]` + ✅ date into the note; in sequential projects the next task appears automatically. Click a task to jump to its line; due badges turn orange (today) or red (overdue).
 - **Ribbon icon (plus-circle)** or command **Capture task** — modal with task text (Enter submits), optional defer/due dates, and a target dropdown (Inbox or any active project). Appends the formatted task line without leaving your current note; the inbox note is created on demand.
 - **Inbox section** (top of the sidebar when non-empty) — folder icon on each task opens a project picker and moves the task line, metadata intact, to the end of the chosen project note.
-- **Move task under cursor to project** — same picker for the task line under the cursor in any note; also works project → project.
+- **Move task under cursor to project** — same picker for the task line under the cursor in any note; also works project → project. Captured/moved tasks land at the top or bottom of the list per the **Insert captured/moved tasks at** setting, always above `## Archive`.
+- **Edit task** — pencil icon on rows in Next Actions (incl. inbox), or command **Edit task under cursor**: modal for text, defer/due dates, ⏱ duration, 🔁 rule, and flag. Rewrites the line in place, preserving indent, other tags, and completion state.
+- **New project** — command opening a name + flow modal; creates the note in the projects folder with frontmatter (including the **Default review interval** setting, empty = none) and opens it.
+- **Toggle project on hold / active** — command on the current project note; on-hold projects vanish from Next Actions/Forecast/Timeline until reactivated.
 - **Ribbon icon (calendar-clock)** or command **Open forecast** — day-by-day view over the configured horizon: due tasks (checkbox, red when overdue and surfaced under Today) and deferred tasks becoming available (play icon).
 - **Ribbon icon (telescope)** or command **Open perspectives** — saved filtered views. Each perspective combines filters (available-only, flagged, tag, project-name substring, due within N days) with a grouping (by project, tag, or due date); a dropdown switches between them. Define perspectives in settings; defaults are "Due soon" (due ≤ 7 days, grouped by date) and "Flagged".
 - **Completing a 🔁 repeating task from any GTD Flow view** inserts the next occurrence above the completed line: all dates advance by the interval (`every day/week/month/year`, optional count: `every 2 weeks`); with `when done` the next due date is completion + interval and other dates keep their relative offsets. Recurrence requires at least one date on the task.
@@ -143,6 +146,10 @@ src/
   captureModal.ts    quick-capture modal (text, defer/due, target picker)
   taskSuggest.ts     EditorSuggest popup: field markers, dates, repeat presets
   archive.ts         pure: move aged done subtrees under a ## Archive heading
+  insertLine.ts      pure: position-aware task insertion (archive-safe)
+  serialize.ts       pure: task fields → line; duration parsing/formatting
+  editTaskModal.ts   edit modal rewriting a task line in place
+  newProjectModal.ts name+flow modal creating a project note
   inNote.ts          pure: doc lines → per-line availability CSS classes
   editorDecorations.ts CM6 line decorations for Live Preview (reading mode via post-processor in main)
   settings.ts        settings tab
@@ -167,6 +174,5 @@ Obsidian doesn't auto-reload plugins; use the community **Hot Reload** plugin or
 
 ## Roadmap
 
-1. Insert-position options for moves (e.g. under a heading / before a task)
-2. Task-edit modal (change dates on existing tasks from the views)
-3. Project lifecycle commands (hold/reactivate, new from template)
+1. Day-timeline ordering (overdue → flagged → due date instead of by project)
+2. Mobile verification

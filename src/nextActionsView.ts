@@ -4,6 +4,7 @@ import { availableTasks } from "./engine";
 import { todayISO } from "./dates";
 import { completeTask } from "./completeTask";
 import { moveTask, ProjectSuggestModal } from "./moveTask";
+import { EditTaskModal } from "./editTaskModal";
 import { Project, Task } from "./types";
 
 export const NEXT_ACTIONS_VIEW = "gtd-next-actions";
@@ -73,11 +74,12 @@ export class NextActionsView extends ItemView {
         await completeTask(this.app, inboxPath, t);
       };
       row.createSpan({ cls: "gtd-task-text", text: t.text });
+      this.editButton(row, inboxPath, t);
       const btn = row.createEl("button", { cls: "gtd-move-btn", attr: { "aria-label": "Move to project" } });
       setIcon(btn, "folder-input");
       btn.onclick = () => {
         new ProjectSuggestModal(this.app, this.plugin.index.all(), async (p) => {
-          await moveTask(this.app, inboxPath, t, p.path);
+          await moveTask(this.app, inboxPath, t, p.path, this.plugin.settings.insertPosition);
         }).open();
       };
     }
@@ -120,6 +122,7 @@ export class NextActionsView extends ItemView {
     }
     const label = row.createSpan({ cls: "gtd-task-text", text: task.text });
     label.onclick = () => this.openTask(project, task, true);
+    this.editButton(row, project.path, task);
     if (showProject) row.createSpan({ cls: "gtd-project-ref", text: project.name });
     if (task.due) {
       row.createSpan({
@@ -131,6 +134,12 @@ export class NextActionsView extends ItemView {
       if (tag === this.plugin.settings.flagTag) continue;
       row.createSpan({ cls: "gtd-tag", text: "#" + tag });
     }
+  }
+
+  private editButton(row: HTMLElement, path: string, task: Task) {
+    const btn = row.createEl("button", { cls: "gtd-move-btn", attr: { "aria-label": "Edit task" } });
+    setIcon(btn, "pencil");
+    btn.onclick = () => new EditTaskModal(this.app, this.plugin, path, task).open();
   }
 
   private async openTask(project: Project, task: Task | undefined, toLine: boolean) {

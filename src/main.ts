@@ -10,6 +10,9 @@ import { CaptureModal } from "./captureModal";
 import { gtdEditorDecorations } from "./editorDecorations";
 import { TaskSuggest } from "./taskSuggest";
 import { archiveDoneTasks } from "./archive";
+import { insertTaskLine } from "./insertLine";
+import { EditTaskModal } from "./editTaskModal";
+import { NewProjectModal } from "./newProjectModal";
 import { buildLineClasses } from "./inNote";
 import { todayISO } from "./dates";
 import { moveTask, ProjectSuggestModal } from "./moveTask";
@@ -99,11 +102,49 @@ export default class GtdFlowPlugin extends Plugin {
         }
         new ProjectSuggestModal(this.app, this.index.all(), async (p) => {
           if (p.path === file.path) return;
-          await moveTask(this.app, file.path, task, p.path);
+          await moveTask(this.app, file.path, task, p.path, this.settings.insertPosition);
         }).open();
       },
     });
 
+    this.addCommand({
+      id: "edit-task",
+      name: "Edit task under cursor",
+      editorCallback: (editor, view) => {
+        const file = view.file;
+        if (!file) return;
+        const lineNo = editor.getCursor().line;
+        const task = parseTaskLine(editor.getLine(lineNo), lineNo);
+        if (!task) {
+          new Notice("Cursor is not on a task line");
+          return;
+        }
+        new EditTaskModal(this.app, this, file.path, task).open();
+      },
+    });
+    this.addCommand({
+      id: "new-project",
+      name: "New project",
+      callback: () => new NewProjectModal(this.app, this).open(),
+    });
+    this.addCommand({
+      id: "toggle-project-hold",
+      name: "Toggle project on hold / active",
+      checkCallback: (checking) => {
+        const file = this.app.workspace.getActiveFile();
+        const project = file ? this.index.get(file.path) : undefined;
+        if (!project) return false;
+        if (!checking) {
+          this.app.fileManager.processFrontMatter(file!, (fm) => {
+            fm["status"] = fm["status"] === "on-hold" ? "active" : "on-hold";
+          });
+          new Notice(
+            `${project.name}: ${project.status === "on-hold" ? "active" : "on hold"}`
+          );
+        }
+        return true;
+      },
+    });
     this.addCommand({
       id: "archive-done-tasks",
       name: "Archive done tasks in this note",
@@ -190,7 +231,9 @@ export default class GtdFlowPlugin extends Plugin {
   }
 
   async appendTaskLine(file: TFile, line: string) {
-    await this.app.vault.process(file, (c) => c.trimEnd() + "\n" + line + "\n");
+    await this.app.vault.process(file, (c) =>
+      insertTaskLine(c, line, this.settings.insertPosition)
+    );
   }
 
   async archiveNote(file: TFile): Promise<number> {

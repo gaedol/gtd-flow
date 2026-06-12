@@ -1,13 +1,15 @@
 import { App, FuzzySuggestModal, Notice, TFile } from "obsidian";
 import { Project, Task } from "./types";
 import { parseTaskLine } from "./parser";
+import { insertTaskLine, InsertPosition } from "./insertLine";
 
 // Append to target first, then remove from source: a duplicate beats a lost task
 export async function moveTask(
   app: App,
   fromPath: string,
   task: Task,
-  toPath: string
+  toPath: string,
+  pos: InsertPosition = "bottom"
 ): Promise<boolean> {
   const from = app.vault.getFileByPath(fromPath);
   const to = app.vault.getFileByPath(toPath);
@@ -22,7 +24,7 @@ export async function moveTask(
     return false;
   }
 
-  await app.vault.process(to, (c) => c.trimEnd() + "\n" + raw.trim() + "\n");
+  await app.vault.process(to, (c) => insertTaskLine(c, raw.trim(), pos));
   await app.vault.process(from, (c) => {
     const ls = c.split("\n");
     if (ls[task.line] !== raw) {

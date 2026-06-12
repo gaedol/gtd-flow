@@ -1,6 +1,7 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import type GtdFlowPlugin from "./main";
 import { Perspective, DEFAULT_PERSPECTIVES } from "./perspectives";
+import { InsertPosition } from "./insertLine";
 
 export interface GtdSettings {
   projectsFolder: string;
@@ -13,6 +14,8 @@ export interface GtdSettings {
   dayStart: string;
   dayEnd: string;
   defaultDurationMin: number;
+  insertPosition: InsertPosition;
+  defaultReviewInterval: string;
 }
 
 export const DEFAULT_SETTINGS: GtdSettings = {
@@ -26,6 +29,8 @@ export const DEFAULT_SETTINGS: GtdSettings = {
   dayStart: "09:00",
   dayEnd: "22:00",
   defaultDurationMin: 30,
+  insertPosition: "bottom",
+  defaultReviewInterval: "1w",
 };
 
 export class GtdSettingTab extends PluginSettingTab {
@@ -98,6 +103,29 @@ export class GtdSettingTab extends PluginSettingTab {
       .addText((t) =>
         t.setValue(this.plugin.settings.archiveFolder).onChange(async (v) => {
           this.plugin.settings.archiveFolder = v;
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Insert captured/moved tasks at")
+      .setDesc("Where new task lines land in a project note (always above ## Archive).")
+      .addDropdown((d) =>
+        d.addOption("bottom", "Bottom of list")
+          .addOption("top", "Top of list")
+          .setValue(this.plugin.settings.insertPosition)
+          .onChange(async (v) => {
+            this.plugin.settings.insertPosition = v as InsertPosition;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Default review interval")
+      .setDesc("Used by 'New project' (e.g. 1w, 3d, 2m; empty = no review).")
+      .addText((t) =>
+        t.setValue(this.plugin.settings.defaultReviewInterval).onChange(async (v) => {
+          this.plugin.settings.defaultReviewInterval = v.trim();
           await this.plugin.saveSettings();
         })
       );
