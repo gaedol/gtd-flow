@@ -61,26 +61,18 @@ export class CaptureModal extends Modal {
     if (this.defer) line += ` 🛫 ${this.defer}`;
     if (this.due) line += ` 📅 ${this.due}`;
 
-    const file = await this.ensureFile(this.targetPath);
+    // only the inbox is auto-created; projects must already exist
+    const file =
+      this.targetPath === normalizePath(this.plugin.settings.inboxNote)
+        ? await this.plugin.ensureInboxFile()
+        : this.app.vault.getFileByPath(this.targetPath);
     if (!file) {
       new Notice("Could not open target note");
       return;
     }
-    await this.app.vault.process(file, (c) => c.trimEnd() + "\n" + line + "\n");
+    await this.plugin.appendTaskLine(file, line);
     new Notice("Captured: " + text);
     this.close();
-  }
-
-  // only the inbox is auto-created; projects must already exist
-  private async ensureFile(path: string): Promise<TFile | null> {
-    let file = this.app.vault.getFileByPath(path);
-    if (file) return file;
-    if (path !== normalizePath(this.plugin.settings.inboxNote)) return null;
-    const dir = path.replace(/\/[^/]*$/, "");
-    if (dir && dir !== path && !this.app.vault.getFolderByPath(dir)) {
-      await this.app.vault.createFolder(dir);
-    }
-    return this.app.vault.create(path, "");
   }
 
   onClose() {

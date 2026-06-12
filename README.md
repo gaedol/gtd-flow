@@ -43,7 +43,7 @@ last-reviewed: 2026-06-10
 - [x] Browse ideas ✅ 2026-06-01
 ```
 
-Task lines use [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so both plugins can read the same files: 🛫 defer/start, 📅 due, ✅ completion date, 🔁 repeat rule, `#tags`. A ⏳ scheduled date counts as the defer date when no 🛫 is present; ➕ created dates and priority emojis are recognized and ignored.
+Task lines use [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so both plugins can read the same files: 🛫 defer/start, 📅 due, ✅ completion date, 🔁 repeat rule, `#tags`. GTD Flow adds ⏱ for estimated duration (`⏱ 30m`, `⏱ 2h`, `⏱ 1h30m`) — its own marker, ignored by Tasks. A ⏳ scheduled date counts as the defer date when no 🛫 is present; ➕ created dates and priority emojis are recognized and ignored.
 
 ### Action groups (nesting)
 
@@ -69,9 +69,10 @@ Tag a task with `#flag` (configurable in settings) to flag it: it gets an orange
 
 On task lines in project notes and the inbox, typing at the end of the line opens an inline menu (Tasks-style):
 
-- type a word start (`de`, `du`, `rep`, `sch`) → insert **🛫 defer / 📅 due / 🔁 repeat / ⏳ scheduled**
+- type a word start (`de`, `du`, `rep`, `sch`, `dur`) → insert **🛫 defer / 📅 due / 🔁 repeat / ⏳ scheduled / ⏱ duration**
 - after 🛫/📅/⏳ → date choices (today, tomorrow, in 3 days, in a week, in 2 weeks, in a month) with the computed date shown; or just type `YYYY-MM-DD`
 - after 🔁 → recurrence presets (every day/week/2 weeks/month/3 months/year)
+- after ⏱ → duration presets (15m … 4h)
 
 Picking a field marker immediately re-opens the menu in date mode, so `due → tomorrow` is two selections.
 
@@ -103,7 +104,7 @@ The Tasks plugin is **optional**. GTD Flow works standalone; nothing in it depen
 - 🔁 recurrence: Tasks creates the next occurrence when you complete a repeating task **in the editor**
 
 **Caveats when both are loaded:**
-- Complete repeating (🔁) tasks **in the note**, not from GTD Flow's sidebar — GTD Flow marks them done but does not yet create the next occurrence; Tasks does.
+- Repeating (🔁) tasks recur whichever side completes them — complete them in the note (Tasks handles it) or in GTD Flow's views (GTD Flow inserts the next occurrence). Don't worry about which.
 - If you use Tasks' **global filter** (e.g. only `#task` lines count), GTD Flow ignores it: every checklist line in a project note is a task to GTD Flow. Either don't set a global filter, or accept that the two plugins see different task sets.
 - Sequential/parallel availability is GTD Flow's concept only — Tasks queries will happily show tasks GTD Flow considers blocked or deferred.
 
@@ -114,6 +115,10 @@ The Tasks plugin is **optional**. GTD Flow works standalone; nothing in it depen
 - **Inbox section** (top of the sidebar when non-empty) — folder icon on each task opens a project picker and moves the task line, metadata intact, to the end of the chosen project note.
 - **Move task under cursor to project** — same picker for the task line under the cursor in any note; also works project → project.
 - **Ribbon icon (calendar-clock)** or command **Open forecast** — day-by-day view over the configured horizon: due tasks (checkbox, red when overdue and surfaced under Today) and deferred tasks becoming available (play icon).
+- **Ribbon icon (telescope)** or command **Open perspectives** — saved filtered views. Each perspective combines filters (available-only, flagged, tag, project-name substring, due within N days) with a grouping (by project, tag, or due date); a dropdown switches between them. Define perspectives in settings; defaults are "Due soon" (due ≤ 7 days, grouped by date) and "Flagged".
+- **Completing a 🔁 repeating task from any GTD Flow view** inserts the next occurrence above the completed line: all dates advance by the interval (`every day/week/month/year`, optional count: `every 2 weeks`); with `when done` the next due date is completion + interval and other dates keep their relative offsets. Recurrence requires at least one date on the task.
+- **Capture from outside Obsidian** via URI: `obsidian://gtd-capture?vault=<name>&text=Buy+milk&due=2026-06-20&defer=2026-06-15` appends to the inbox; without `text` it opens the capture modal.
+- **Ribbon icon (gantt-chart)** or command **Open timeline** — Mermaid Gantt charts with a Day/Week/Month switcher. Week/month: one bar per open task spanning defer → due (single date = 1-day bar; overdue bars surface red on today; available tasks highlighted), one section per project. Day: a plan-of-day — today's available and due tasks stacked from **Day starts at** (default 09:00), each sized by its ⏱ duration (or the **Default task duration** setting, 30 min). All three charts always span their full window (day = **Day starts/ends at**, 09:00–22:00 by default), with ticks every 3 h / day / week respectively.
 - **Ribbon icon (eye)** or command **Open review** — queue of active projects whose `last-reviewed + review-interval` has passed (never-reviewed projects with an interval are always due). Each card shows open/available counts, the next action, a stalled warning when no tasks remain, and a **Mark reviewed** button that writes today's date into `last-reviewed`.
 
 Moves append to the target before deleting from the source and verify the source line is unchanged before deleting, so a race can at worst duplicate a task (with a notice), never lose one.
@@ -130,6 +135,11 @@ src/
   nextActionsView.ts sidebar ItemView (next actions + inbox), re-renders on index "changed" events
   forecastView.ts    sidebar ItemView, day-grouped due / becoming-available items
   reviewView.ts      sidebar ItemView, projects due for review + mark-reviewed
+  perspectives.ts    pure: perspective filters + grouping
+  perspectiveView.ts sidebar ItemView with perspective dropdown
+  repeat.ts          pure: 🔁 rule parsing + next-occurrence line
+  gantt.ts           pure: projects → mermaid gantt source (day/week/month)
+  timelineView.ts    ItemView rendering the mermaid chart with mode switcher
   captureModal.ts    quick-capture modal (text, defer/due, target picker)
   taskSuggest.ts     EditorSuggest popup: field markers, dates, repeat presets
   archive.ts         pure: move aged done subtrees under a ## Archive heading
@@ -157,6 +167,6 @@ Obsidian doesn't auto-reload plugins; use the community **Hot Reload** plugin or
 
 ## Roadmap
 
-1. 🔁 repeat handling on completion (write next occurrence)
-2. Insert-position options for moves (e.g. under a heading / before a task)
-3. Perspectives (saved filtered views)
+1. Insert-position options for moves (e.g. under a heading / before a task)
+2. Task-edit modal (change dates on existing tasks from the views)
+3. Project lifecycle commands (hold/reactivate, new from template)

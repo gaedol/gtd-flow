@@ -2,6 +2,7 @@ import { App, Notice, TFile } from "obsidian";
 import { Task } from "./types";
 import { parseTaskLine } from "./parser";
 import { todayISO } from "./dates";
+import { nextOccurrenceLine } from "./repeat";
 
 export async function completeTask(app: App, path: string, task: Task): Promise<boolean> {
   const file = app.vault.getFileByPath(path);
@@ -16,7 +17,10 @@ export async function completeTask(app: App, path: string, task: Task): Promise<
       new Notice("Task moved since last index — try again");
       return content;
     }
-    lines[task.line] = line.replace("[ ]", "[x]") + ` ✅ ${todayISO()}`;
+    const today = todayISO();
+    lines[task.line] = line.replace("[ ]", "[x]") + ` ✅ ${today}`;
+    const next = nextOccurrenceLine(line, today);
+    if (next) lines.splice(task.line, 0, next);
     ok = true;
     return lines.join("\n");
   });

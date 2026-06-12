@@ -155,6 +155,86 @@
   width: 100%;
 }
 
+.gtd-perspectives .gtd-perspective-select {
+  margin-bottom: var(--size-4-3);
+  width: 100%;
+}
+
+.gtd-perspectives .gtd-task {
+  display: flex;
+  align-items: baseline;
+  gap: var(--size-4-2);
+  padding: var(--size-4-1) 0;
+}
+
+.gtd-perspectives .gtd-project {
+  margin-bottom: var(--size-4-4);
+}
+
+.gtd-perspectives .gtd-project-name {
+  font-weight: var(--font-semibold);
+  color: var(--text-accent);
+  margin-bottom: var(--size-4-1);
+}
+
+.gtd-perspectives .gtd-task-text {
+  cursor: pointer;
+  flex: 1;
+}
+
+.gtd-perspectives .gtd-task-text:hover {
+  text-decoration: underline;
+}
+
+.gtd-perspectives .gtd-due,
+.gtd-perspectives .gtd-project-ref {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+}
+
+.gtd-perspectives .gtd-due-today {
+  color: var(--color-orange);
+}
+
+.gtd-perspectives .gtd-overdue {
+  color: var(--color-red);
+}
+
+.gtd-perspectives .gtd-empty {
+  color: var(--text-muted);
+  padding: var(--size-4-2);
+}
+
+.gtd-perspective-setting .gtd-narrow-input {
+  max-width: 80px;
+}
+
+.gtd-timeline .gtd-timeline-bar {
+  display: flex;
+  gap: var(--size-4-1);
+  margin-bottom: var(--size-4-3);
+}
+
+.gtd-timeline .gtd-timeline-active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.gtd-timeline .gtd-empty {
+  color: var(--text-muted);
+  padding: var(--size-4-2);
+}
+
+.gtd-timeline .mermaid {
+  overflow-x: auto;
+}
+
+/* axis-bounding milestones (section ".") are data scaffolding, not content */
+.gtd-timeline .mermaid .milestone,
+.gtd-timeline .mermaid .milestoneText {
+  display: none;
+}
+
 .gtd-flag {
   color: var(--color-orange);
   display: flex;

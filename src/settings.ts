@@ -1,5 +1,6 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import type GtdFlowPlugin from "./main";
+import { Perspective, DEFAULT_PERSPECTIVES } from "./perspectives";
 
 export interface GtdSettings {
   projectsFolder: string;
@@ -8,6 +9,10 @@ export interface GtdSettings {
   flagTag: string;
   archiveAfterDays: number;
   archiveFolder: string;
+  perspectives: Perspective[];
+  dayStart: string;
+  dayEnd: string;
+  defaultDurationMin: number;
 }
 
 export const DEFAULT_SETTINGS: GtdSettings = {
@@ -17,6 +22,10 @@ export const DEFAULT_SETTINGS: GtdSettings = {
   flagTag: "flag",
   archiveAfterDays: 7,
   archiveFolder: "GTD/Archive",
+  perspectives: DEFAULT_PERSPECTIVES,
+  dayStart: "09:00",
+  dayEnd: "22:00",
+  defaultDurationMin: 30,
 };
 
 export class GtdSettingTab extends PluginSettingTab {
@@ -90,6 +99,98 @@ export class GtdSettingTab extends PluginSettingTab {
         t.setValue(this.plugin.settings.archiveFolder).onChange(async (v) => {
           this.plugin.settings.archiveFolder = v;
           await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Day starts at")
+      .setDesc("Start time for the day timeline (HH:MM).")
+      .addText((t) =>
+        t.setValue(this.plugin.settings.dayStart).onChange(async (v) => {
+          if (/^\d{2}:\d{2}$/.test(v)) {
+            this.plugin.settings.dayStart = v;
+            await this.plugin.saveSettings();
+          }
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Day ends at")
+      .setDesc("End time for the day timeline (HH:MM).")
+      .addText((t) =>
+        t.setValue(this.plugin.settings.dayEnd).onChange(async (v) => {
+          if (/^\d{2}:\d{2}$/.test(v)) {
+            this.plugin.settings.dayEnd = v;
+            await this.plugin.saveSettings();
+          }
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Default task duration (minutes)")
+      .setDesc("Used in the day timeline when a task has no ⏱ duration.")
+      .addText((t) =>
+        t.setValue(String(this.plugin.settings.defaultDurationMin)).onChange(async (v) => {
+          const n = parseInt(v, 10);
+          if (!isNaN(n) && n > 0) {
+            this.plugin.settings.defaultDurationMin = n;
+            await this.plugin.saveSettings();
+          }
+        })
+      );
+
+    new Setting(containerEl).setName("Perspectives").setHeading();
+    this.plugin.settings.perspectives.forEach((p, i) => this.renderPerspective(containerEl, p, i));
+    new Setting(containerEl).addButton((b) =>
+      b.setButtonText("Add perspective").onClick(async () => {
+        this.plugin.settings.perspectives.push({
+          name: "New perspective",
+          availableOnly: true,
+          flagged: false,
+          tag: "",
+          project: "",
+          dueWithin: 0,
+          groupBy: "project",
+        });
+        await this.plugin.saveSettings();
+        this.display();
+      })
+    );
+  }
+
+  private renderPerspective(containerEl: HTMLElement, p: Perspective, i: number) {
+    const save = async () => this.plugin.saveSettings();
+    const row1 = new Setting(containerEl).setClass("gtd-perspective-setting");
+    row1
+      .addText((t) => t.setPlaceholder("Name").setValue(p.name).onChange(async (v) => { p.name = v; await save(); }))
+      .addText((t) => t.setPlaceholder("#tag filter").setValue(p.tag).onChange(async (v) => { p.tag = v.replace(/^#/, ""); await save(); }))
+      .addText((t) => t.setPlaceholder("Project filter").setValue(p.project).onChange(async (v) => { p.project = v; await save(); }))
+      .addText((t) => {
+        t.setPlaceholder("Due ≤ days").setValue(p.dueWithin ? String(p.dueWithin) : "").onChange(async (v) => {
+          const n = parseInt(v, 10);
+          p.dueWithin = isNaN(n) || n < 0 ? 0 : n;
+          await save();
+        });
+        t.inputEl.addClass("gtd-narrow-input");
+      })
+      .addDropdown((d) =>
+        d.addOption("project", "By project")
+          .addOption("tag", "By tag")
+          .addOption("due", "By due date")
+          .setValue(p.groupBy)
+          .onChange(async (v) => { p.groupBy = v as Perspective["groupBy"]; await save(); })
+      )
+      .addToggle((t) =>
+        t.setValue(p.availableOnly).setTooltip("Available tasks only").onChange(async (v) => { p.availableOnly = v; await save(); })
+      )
+      .addToggle((t) =>
+        t.setValue(p.flagged).setTooltip("Flagged only").onChange(async (v) => { p.flagged = v; await save(); })
+      )
+      .addExtraButton((b) =>
+        b.setIcon("trash").setTooltip("Delete perspective").onClick(async () => {
+          this.plugin.settings.perspectives.splice(i, 1);
+          await save();
+          this.display();
         })
       );
   }

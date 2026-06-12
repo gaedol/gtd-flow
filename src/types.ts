@@ -10,6 +10,7 @@ export interface Task {
   due?: string; // ISO date, 📅
   completedOn?: string; // ISO date, ✅
   repeat?: string; // 🔁 rule, verbatim
+  durationMin?: number; // ⏱ estimated duration in minutes
   tags: string[];
 }
 

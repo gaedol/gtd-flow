@@ -21,9 +21,10 @@ interface Suggestion {
 const TASK_LINE_RE = /^\s*[-*] \[.\] /;
 const MARKER_DATE_RE = /[🛫📅⏳] *([\w-]*)$/u;
 const REPEAT_PARTIAL_RE = /🔁 *([a-z0-9 ]*)$/u;
+const DURATION_PARTIAL_RE = /⏱ *([\w]*)$/u;
 const FIELD_WORD_RE = /(?:^|\s)([a-zA-Z]*)$/;
 
-type Mode = "field" | "date" | "repeat";
+type Mode = "field" | "date" | "repeat" | "duration";
 
 export class TaskSuggest extends EditorSuggest<Suggestion> {
   private mode: Mode = "field";
@@ -58,6 +59,11 @@ export class TaskSuggest extends EditorSuggest<Suggestion> {
       this.mode = "repeat";
       return this.info(cursor, rep[1]);
     }
+    const dur = before.match(DURATION_PARTIAL_RE);
+    if (dur) {
+      this.mode = "duration";
+      return this.info(cursor, dur[1]);
+    }
     const word = before.match(FIELD_WORD_RE);
     if (word && before.replace(TASK_LINE_RE, "").trim().length + word[1].length > 0) {
       this.mode = "field";
@@ -88,7 +94,14 @@ export class TaskSuggest extends EditorSuggest<Suggestion> {
         { label: "due", detail: "📅 due date", insert: "📅 " },
         { label: "repeat", detail: "🔁 recurrence", insert: "🔁 " },
         { label: "scheduled", detail: "⏳ scheduled date", insert: "⏳ " },
+        { label: "duration", detail: "⏱ estimated time", insert: "⏱ " },
       ];
+    }
+    if (this.mode === "duration") {
+      return ["15m", "30m", "45m", "1h", "1h30m", "2h", "4h"].map((d) => ({
+        label: d,
+        insert: d + " ",
+      }));
     }
     if (this.mode === "repeat") {
       return ["every day", "every week", "every 2 weeks", "every month", "every 3 months", "every year"].map(

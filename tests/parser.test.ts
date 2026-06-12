@@ -40,6 +40,16 @@ describe("parseTaskLine", () => {
     expect(parseTaskLine("- [ ] Later 🛫 2026-06-18 ⏳ 2026-06-20", 0)!.defer).toBe("2026-06-18");
   });
 
+  it("parses ⏱ durations into minutes and strips them from text", () => {
+    expect(parseTaskLine("- [ ] quick ⏱ 30m", 0)).toMatchObject({ text: "quick", durationMin: 30 });
+    expect(parseTaskLine("- [ ] long ⏱ 1h30m 📅 2026-06-15", 0)).toMatchObject({
+      text: "long",
+      durationMin: 90,
+      due: "2026-06-15",
+    });
+    expect(parseTaskLine("- [ ] hours ⏱ 2h", 0)!.durationMin).toBe(120);
+  });
+
   it("captures indentation for nested tasks", () => {
     expect(parseTaskLine("- [ ] top", 0)!.indent).toBe(0);
     expect(parseTaskLine("  - [ ] nested", 1)!.indent).toBe(2);

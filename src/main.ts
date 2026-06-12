@@ -4,6 +4,8 @@ import { TaskIndex } from "./taskIndex";
 import { NextActionsView, NEXT_ACTIONS_VIEW } from "./nextActionsView";
 import { ForecastView, FORECAST_VIEW } from "./forecastView";
 import { ReviewView, REVIEW_VIEW } from "./reviewView";
+import { PerspectiveView, PERSPECTIVE_VIEW } from "./perspectiveView";
+import { TimelineView, TIMELINE_VIEW } from "./timelineView";
 import { CaptureModal } from "./captureModal";
 import { gtdEditorDecorations } from "./editorDecorations";
 import { TaskSuggest } from "./taskSuggest";
@@ -44,9 +46,13 @@ export default class GtdFlowPlugin extends Plugin {
     this.registerView(NEXT_ACTIONS_VIEW, (leaf) => new NextActionsView(leaf, this));
     this.registerView(FORECAST_VIEW, (leaf) => new ForecastView(leaf, this));
     this.registerView(REVIEW_VIEW, (leaf) => new ReviewView(leaf, this));
+    this.registerView(PERSPECTIVE_VIEW, (leaf) => new PerspectiveView(leaf, this));
+    this.registerView(TIMELINE_VIEW, (leaf) => new TimelineView(leaf, this));
     this.addRibbonIcon("list-checks", "GTD: Next actions", () => this.activateView(NEXT_ACTIONS_VIEW));
     this.addRibbonIcon("calendar-clock", "GTD: Forecast", () => this.activateView(FORECAST_VIEW));
     this.addRibbonIcon("eye", "GTD: Review", () => this.activateView(REVIEW_VIEW));
+    this.addRibbonIcon("telescope", "GTD: Perspectives", () => this.activateView(PERSPECTIVE_VIEW));
+    this.addRibbonIcon("gantt-chart", "GTD: Timeline", () => this.activateView(TIMELINE_VIEW));
     this.addRibbonIcon("plus-circle", "GTD: Capture task", () => new CaptureModal(this.app, this).open());
 
     this.addCommand({
@@ -68,6 +74,16 @@ export default class GtdFlowPlugin extends Plugin {
       id: "open-forecast",
       name: "Open forecast",
       callback: () => this.activateView(FORECAST_VIEW),
+    });
+    this.addCommand({
+      id: "open-perspectives",
+      name: "Open perspectives",
+      callback: () => this.activateView(PERSPECTIVE_VIEW),
+    });
+    this.addCommand({
+      id: "open-timeline",
+      name: "Open timeline",
+      callback: () => this.activateView(TIMELINE_VIEW),
     });
     this.addCommand({
       id: "move-task-to-project",
@@ -123,6 +139,20 @@ export default class GtdFlowPlugin extends Plugin {
 
     this.registerEditorSuggest(new TaskSuggest(this.app, this));
 
+    // obsidian://gtd-capture?vault=...&text=...&due=YYYY-MM-DD&defer=YYYY-MM-DD
+    this.registerObsidianProtocolHandler("gtd-capture", async (params) => {
+      const text = (params.text ?? params.task ?? "").trim();
+      if (!text) {
+        new CaptureModal(this.app, this).open();
+        return;
+      }
+      let line = `- [ ] ${text}`;
+      if (params.defer) line += ` 🛫 ${params.defer}`;
+      if (params.due) line += ` 📅 ${params.due}`;
+      await this.appendTaskLine(await this.ensureInboxFile(), line);
+      new Notice("Captured to inbox: " + text);
+    });
+
     // last + isolated: an editor-extension failure must not take down the plugin
     try {
       this.registerEditorExtension(gtdEditorDecorations(this));
@@ -146,6 +176,21 @@ export default class GtdFlowPlugin extends Plugin {
         if (cls) li.classList.add(...cls.split(" "));
       });
     });
+  }
+
+  async ensureInboxFile(): Promise<TFile> {
+    const path = normalizePath(this.settings.inboxNote);
+    let file = this.app.vault.getFileByPath(path);
+    if (file) return file;
+    const dir = path.replace(/\/[^/]*$/, "");
+    if (dir && dir !== path && !this.app.vault.getFolderByPath(dir)) {
+      await this.app.vault.createFolder(dir);
+    }
+    return this.app.vault.create(path, "");
+  }
+
+  async appendTaskLine(file: TFile, line: string) {
+    await this.app.vault.process(file, (c) => c.trimEnd() + "\n" + line + "\n");
   }
 
   async archiveNote(file: TFile): Promise<number> {
