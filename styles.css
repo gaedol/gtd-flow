@@ -235,6 +235,14 @@
   display: none;
 }
 
+/* distinct ribbon icon colors (svg inherits currentColor) */
+.gtd-ribbon-next { color: var(--color-green); }
+.gtd-ribbon-forecast { color: var(--color-blue); }
+.gtd-ribbon-review { color: var(--color-orange); }
+.gtd-ribbon-perspectives { color: var(--color-purple); }
+.gtd-ribbon-timeline { color: var(--color-cyan); }
+.gtd-ribbon-capture { color: var(--color-yellow); }
+
 .gtd-flag {
   color: var(--color-orange);
   display: flex;

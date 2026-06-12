@@ -52,12 +52,17 @@ export default class GtdFlowPlugin extends Plugin {
     this.registerView(REVIEW_VIEW, (leaf) => new ReviewView(leaf, this));
     this.registerView(PERSPECTIVE_VIEW, (leaf) => new PerspectiveView(leaf, this));
     this.registerView(TIMELINE_VIEW, (leaf) => new TimelineView(leaf, this));
-    this.addRibbonIcon("list-checks", "GTD: Next actions", () => this.activateView(NEXT_ACTIONS_VIEW));
-    this.addRibbonIcon("calendar-clock", "GTD: Forecast", () => this.activateView(FORECAST_VIEW));
-    this.addRibbonIcon("eye", "GTD: Review", () => this.activateView(REVIEW_VIEW));
-    this.addRibbonIcon("telescope", "GTD: Perspectives", () => this.activateView(PERSPECTIVE_VIEW));
-    this.addRibbonIcon("gantt-chart", "GTD: Timeline", () => this.activateView(TIMELINE_VIEW));
-    this.addRibbonIcon("plus-circle", "GTD: Capture task", () => new CaptureModal(this.app, this).open());
+    const ribbon: [string, string, string, () => void][] = [
+      ["list-checks", "GTD: Next actions", "gtd-ribbon-next", () => this.activateView(NEXT_ACTIONS_VIEW)],
+      ["calendar-clock", "GTD: Forecast", "gtd-ribbon-forecast", () => this.activateView(FORECAST_VIEW)],
+      ["eye", "GTD: Review", "gtd-ribbon-review", () => this.activateView(REVIEW_VIEW)],
+      ["telescope", "GTD: Perspectives", "gtd-ribbon-perspectives", () => this.activateView(PERSPECTIVE_VIEW)],
+      ["gantt-chart", "GTD: Timeline", "gtd-ribbon-timeline", () => this.activateView(TIMELINE_VIEW)],
+      ["plus-circle", "GTD: Capture task", "gtd-ribbon-capture", () => new CaptureModal(this.app, this).open()],
+    ];
+    for (const [icon, label, cls, fn] of ribbon) {
+      this.addRibbonIcon(icon, label, fn).addClass(cls);
+    }
 
     this.addCommand({
       id: "capture-to-inbox",
