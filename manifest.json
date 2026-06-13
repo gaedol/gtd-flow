@@ -3,7 +3,7 @@
   "name": "GTD Flow",
   "version": "0.1.0",
   "minAppVersion": "1.5.0",
-  "description": "OmniFocus-style GTD: sequential/parallel projects, defer dates, next actions, forecast and review.",
+  "description": "Structured GTD: sequential/parallel projects, defer dates, next actions, forecast and review.",
   "author": "Marco Guidetti",
   "isDesktopOnly": false
 }

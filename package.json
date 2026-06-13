@@ -1,7 +1,7 @@
 {
   "name": "gtd-flow",
   "version": "0.1.0",
-  "description": "OmniFocus-style GTD plugin for Obsidian",
+  "description": "Structured GTD plugin for Obsidian",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",

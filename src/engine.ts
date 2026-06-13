@@ -58,7 +58,7 @@ export function overdueCount(projects: Project[], today: string): number {
   return n;
 }
 
-// First available task per project, the OmniFocus "next action"
+// First available task per project — the project's next action
 export function nextAction(project: Project, today: string): Task | undefined {
   return availableTasks(project, today)[0];
 }
@@ -100,7 +100,7 @@ export function forecast(projects: Project[], today: string, days: number): Fore
     for (const t of p.tasks) {
       if (t.done) continue;
       if (t.due) {
-        // overdue items surface on today; defer is ignored once a due date exists (OmniFocus behavior)
+        // overdue items surface on today; defer is ignored once a due date exists (due wins over defer)
         if (t.due <= end) {
           items.push({ project: p, task: t, date: t.due < today ? today : t.due, kind: "due" });
         }

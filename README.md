@@ -1,8 +1,8 @@
 # GTD Flow
 
-**OmniFocus-style task management for [Obsidian](https://obsidian.md), built on plain Markdown.**
+**Structured, GTD-style task management for [Obsidian](https://obsidian.md), built on plain Markdown.**
 
-GTD Flow brings the structure of OmniFocus — sequential and parallel projects, defer dates, next-action availability, forecast, and review — to your Obsidian vault, while keeping every task as a normal checklist line in your own notes. There is no hidden database: your Markdown is the source of truth, and the tasks stay readable (and editable) even with the plugin turned off.
+GTD Flow brings serious project structure — sequential and parallel projects, defer dates, next-action availability, forecast, and review — to your Obsidian vault, while keeping every task as a normal checklist line in your own notes. There is no hidden database: your Markdown is the source of truth, and the tasks stay readable (and editable) even with the plugin turned off.
 
 It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so the two can share the same files.
 
@@ -27,7 +27,7 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 ## Why GTD Flow
 
 - **Your notes stay yours.** Projects are ordinary Markdown notes; tasks are ordinary `- [ ]` lines. Greppable, portable, Git-friendly, and fully usable without the plugin.
-- **Real next-action logic.** A task is *available* only when its project is active, its defer date has passed, and — in sequential projects — everything before it is done. Just like OmniFocus.
+- **Real next-action logic.** A task is *available* only when its project is active, its defer date has passed, and — in sequential projects — everything before it is done.
 - **Action groups.** Indent tasks to nest them; a group with open children isn't actionable until those children are finished.
 - **One pane for the day.** Forecast and a Mermaid-powered Gantt timeline (day / week / month) show what's due and what's coming.
 - **Capture without friction.** A quick-capture modal, a global command, and an `obsidian://gtd-capture` URL for grabbing tasks from anywhere.
@@ -35,7 +35,7 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 
 ## Core ideas
 
-| OmniFocus | GTD Flow |
+| Concept | GTD Flow |
 |---|---|
 | Project | A note with `type: project` frontmatter |
 | Sequential / parallel | `flow:` key (overridable per action group) |

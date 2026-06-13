@@ -1,10 +1,10 @@
 # GTD Flow
 
-OmniFocus-style GTD for Obsidian: sequential/parallel projects, defer dates, next-action availability, inbox triage. Markdown stays the source of truth — the plugin only indexes and edits your notes.
+Structured GTD for Obsidian: sequential/parallel projects, defer dates, next-action availability, inbox triage. Markdown stays the source of truth — the plugin only indexes and edits your notes.
 
 ## Concepts
 
-| OmniFocus | GTD Flow |
+| Concept | GTD Flow |
 |---|---|
 | Project | One note in the projects folder with `type: project` frontmatter |
 | Sequential / parallel | `flow:` frontmatter key |
@@ -47,7 +47,7 @@ Task lines use [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, s
 
 ### Action groups (nesting)
 
-Indent tasks to create OmniFocus-style action groups:
+Indent tasks to create action groups:
 
 ```markdown
 - [ ] Plan party #parallel
