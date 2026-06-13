@@ -29,6 +29,12 @@ describe("ganttSource week/month", () => {
     expect(src).not.toContain("done");
   });
 
+  it("emits a zero-day header row carrying the project name", () => {
+    const p = project("Home", { tasks: [task("t", { due: "2026-06-13" })] });
+    const src = ganttSource([p], "week", TODAY, OPTS);
+    expect(src).toContain(`Home :gtdhdr, ${TODAY}, 0d`);
+  });
+
   it("sanitizes mermaid syntax characters and skips dateless tasks", () => {
     const p = project("P", {
       tasks: [task("call: bank, #urgent", { due: "2026-06-13" }), task("no dates")],

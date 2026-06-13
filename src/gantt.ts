@@ -72,7 +72,9 @@ function rangeChart(projects: Project[], mode: "week" | "month", today: string):
       );
     }
     if (rows.length > 0) {
-      lines.push(`  section ${clean(p.name)}`, ...rows);
+      // header row: a 0-day (zero-width) task puts the project name on its own
+      // line; Mermaid's overlapping section title is hidden via CSS
+      lines.push(`  section ${clean(p.name)}`, `    ${clean(p.name)} :gtdhdr, ${today}, 0d`, ...rows);
       any = true;
     }
   }
