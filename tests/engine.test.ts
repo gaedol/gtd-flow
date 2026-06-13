@@ -163,6 +163,13 @@ describe("forecast", () => {
     expect(forecast([p], TODAY, 7)[0]).toMatchObject({ kind: "becomes-available", date: "2026-06-14" });
   });
 
+  it("surfaces a task deferred to today, but not one deferred in the past", () => {
+    const today = project({ tasks: [task("starts today", { defer: TODAY })] });
+    expect(forecast([today], TODAY, 7)).toMatchObject([{ date: TODAY, kind: "becomes-available" }]);
+    const past = project({ tasks: [task("already available", { defer: "2026-06-01" })] });
+    expect(forecast([past], TODAY, 7)).toEqual([]);
+  });
+
   it("collects due and becoming-available items in window, overdue on today", () => {
     const p = project({
       tasks: [

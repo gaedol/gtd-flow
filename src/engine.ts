@@ -104,7 +104,8 @@ export function forecast(projects: Project[], today: string, days: number): Fore
         if (t.due <= end) {
           items.push({ project: p, task: t, date: t.due < today ? today : t.due, kind: "due" });
         }
-      } else if (t.defer && t.defer > today && t.defer <= end) {
+      } else if (t.defer && t.defer >= today && t.defer <= end) {
+        // defer == today surfaces in the Today column; past defers are just available (Next Actions)
         items.push({ project: p, task: t, date: t.defer, kind: "becomes-available" });
       }
     }
