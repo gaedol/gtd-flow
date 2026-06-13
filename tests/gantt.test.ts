@@ -53,7 +53,7 @@ describe("ganttSource week/month", () => {
   });
 
   it("pins the axis with boundary milestones for the full window", () => {
-    const p = project("P", { tasks: [task("x", { due: "2026-06-13" })] });
+    const p = project("P", { tasks: [task("x", { due: "2026-06-12" })] });
     const week = ganttSource([p], "week", TODAY, OPTS);
     expect(week).toContain(". :milestone, gtdb0, 2026-06-12, 0d");
     expect(week).toContain(". :milestone, gtdb1, 2026-06-18, 0d");
@@ -68,41 +68,41 @@ describe("ganttSource week/month", () => {
 });
 
 describe("ganttSource day", () => {
-  it("stacks today's tasks from dayStart using durations", () => {
+  it("shows only tasks due today, overdue, or deferred-until-today — stacked from dayStart", () => {
     const p = project("Home", {
       tasks: [
-        task("write report", { durationMin: 90, due: "2026-06-12" }),
-        task("emails"),
+        task("write report", { durationMin: 90, due: "2026-06-12" }), // due today
+        task("starts today", { defer: "2026-06-12" }),
       ],
     });
     const src = ganttSource([p], "day", TODAY, OPTS);
-    expect(src).toContain("write report :active, 2026-06-12T09:00, 90m"); // due today = active, not crit
-    expect(src).toContain("emails :active, 2026-06-12T10:30, 30m");
+    expect(src).toContain("write report :active, 2026-06-12T09:00, 90m");
+    expect(src).toContain("starts today :active, 2026-06-12T10:30, 30m");
   });
 
-  it("orders by urgency: overdue, flagged, due today, rest — across projects", () => {
-    const a = project("A", {
-      tasks: [task("plain a"), task("flagged", { tags: ["flag"] })],
+  it("excludes available-but-undated backlog tasks (the day is not the whole list)", () => {
+    const p = project("Backlog", {
+      tasks: [task("no date — available"), task("future", { defer: "2026-07-01" }), task("due", { due: "2026-06-12" })],
     });
+    const src = ganttSource([p], "day", TODAY, OPTS);
+    expect(src).toContain("due");
+    expect(src).not.toContain("no date");
+    expect(src).not.toContain("future");
+  });
+
+  it("orders overdue, then due today, then starting today", () => {
+    const a = project("A", { tasks: [task("starts", { defer: "2026-06-12" })] });
     const b = project("B", {
       tasks: [task("due today", { due: "2026-06-12" }), task("overdue", { due: "2026-06-01" })],
     });
     const src = ganttSource([a, b], "day", TODAY, OPTS);
-    const order = ["overdue (B)", "flagged (A)", "due today (B)", "plain a (A)"].map((l) =>
-      src.indexOf(l)
-    );
+    const order = ["overdue (B)", "due today (B)", "starts (A)"].map((l) => src.indexOf(l));
     expect(order.every((i) => i >= 0)).toBe(true);
     expect([...order].sort((x, y) => x - y)).toEqual(order);
   });
 
-  it("excludes blocked and deferred tasks", () => {
-    const p = project("Seq", {
-      flow: "sequential",
-      tasks: [task("first"), task("second"), task("later", { defer: "2026-07-01" })],
-    });
-    const src = ganttSource([p], "day", TODAY, OPTS);
-    expect(src).toContain("first");
-    expect(src).not.toContain("second");
-    expect(src).not.toContain("later");
+  it("returns empty when nothing is dated to today", () => {
+    const p = project("Seq", { tasks: [task("someday"), task("later", { defer: "2026-07-01" })] });
+    expect(ganttSource([p], "day", TODAY, OPTS)).toBe("");
   });
 });

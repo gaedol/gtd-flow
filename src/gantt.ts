@@ -18,10 +18,21 @@ function bounds(from: string, to: string): string[] {
 // small left margin so project header rows sit hard against the left edge
 const INIT = '%%{init: {"gantt": {"leftPadding": 8}}}%%';
 
-// mermaid gantt treats : ; # , as syntax
+// strip wikilink markup and characters mermaid treats as gantt syntax
 function clean(text: string): string {
-  const s = text.replace(/[:;#,]/g, " ").replace(/\s+/g, " ").trim();
+  const s = text
+    .replace(/\[\[[^\]|]+\|([^\]]+)\]\]/g, "$1") // [[target|alias]] -> alias
+    .replace(/\[\[([^\]]+)\]\]/g, "$1") // [[target]] -> target
+    .replace(/[:;#,]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
   return s || "(untitled)";
+}
+
+// short label for a bar; full text still lives in the note
+function label(text: string, max = 40): string {
+  const s = clean(text);
+  return s.length > max ? s.slice(0, max - 1).trimEnd() + "…" : s;
 }
 
 function tags(task: Task, available: Set<Task>, today: string): string {
@@ -71,8 +82,8 @@ function rangeChart(projects: Project[], mode: "week" | "month", today: string):
       if (to > end) to = end;
       rows.push(
         to === from
-          ? `    ${clean(t.text)} :${tags(t, avail, today)}${from}, 1d`
-          : `    ${clean(t.text)} :${tags(t, avail, today)}${from}, ${to}`
+          ? `    ${label(t.text)} :${tags(t, avail, today)}${from}, 1d`
+          : `    ${label(t.text)} :${tags(t, avail, today)}${from}, ${to}`
       );
     }
     if (rows.length > 0) {
@@ -87,12 +98,18 @@ function rangeChart(projects: Project[], mode: "week" | "month", today: string):
   return lines.join("\n");
 }
 
-// urgency rank for the plan-of-day: overdue, then flagged, then due today, then the rest
-function dayRank(t: Task, today: string, flagTag: string): number {
+// urgency rank for the day: overdue, then due today, then starting today
+function dayRank(t: Task, today: string): number {
   if (t.due && t.due < today) return 0;
-  if (t.tags.includes(flagTag)) return 1;
-  if (t.due === today) return 2;
-  return 3;
+  if (t.due === today) return 1;
+  return 2; // defer === today
+}
+
+// only what actually belongs to today: due today, overdue, or deferred-until-today
+function isToday(t: Task, today: string): boolean {
+  if (t.done) return false;
+  if (t.due && t.due <= today) return true;
+  return t.defer === today;
 }
 
 function dayChart(projects: Project[], today: string, opts: GanttOptions): string {
@@ -102,12 +119,12 @@ function dayChart(projects: Project[], today: string, opts: GanttOptions): strin
     if (p.status !== "active") continue;
     const avail = new Set(availableTasks(p, today));
     for (const t of p.tasks) {
-      if (!t.done && (avail.has(t) || (t.due && t.due <= today))) items.push({ task: t, project: p, avail });
+      if (isToday(t, today)) items.push({ task: t, project: p, avail });
     }
   }
   if (items.length === 0) return "";
   items.sort((a, b) => {
-    const r = dayRank(a.task, today, opts.flagTag) - dayRank(b.task, today, opts.flagTag);
+    const r = dayRank(a.task, today) - dayRank(b.task, today);
     if (r !== 0) return r;
     return (a.task.due ?? "9999").localeCompare(b.task.due ?? "9999");
   });
@@ -125,8 +142,8 @@ function dayChart(projects: Project[], today: string, opts: GanttOptions): strin
   let clock = `${today}T${opts.dayStart}`;
   for (const { task: t, project: p, avail } of items) {
     const dur = t.durationMin ?? opts.defaultDurationMin;
-    const label = multi ? `${clean(t.text)} (${clean(p.name)})` : clean(t.text);
-    lines.push(`    ${label} :${tags(t, avail, today)}${clock}, ${dur}m`);
+    const text = multi ? `${label(t.text, 28)} (${clean(p.name)})` : label(t.text);
+    lines.push(`    ${text} :${tags(t, avail, today)}${clock}, ${dur}m`);
     clock = addMinutes(clock, dur);
   }
   lines.push(...bounds(`${today}T${opts.dayStart}`, `${today}T${opts.dayEnd}`));
