@@ -15,6 +15,9 @@ function bounds(from: string, to: string): string[] {
   return ["  section .", `    . :milestone, gtdb0, ${from}, 0d`, `    . :milestone, gtdb1, ${to}, 0d`];
 }
 
+// small left margin so project header rows sit hard against the left edge
+const INIT = '%%{init: {"gantt": {"leftPadding": 8}}}%%';
+
 // mermaid gantt treats : ; # , as syntax
 function clean(text: string): string {
   const s = text.replace(/[:;#,]/g, " ").replace(/\s+/g, " ").trim();
@@ -39,6 +42,7 @@ export function ganttSource(
 function rangeChart(projects: Project[], mode: "week" | "month", today: string): string {
   const end = addInterval(today, mode === "week" ? "6d" : "1m")!;
   const lines = [
+    INIT,
     "gantt",
     `  title ${mode === "week" ? "Week" : "Month"} from ${today}`,
     "  dateFormat YYYY-MM-DD",
@@ -109,6 +113,7 @@ function dayChart(projects: Project[], today: string, opts: GanttOptions): strin
   });
 
   const lines = [
+    INIT,
     "gantt",
     `  title Today — ${today}`,
     "  dateFormat YYYY-MM-DDTHH:mm",
