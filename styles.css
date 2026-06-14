@@ -255,9 +255,15 @@
   background-position: center;
 }
 
+/* the editor/preview layers paint their own opaque background — make them
+   transparent so the tint/banner on .view-content shows through */
 .gtd-project-styled .markdown-source-view,
-.gtd-project-styled .markdown-reading-view {
-  background: transparent;
+.gtd-project-styled .markdown-reading-view,
+.gtd-project-styled .cm-editor,
+.gtd-project-styled .cm-scroller,
+.gtd-project-styled .cm-gutters,
+.gtd-project-styled .markdown-preview-view {
+  background: transparent !important;
 }
 
 /* distinct ribbon icon colors (svg inherits currentColor) */
