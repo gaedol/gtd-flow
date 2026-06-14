@@ -10,7 +10,7 @@ import {
 } from "obsidian";
 import type GtdFlowPlugin from "./main";
 import { todayISO } from "./dates";
-import { addInterval } from "./engine";
+import { dateChoices } from "./dateParse";
 
 interface Suggestion {
   label: string;
@@ -108,16 +108,11 @@ export class TaskSuggest extends EditorSuggest<Suggestion> {
         (r) => ({ label: r, insert: r + " " })
       );
     }
-    const today = todayISO();
-    const rel: [string, string][] = [
-      ["today", today],
-      ["tomorrow", addInterval(today, "1d")!],
-      ["in 3 days", addInterval(today, "3d")!],
-      ["in a week", addInterval(today, "1w")!],
-      ["in 2 weeks", addInterval(today, "2w")!],
-      ["in a month", addInterval(today, "1m")!],
-    ];
-    return rel.map(([label, iso]) => ({ label, detail: iso, insert: iso + " " }));
+    return dateChoices(todayISO()).map((c) => ({
+      label: c.label,
+      detail: c.date,
+      insert: c.date + " ",
+    }));
   }
 
   renderSuggestion(s: Suggestion, el: HTMLElement): void {

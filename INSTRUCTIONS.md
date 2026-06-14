@@ -70,7 +70,7 @@ Tag a task with `#flag` (configurable in settings) to flag it: it gets an orange
 On task lines in project notes and the inbox, typing at the end of the line opens an inline menu (Tasks-style):
 
 - type a word start (`de`, `du`, `rep`, `sch`, `dur`) → insert **🛫 defer / 📅 due / 🔁 repeat / ⏳ scheduled / ⏱ duration**
-- after 🛫/📅/⏳ → date choices (today, tomorrow, in 3 days, in a week, in 2 weeks, in a month) with the computed date shown; or just type `YYYY-MM-DD`
+- after 🛫/📅/⏳ → date choices with the resolved date shown: `today`, `tomorrow`, weekday names (`Thursday`, `Monday`, …, next occurrence), `end of week` (Sunday), `next week` (Monday), `in 2 weeks`, `end of month`, `in a month`; type to filter (e.g. "thu"), or just type `YYYY-MM-DD`. The stored value is always a plain ISO date.
 - after 🔁 → recurrence presets (every day/week/2 weeks/month/3 months/year)
 - after ⏱ → duration presets (15m … 4h)
 
