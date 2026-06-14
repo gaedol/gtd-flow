@@ -10,7 +10,7 @@ import { CaptureModal } from "./captureModal";
 import { gtdEditorDecorations } from "./editorDecorations";
 import { TaskSuggest } from "./taskSuggest";
 import { archiveDoneTasks } from "./archive";
-import { overdueCount } from "./engine";
+import { overdueCount, dueOrOverdue } from "./engine";
 import { insertTaskLine } from "./insertLine";
 import { EditTaskModal } from "./editTaskModal";
 import { NewProjectModal } from "./newProjectModal";
@@ -23,6 +23,8 @@ import { parseTaskLine } from "./parser";
 export default class GtdFlowPlugin extends Plugin {
   settings!: GtdSettings;
   index!: TaskIndex;
+  private notified = new Set<string>(); // keys already notified this day
+  private notifyDay = "";
 
   async onload() {
     await this.loadSettings();
@@ -34,7 +36,15 @@ export default class GtdFlowPlugin extends Plugin {
       () => normalizePath(this.settings.inboxNote)
     );
 
-    this.app.workspace.onLayoutReady(() => this.index.rebuild());
+    if (typeof Notification !== "undefined" && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+    this.app.workspace.onLayoutReady(async () => {
+      await this.index.rebuild();
+      this.notifyDue();
+    });
+    // re-check periodically while Obsidian is open (dedupe prevents repeats)
+    this.registerInterval(window.setInterval(() => this.notifyDue(), 30 * 60 * 1000));
     this.registerEvent(
       this.app.metadataCache.on("changed", (file) => this.index.update(file))
     );
@@ -346,6 +356,30 @@ export default class GtdFlowPlugin extends Plugin {
     if (!this.app.vault.getFolderByPath(folder)) await this.app.vault.createFolder(folder);
     await this.app.fileManager.renameFile(file, `${folder}/${file.name}`);
     new Notice(`Archived project: ${file.basename}`);
+  }
+
+  // native notification for due/overdue tasks; only fires for items not yet
+  // announced today, so it nudges once per item rather than every tick
+  notifyDue() {
+    if (!this.settings.dueNotifications || typeof Notification === "undefined") return;
+    if (Notification.permission !== "granted") return;
+    const today = todayISO();
+    if (today !== this.notifyDay) {
+      this.notifyDay = today;
+      this.notified.clear();
+    }
+    const items = dueOrOverdue(this.index.all(), today);
+    const fresh = items.filter((i) => !this.notified.has(i.project.path + "::" + i.task.text));
+    if (fresh.length === 0) return;
+    for (const i of items) this.notified.add(i.project.path + "::" + i.task.text);
+
+    const overdue = items.filter((i) => i.task.due! < today).length;
+    const dueToday = items.length - overdue;
+    const parts: string[] = [];
+    if (overdue) parts.push(`${overdue} overdue`);
+    if (dueToday) parts.push(`${dueToday} due today`);
+    const n = new Notification("GTD Flow", { body: parts.join(", ") });
+    n.onclick = () => this.activateView(FORECAST_VIEW);
   }
 
   async activateView(type: string) {

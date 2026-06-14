@@ -16,6 +16,7 @@ export interface GtdSettings {
   defaultDurationMin: number;
   insertPosition: InsertPosition;
   defaultReviewInterval: string;
+  dueNotifications: boolean;
 }
 
 export const DEFAULT_SETTINGS: GtdSettings = {
@@ -31,6 +32,7 @@ export const DEFAULT_SETTINGS: GtdSettings = {
   defaultDurationMin: 30,
   insertPosition: "bottom",
   defaultReviewInterval: "1w",
+  dueNotifications: true,
 };
 
 export class GtdSettingTab extends PluginSettingTab {
@@ -126,6 +128,16 @@ export class GtdSettingTab extends PluginSettingTab {
       .addText((t) =>
         t.setValue(this.plugin.settings.defaultReviewInterval).onChange(async (v) => {
           this.plugin.settings.defaultReviewInterval = v.trim();
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Notify about due tasks")
+      .setDesc("System notification for overdue / due-today tasks while Obsidian is open.")
+      .addToggle((t) =>
+        t.setValue(this.plugin.settings.dueNotifications).onChange(async (v) => {
+          this.plugin.settings.dueNotifications = v;
           await this.plugin.saveSettings();
         })
       );

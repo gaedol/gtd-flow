@@ -58,6 +58,21 @@ export function overdueCount(projects: Project[], today: string): number {
   return n;
 }
 
+export interface DatedTask {
+  project: Project;
+  task: Task;
+}
+
+// open tasks in active projects that are due today or overdue
+export function dueOrOverdue(projects: Project[], today: string): DatedTask[] {
+  const out: DatedTask[] = [];
+  for (const p of projects) {
+    if (p.status !== "active") continue;
+    for (const t of p.tasks) if (!t.done && t.due && t.due <= today) out.push({ project: p, task: t });
+  }
+  return out;
+}
+
 // First available task per project — the project's next action
 export function nextAction(project: Project, today: string): Task | undefined {
   return availableTasks(project, today)[0];

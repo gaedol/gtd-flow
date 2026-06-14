@@ -183,6 +183,8 @@ Obsidian doesn't auto-reload plugins; use the community **Hot Reload** plugin or
 
 An **overdue badge** in the status bar shows "N overdue" in red whenever any active project has an open task past its due date; clicking it opens the Forecast.
 
+With **Notify about due tasks** enabled (default on), a system notification announces overdue / due-today tasks on startup and every 30 minutes while Obsidian is open — once per item per day, so it nudges rather than nags. Clicking it opens the Forecast. (Obsidian must be running; this does not fire when the app is closed or on mobile in the background.)
+
 ## Roadmap
 
 1. Mobile verification

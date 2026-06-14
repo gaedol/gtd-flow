@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isAvailable, availableTasks, nextAction, addInterval, isDueForReview, forecast, overdueCount } from "../src/engine";
+import { isAvailable, availableTasks, nextAction, addInterval, isDueForReview, forecast, overdueCount, dueOrOverdue } from "../src/engine";
 import { Project, Task } from "../src/types";
 
 const TODAY = "2026-06-11";
@@ -117,6 +117,20 @@ describe("overdueCount", () => {
     const p1 = project({ tasks: [task("a", { due: "2026-06-01" }), task("b", { due: "2026-06-01", done: true })] });
     const p2 = project({ status: "on-hold", tasks: [task("c", { due: "2026-06-01" })] });
     expect(overdueCount([p1, p2], TODAY)).toBe(1);
+  });
+});
+
+describe("dueOrOverdue", () => {
+  it("returns open due-today and overdue tasks, skipping future/undated/inactive", () => {
+    const p = project({
+      tasks: [
+        task("overdue", { due: "2026-06-01" }),
+        task("today", { due: TODAY }),
+        task("future", { due: "2026-09-01" }),
+        task("undated"),
+      ],
+    });
+    expect(dueOrOverdue([p], TODAY).map((d) => d.task.text)).toEqual(["overdue", "today"]);
   });
 });
 
