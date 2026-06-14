@@ -76,6 +76,8 @@ On task lines in project notes and the inbox, typing at the end of the line open
 
 Picking a field marker immediately re-opens the menu in date mode, so `due → tomorrow` is two selections.
 
+In the Next Actions, Forecast, and Perspectives views, `[[wikilinks]]` in task text render as clickable internal links (alias shown when present). Clicking a link opens the linked note; clicking elsewhere on the task still opens the task's own note at its line.
+
 ## In-note availability
 
 In project notes, GTD Flow decorates task lines in both Live Preview and reading mode:

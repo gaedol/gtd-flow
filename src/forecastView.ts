@@ -3,6 +3,7 @@ import type GtdFlowPlugin from "./main";
 import { forecast, ForecastItem } from "./engine";
 import { todayISO } from "./dates";
 import { completeTask } from "./completeTask";
+import { renderTaskText } from "./linkText";
 
 export const FORECAST_VIEW = "gtd-forecast";
 
@@ -73,7 +74,7 @@ export class ForecastView extends ItemView {
       const flag = row.createSpan({ cls: "gtd-flag", attr: { "aria-label": "Flagged" } });
       setIcon(flag, "flag");
     }
-    const label = row.createSpan({ cls: "gtd-task-text", text: it.task.text });
+    const label = renderTaskText(row, it.task.text, this.app, it.project.path);
     label.onclick = () => this.openTask(it);
     row.createSpan({ cls: "gtd-project-ref", text: it.project.name });
   }

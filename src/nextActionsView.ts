@@ -5,6 +5,7 @@ import { todayISO } from "./dates";
 import { completeTask } from "./completeTask";
 import { moveTask, ProjectSuggestModal } from "./moveTask";
 import { EditTaskModal } from "./editTaskModal";
+import { renderTaskText } from "./linkText";
 import { Project, Task } from "./types";
 
 export const NEXT_ACTIONS_VIEW = "gtd-next-actions";
@@ -73,7 +74,7 @@ export class NextActionsView extends ItemView {
         cb.disabled = true;
         await completeTask(this.app, inboxPath, t);
       };
-      row.createSpan({ cls: "gtd-task-text", text: t.text });
+      renderTaskText(row, t.text, this.app, inboxPath);
       this.editButton(row, inboxPath, t);
       const btn = row.createEl("button", { cls: "gtd-move-btn", attr: { "aria-label": "Move to project" } });
       setIcon(btn, "folder-input");
@@ -120,7 +121,7 @@ export class NextActionsView extends ItemView {
       const flag = row.createSpan({ cls: "gtd-flag", attr: { "aria-label": "Flagged" } });
       setIcon(flag, "flag");
     }
-    const label = row.createSpan({ cls: "gtd-task-text", text: task.text });
+    const label = renderTaskText(row, task.text, this.app, project.path);
     label.onclick = () => this.openTask(project, task, true);
     this.editButton(row, project.path, task);
     if (showProject) row.createSpan({ cls: "gtd-project-ref", text: project.name });

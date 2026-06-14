@@ -3,6 +3,7 @@ import type GtdFlowPlugin from "./main";
 import { runPerspective, PerspectiveItem } from "./perspectives";
 import { todayISO } from "./dates";
 import { completeTask } from "./completeTask";
+import { renderTaskText } from "./linkText";
 
 export const PERSPECTIVE_VIEW = "gtd-perspectives";
 
@@ -79,7 +80,7 @@ export class PerspectiveView extends ItemView {
       const flag = row.createSpan({ cls: "gtd-flag" });
       setIcon(flag, "flag");
     }
-    const label = row.createSpan({ cls: "gtd-task-text", text: it.task.text });
+    const label = renderTaskText(row, it.task.text, this.app, it.project.path);
     label.onclick = async () => {
       const file = this.app.vault.getFileByPath(it.project.path);
       if (!file) return;
