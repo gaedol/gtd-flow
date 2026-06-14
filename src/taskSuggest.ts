@@ -16,6 +16,7 @@ interface Suggestion {
   label: string;
   detail?: string;
   insert: string;
+  keywords?: string[]; // alternative words that match this option
 }
 
 const TASK_LINE_RE = /^\s*[-*] \[.\] /;
@@ -82,19 +83,20 @@ export class TaskSuggest extends EditorSuggest<Suggestion> {
 
   getSuggestions(ctx: EditorSuggestContext): Suggestion[] {
     const q = ctx.query.toLowerCase();
-    return this.candidates().filter(
-      (s) => s.label.toLowerCase().startsWith(q) || s.insert.startsWith(q)
-    );
+    return this.candidates().filter((s) => {
+      const words = [s.label, ...(s.keywords ?? [])];
+      return words.some((w) => w.toLowerCase().startsWith(q)) || s.insert.startsWith(q);
+    });
   }
 
   private candidates(): Suggestion[] {
     if (this.mode === "field") {
       return [
-        { label: "defer", detail: "🛫 start date", insert: "🛫 " },
-        { label: "due", detail: "📅 due date", insert: "📅 " },
-        { label: "repeat", detail: "🔁 recurrence", insert: "🔁 " },
-        { label: "scheduled", detail: "⏳ scheduled date", insert: "⏳ " },
-        { label: "duration", detail: "⏱ estimated time", insert: "⏱ " },
+        { label: "defer", detail: "🛫 start date", insert: "🛫 ", keywords: ["start", "hide", "available"] },
+        { label: "due", detail: "📅 due date", insert: "📅 ", keywords: ["deadline", "by"] },
+        { label: "repeat", detail: "🔁 recurrence", insert: "🔁 ", keywords: ["recur", "recurring", "every"] },
+        { label: "scheduled", detail: "⏳ scheduled date", insert: "⏳ ", keywords: ["plan", "planned", "schedule"] },
+        { label: "duration", detail: "⏱ estimated time", insert: "⏱ ", keywords: ["time", "estimate", "est", "takes"] },
       ];
     }
     if (this.mode === "duration") {
