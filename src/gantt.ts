@@ -150,6 +150,27 @@ function dayChart(projects: Project[], today: string, opts: GanttOptions): strin
   return lines.join("\n");
 }
 
+// compact gantt of one project's open dated tasks, for the in-note status block
+export function projectGanttSource(p: Project, today: string): string {
+  const avail = new Set(availableTasks(p, today));
+  const rows: string[] = [];
+  for (const t of p.tasks) {
+    if (t.done) continue;
+    const start = t.defer ?? t.due;
+    const due = t.due ?? t.defer;
+    if (!start || !due) continue;
+    const from = start < today ? today : start;
+    const to = due < from ? from : due;
+    rows.push(
+      to === from
+        ? `    ${label(t.text)} :${tags(t, avail, today)}${from}, 1d`
+        : `    ${label(t.text)} :${tags(t, avail, today)}${from}, ${to}`
+    );
+  }
+  if (rows.length === 0) return "";
+  return ["gantt", "  dateFormat YYYY-MM-DD", "  axisFormat %d %b", `  section ${clean(p.name)}`, ...rows].join("\n");
+}
+
 function addMinutes(stamp: string, min: number): string {
   const d = new Date(stamp + ":00Z");
   d.setUTCMinutes(d.getUTCMinutes() + min);

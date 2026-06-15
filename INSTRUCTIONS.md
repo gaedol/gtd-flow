@@ -70,6 +70,20 @@ Besides `- [ ]` (to do) and `- [x]` (done), GTD Flow recognizes:
 
 Change a task's status from the **Edit task** modal (Status dropdown), the **Drop (cancel) task under cursor** command, or just by editing the checkbox character. Completing a task from the views still records `✅` and handles 🔁 recurrence.
 
+### Project status block
+
+Run **Insert / update project status block** on a project note to add an auto-maintained summary at the top:
+
+```
+%% gtd:status %%
+**Next action:** Buy paint and supplies
+**Progress:** ▓▓▓░░░░░░░ 4/9 · 3 available
+**Review:** due (last reviewed 8d ago)
+%% /gtd:status %%
+```
+
+It's opt-in (nothing is written until you run the command) and delimited by `%%` comment markers, so the markers stay hidden in reading view and everything outside them is yours — the plugin only rewrites between the markers. An existing block refreshes automatically when you open the project note (and only writes if something changed). Enable **Status block: include timeline** in settings to also embed a per-project Mermaid gantt of the project's dated tasks inside the block.
+
 ### Someday / Maybe
 
 Set a project's `status: someday` (via the properties modal or frontmatter) to park it as not-yet-committed. Someday projects are excluded from Next Actions, Forecast, and Timeline like on-hold projects, but the built-in **Someday** perspective lists their open tasks so you can review and promote them when ready.

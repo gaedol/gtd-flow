@@ -17,6 +17,7 @@ export interface GtdSettings {
   insertPosition: InsertPosition;
   defaultReviewInterval: string;
   dueNotifications: boolean;
+  statusBlockChart: boolean;
 }
 
 export const DEFAULT_SETTINGS: GtdSettings = {
@@ -33,6 +34,7 @@ export const DEFAULT_SETTINGS: GtdSettings = {
   insertPosition: "bottom",
   defaultReviewInterval: "1w",
   dueNotifications: true,
+  statusBlockChart: false,
 };
 
 export class GtdSettingTab extends PluginSettingTab {
@@ -138,6 +140,16 @@ export class GtdSettingTab extends PluginSettingTab {
       .addToggle((t) =>
         t.setValue(this.plugin.settings.dueNotifications).onChange(async (v) => {
           this.plugin.settings.dueNotifications = v;
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Status block: include timeline")
+      .setDesc("Add a per-project Mermaid gantt inside the project status block.")
+      .addToggle((t) =>
+        t.setValue(this.plugin.settings.statusBlockChart).onChange(async (v) => {
+          this.plugin.settings.statusBlockChart = v;
           await this.plugin.saveSettings();
         })
       );

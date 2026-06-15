@@ -20,6 +20,8 @@ import { todayISO } from "./dates";
 import { moveTask, ProjectSuggestModal } from "./moveTask";
 import { parseTaskLine } from "./parser";
 import { setTaskState } from "./completeTask";
+import { statusBlockText, upsertStatusBlock } from "./statusBlock";
+import { projectGanttSource } from "./gantt";
 
 export default class GtdFlowPlugin extends Plugin {
   settings!: GtdSettings;
@@ -139,6 +141,22 @@ export default class GtdFlowPlugin extends Plugin {
         new EditTaskModal(this.app, this, file.path, task).open();
       },
     });
+    this.addCommand({
+      id: "project-status-block",
+      name: "Insert / update project status block",
+      checkCallback: (checking) => {
+        const file = this.app.workspace.getActiveFile();
+        if (!file || !this.index.get(file.path)) return false;
+        if (!checking) void this.writeStatusBlock(file, true);
+        return true;
+      },
+    });
+    // refresh an existing status block when its project note is opened
+    this.registerEvent(
+      this.app.workspace.on("file-open", (file) => {
+        if (file && this.index.get(file.path)) void this.writeStatusBlock(file, false);
+      })
+    );
     this.addCommand({
       id: "drop-task",
       name: "Drop (cancel) task under cursor",
@@ -320,6 +338,21 @@ export default class GtdFlowPlugin extends Plugin {
         el.style.removeProperty("--gtd-project-banner");
       }
     }
+  }
+
+  async writeStatusBlock(file: TFile, insertIfMissing: boolean) {
+    const project = this.index.get(file.path);
+    if (!project) return;
+    const today = todayISO();
+    let inner = statusBlockText(project, today);
+    if (this.settings.statusBlockChart) {
+      const chart = projectGanttSource(project, today);
+      if (chart) inner += "\n\n```mermaid\n" + chart + "\n```";
+    }
+    await this.app.vault.process(file, (content) => {
+      const r = upsertStatusBlock(content, inner, insertIfMissing);
+      return r.changed ? r.content : content; // idempotent: skip write when unchanged
+    });
   }
 
   async convertToProject(file: TFile) {
