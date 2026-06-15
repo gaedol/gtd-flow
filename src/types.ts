@@ -1,4 +1,4 @@
-export type ProjectStatus = "active" | "on-hold" | "completed" | "dropped";
+export type ProjectStatus = "active" | "on-hold" | "someday" | "completed" | "dropped";
 export type ProjectFlow = "sequential" | "parallel";
 
 export interface Task {

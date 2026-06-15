@@ -5,20 +5,27 @@ export interface Perspective {
   name: string;
   availableOnly: boolean;
   flagged: boolean;
-  tag: string; // "" = any
+  tag: string; // context tag/hierarchy element, "" = any (e.g. "home" matches "home/plumbing")
   project: string; // substring match on project name, "" = any
   dueWithin: number; // days, 0 = no due filter (overdue always included when > 0)
   groupBy: "project" | "tag" | "due";
+  someday?: boolean; // when true, draw from someday projects instead of active ones
 }
 
 export const DEFAULT_PERSPECTIVES: Perspective[] = [
   { name: "Due soon", availableOnly: true, flagged: false, tag: "", project: "", dueWithin: 7, groupBy: "due" },
   { name: "Flagged", availableOnly: true, flagged: true, tag: "", project: "", dueWithin: 0, groupBy: "project" },
+  { name: "Someday", availableOnly: false, flagged: false, tag: "", project: "", dueWithin: 0, groupBy: "project", someday: true },
 ];
 
 export interface PerspectiveItem {
   project: Project;
   task: Task;
+}
+
+// hierarchy-aware: filter "home" matches "home" and any "home/..." context
+export function tagMatches(tags: string[], filter: string): boolean {
+  return tags.some((t) => t === filter || t.startsWith(filter + "/"));
 }
 
 export function runPerspective(
@@ -32,14 +39,18 @@ export function runPerspective(
 
   for (const project of projects) {
     if (p.project && !project.name.toLowerCase().includes(p.project.toLowerCase())) continue;
-    const pool = p.availableOnly
-      ? availableTasks(project, today)
-      : project.status === "active" || project.status === "on-hold"
+    const pool = p.someday
+      ? project.status === "someday"
         ? project.tasks.filter((t) => !t.done)
-        : [];
+        : []
+      : p.availableOnly
+        ? availableTasks(project, today)
+        : project.status === "active" || project.status === "on-hold"
+          ? project.tasks.filter((t) => !t.done)
+          : [];
     for (const task of pool) {
       if (p.flagged && !task.tags.includes(flagTag)) continue;
-      if (p.tag && !task.tags.includes(p.tag)) continue;
+      if (p.tag && !tagMatches(task.tags, p.tag)) continue;
       if (p.dueWithin > 0 && (!task.due || task.due > horizon)) continue;
       items.push({ project, task });
     }

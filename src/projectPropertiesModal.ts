@@ -27,6 +27,7 @@ export class ProjectPropertiesModal extends Modal {
     new Setting(contentEl).setName("Status").addDropdown((d) =>
       d.addOption("active", "Active")
         .addOption("on-hold", "On hold")
+        .addOption("someday", "Someday")
         .addOption("completed", "Completed")
         .addOption("dropped", "Dropped")
         .setValue(this.status)

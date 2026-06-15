@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { runPerspective, Perspective } from "../src/perspectives";
+import { runPerspective, tagMatches, Perspective } from "../src/perspectives";
 import { Project, Task } from "../src/types";
 
 const TODAY = "2026-06-12";
@@ -15,6 +15,32 @@ function project(name: string, extra: Partial<Project> = {}): Project {
 function persp(extra: Partial<Perspective> = {}): Perspective {
   return { name: "t", availableOnly: true, flagged: false, tag: "", project: "", dueWithin: 0, groupBy: "project", ...extra };
 }
+
+describe("tagMatches (hierarchical contexts)", () => {
+  it("matches a parent context against its descendants", () => {
+    expect(tagMatches(["home/plumbing"], "home")).toBe(true);
+    expect(tagMatches(["home/plumbing"], "home/plumbing")).toBe(true);
+    expect(tagMatches(["office/sales"], "home")).toBe(false);
+    expect(tagMatches(["homework"], "home")).toBe(false); // not a hierarchy boundary
+  });
+});
+
+describe("hierarchy tag filter and someday pool", () => {
+  it("a tag filter matches descendant contexts", () => {
+    const p = project("P", {
+      tasks: [task("a", { tags: ["home/plumbing"] }), task("b", { tags: ["office/sales"] })],
+    });
+    const g = runPerspective([p], persp({ tag: "home" }), TODAY, "flag");
+    expect([...g.values()].flat().map((i) => i.task.text)).toEqual(["a"]);
+  });
+
+  it("someday perspective draws only from someday projects", () => {
+    const active = project("Active", { tasks: [task("now")] });
+    const later = project("Maybe", { status: "someday", tasks: [task("learn piano"), task("done", { done: true })] });
+    const g = runPerspective([active, later], persp({ someday: true, availableOnly: false }), TODAY, "flag");
+    expect([...g.values()].flat().map((i) => i.task.text)).toEqual(["learn piano"]);
+  });
+});
 
 describe("runPerspective", () => {
   const projects = [

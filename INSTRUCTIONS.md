@@ -33,7 +33,7 @@ A task is **available** when its project is `active`, its defer date (if any) ha
 ```markdown
 ---
 type: project          # required — marks the note as a project
-status: active         # active | on-hold | completed | dropped (default active)
+status: active         # active | on-hold | someday | completed | dropped (default active)
 flow: sequential       # sequential | parallel (default parallel)
 review-interval: 1w    # optional: Nd / Nw / Nm / Ny
 last-reviewed: 2026-06-10
@@ -60,6 +60,14 @@ Indent tasks to create action groups:
 - Sibling ordering follows the project `flow`; a `#sequential` or `#parallel` tag on the parent line overrides it for that group.
 - Deferring a parent defers its whole subtree.
 - Note: "move task to project" moves single lines — move children before their parent.
+
+### Someday / Maybe
+
+Set a project's `status: someday` (via the properties modal or frontmatter) to park it as not-yet-committed. Someday projects are excluded from Next Actions, Forecast, and Timeline like on-hold projects, but the built-in **Someday** perspective lists their open tasks so you can review and promote them when ready.
+
+### Contexts (hierarchical tags)
+
+Tags are your contexts, and they nest with `/`: `#home/plumbing`, `#office/sales`. A tag filter in a perspective is hierarchy-aware — filtering on `home` matches `home`, `home/plumbing`, and `home/garden`; filtering on `home/plumbing` matches only that. Grouping a perspective "by tag" lists each full context as its own group.
 
 ### Flags
 
@@ -126,7 +134,7 @@ The Tasks plugin is **optional**. GTD Flow works standalone; nothing in it depen
 `color:` tints the project page background (14% mix with the theme background); `banner:` sets a cover background image. Both live in frontmatter, so they sync like everything else and can be edited by hand. For anything fancier, Obsidian's native `cssclasses:` frontmatter key applies your own CSS snippet classes to the note — it composes freely with GTD Flow's styling.
 - **Toggle project on hold / active** — command on the current project note; on-hold projects vanish from Next Actions/Forecast/Timeline until reactivated.
 - **Ribbon icon (calendar-clock)** or command **Open forecast** — day-by-day view over the configured horizon: due tasks (checkbox, red when overdue and surfaced under Today) and deferred tasks becoming available (play icon).
-- **Ribbon icon (telescope)** or command **Open perspectives** — saved filtered views. Each perspective combines filters (available-only, flagged, tag, project-name substring, due within N days) with a grouping (by project, tag, or due date); a dropdown switches between them. Define perspectives in settings; defaults are "Due soon" (due ≤ 7 days, grouped by date) and "Flagged".
+- **Ribbon icon (telescope)** or command **Open perspectives** — saved filtered views. Each perspective combines filters (available-only, flagged, tag, project-name substring, due within N days) with a grouping (by project, tag, or due date); a dropdown switches between them. Define perspectives in settings (each has a "someday" toggle to draw from someday projects, and the tag filter is hierarchy-aware); defaults are "Due soon" (due ≤ 7 days, grouped by date), "Flagged", and "Someday".
 - **Completing a 🔁 repeating task from any GTD Flow view** inserts the next occurrence above the completed line: all dates advance by the interval (`every day/week/month/year`, optional count: `every 2 weeks`); with `when done` the next due date is completion + interval and other dates keep their relative offsets. Recurrence requires at least one date on the task.
 - **Capture from outside Obsidian** via URI: `obsidian://gtd-capture?vault=<name>&text=Buy+milk&due=2026-06-20&defer=2026-06-15` appends to the inbox; without `text` it opens the capture modal.
 - **Ribbon icon (gantt-chart)** or command **Open timeline** — Mermaid Gantt charts with a Day/Week/Month switcher. Week/month: one bar per open task spanning defer → due (single date = 1-day bar; overdue bars surface red on today; available tasks highlighted), one section per project. Day: only the tasks that actually belong to today — overdue, due today, or deferred-until-today — stacked from **Day starts at** (default 09:00) in that order, each sized by its ⏱ duration (or the **Default task duration** setting, 30 min), with the project in parentheses. Available-but-undated backlog tasks are *not* shown (that's what Next Actions is for). All three charts always span their full window (day = **Day starts/ends at**, 09:00–22:00 by default), with ticks every 3 h / day / week respectively. Wikilinks in task text are shown as their display text and long labels are truncated.

@@ -73,7 +73,7 @@ export function parseProject(
 }
 
 function asStatus(v: unknown): ProjectStatus {
-  return v === "on-hold" || v === "completed" || v === "dropped" ? v : "active";
+  return v === "on-hold" || v === "someday" || v === "completed" || v === "dropped" ? v : "active";
 }
 
 function asFlow(v: unknown): ProjectFlow {
