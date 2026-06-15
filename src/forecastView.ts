@@ -61,6 +61,10 @@ export class ForecastView extends ItemView {
     const row = parent.createDiv({ cls: "gtd-task" });
     if (it.kind === "due") {
       const cb = row.createEl("input", { type: "checkbox" });
+      if (it.task.inProgress) {
+        cb.indeterminate = true;
+        row.addClass("gtd-inprogress");
+      }
       cb.onclick = async () => {
         cb.disabled = true;
         await completeTask(this.app, it.project.path, it.task);

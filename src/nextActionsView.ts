@@ -70,6 +70,10 @@ export class NextActionsView extends ItemView {
     for (const t of tasks) {
       const row = section.createDiv({ cls: "gtd-task" });
       const cb = row.createEl("input", { type: "checkbox" });
+      if (t.inProgress) {
+        cb.indeterminate = true;
+        row.addClass("gtd-inprogress");
+      }
       cb.onclick = async () => {
         cb.disabled = true;
         await completeTask(this.app, inboxPath, t);
@@ -112,6 +116,10 @@ export class NextActionsView extends ItemView {
   ) {
     const row = parent.createDiv({ cls: "gtd-task" });
     const cb = row.createEl("input", { type: "checkbox" });
+    if (task.inProgress) {
+      cb.indeterminate = true;
+      row.addClass("gtd-inprogress");
+    }
     cb.onclick = async () => {
       cb.disabled = true;
       await completeTask(this.app, project.path, task);

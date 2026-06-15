@@ -72,6 +72,10 @@ export class PerspectiveView extends ItemView {
   private renderItem(parent: HTMLElement, it: PerspectiveItem, today: string, showProject: boolean) {
     const row = parent.createDiv({ cls: "gtd-task" });
     const cb = row.createEl("input", { type: "checkbox" });
+    if (it.task.inProgress) {
+      cb.indeterminate = true;
+      row.addClass("gtd-inprogress");
+    }
     cb.onclick = async () => {
       cb.disabled = true;
       await completeTask(this.app, it.project.path, it.task);
