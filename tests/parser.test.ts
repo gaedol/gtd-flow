@@ -22,6 +22,13 @@ describe("parseTaskLine", () => {
     expect(t.line).toBe(3);
   });
 
+  it("parses dropped and in-progress statuses", () => {
+    const dropped = parseTaskLine("- [-] Abandon idea ❌ 2026-06-10", 0)!;
+    expect(dropped).toMatchObject({ done: true, dropped: true, cancelledOn: "2026-06-10", text: "Abandon idea" });
+    const wip = parseTaskLine("- [/] Writing draft", 0)!;
+    expect(wip).toMatchObject({ done: false, inProgress: true, text: "Writing draft" });
+  });
+
   it("parses completed task with completion date", () => {
     const t = parseTaskLine("- [x] Ship it ✅ 2026-06-10", 1)!;
     expect(t.done).toBe(true);

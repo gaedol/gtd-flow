@@ -46,4 +46,14 @@ describe("serializeTask", () => {
     });
     expect(line).toBe("- [x] Done ✅ 2026-06-10");
   });
+
+  it("writes dropped and in-progress checkboxes round-trip", () => {
+    const dropped = serializeTask({ indent: 0, done: true, dropped: true, cancelledOn: "2026-06-11", text: "Nope", tags: [] });
+    expect(dropped).toBe("- [-] Nope ❌ 2026-06-11");
+    expect(parseTaskLine(dropped, 0)).toMatchObject({ dropped: true, cancelledOn: "2026-06-11" });
+
+    const wip = serializeTask({ indent: 2, done: false, inProgress: true, text: "Halfway", tags: [] });
+    expect(wip).toBe("  - [/] Halfway");
+    expect(parseTaskLine(wip, 0)).toMatchObject({ inProgress: true, done: false });
+  });
 });

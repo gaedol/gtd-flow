@@ -2,7 +2,8 @@ import { App, Modal, Notice, Setting, TFile } from "obsidian";
 import type GtdFlowPlugin from "./main";
 import { Task } from "./types";
 import { parseTaskLine } from "./parser";
-import { serializeTask, formatDuration, parseDuration } from "./serialize";
+import { serializeTask, formatDuration, parseDuration, stateOf, TaskState } from "./serialize";
+import { todayISO } from "./dates";
 
 export class EditTaskModal extends Modal {
   private text: string;
@@ -11,6 +12,7 @@ export class EditTaskModal extends Modal {
   private duration: string;
   private repeat: string;
   private flagged: boolean;
+  private state: TaskState;
 
   constructor(
     app: App,
@@ -26,6 +28,7 @@ export class EditTaskModal extends Modal {
     this.duration = task.durationMin ? formatDuration(task.durationMin) : "";
     this.repeat = task.repeat ?? "";
     this.flagged = task.tags.includes(flagTag);
+    this.state = stateOf(task);
   }
 
   onOpen() {
@@ -49,6 +52,14 @@ export class EditTaskModal extends Modal {
     );
     new Setting(contentEl).setName("Repeat (🔁)").addText((t) =>
       t.setPlaceholder("every week").setValue(this.repeat).onChange((v) => (this.repeat = v))
+    );
+    new Setting(contentEl).setName("Status").addDropdown((d) =>
+      d.addOption("todo", "To do")
+        .addOption("in-progress", "In progress")
+        .addOption("done", "Done")
+        .addOption("dropped", "Dropped")
+        .setValue(this.state)
+        .onChange((v) => (this.state = v as TaskState))
     );
     new Setting(contentEl).setName("Flagged").addToggle((t) =>
       t.setValue(this.flagged).onChange((v) => (this.flagged = v))
@@ -74,8 +85,11 @@ export class EditTaskModal extends Modal {
 
     const newLine = serializeTask({
       indent: this.task.indent,
-      done: this.task.done,
-      completedOn: this.task.completedOn,
+      done: this.state === "done" || this.state === "dropped",
+      dropped: this.state === "dropped",
+      inProgress: this.state === "in-progress",
+      completedOn: this.state === "done" ? this.task.completedOn ?? todayISO() : undefined,
+      cancelledOn: this.state === "dropped" ? this.task.cancelledOn ?? todayISO() : undefined,
       text,
       tags,
       repeat: this.repeat.trim() || undefined,

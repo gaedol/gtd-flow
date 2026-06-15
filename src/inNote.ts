@@ -19,13 +19,17 @@ export function buildLineClasses(
 
   const map = new Map<number, string>();
   tasks.forEach((t, i) => {
-    if (t.done) return;
+    if (t.done) {
+      if (t.dropped) map.set(t.line, "gtd-ln-dropped");
+      return;
+    }
     const cls: string[] = [];
     if (t === next) cls.push("gtd-ln-next");
     else if (avail.has(t)) cls.push("gtd-ln-available");
     else if (t.defer && t.defer > today) cls.push("gtd-ln-deferred");
     else if (subtreeHasAvailable(tasks, i, avail)) cls.push("gtd-ln-group");
     else cls.push("gtd-ln-blocked");
+    if (t.inProgress) cls.push("gtd-ln-inprogress");
     if (t.due && t.due < today) cls.push("gtd-ln-overdue");
     map.set(t.line, cls.join(" "));
   });

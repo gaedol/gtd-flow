@@ -17,9 +17,10 @@ export function archiveDoneTasks(content: string, today: string, minAgeDays: num
 
   const eligible = (l: string, n: number): boolean => {
     const t = parseTaskLine(l, n);
-    if (!t || !t.done) return false;
-    if (!t.completedOn) return true; // no ✅ date: age unknown, archive on request
-    return addInterval(t.completedOn, `${minAgeDays}d`)! <= today;
+    if (!t || !t.done) return false; // covers both completed [x] and dropped [-]
+    const resolvedOn = t.completedOn ?? t.cancelledOn;
+    if (!resolvedOn) return true; // no date: age unknown, archive on request
+    return addInterval(resolvedOn, `${minAgeDays}d`)! <= today;
   };
 
   const toMove = new Set<number>();

@@ -61,6 +61,15 @@ Indent tasks to create action groups:
 - Deferring a parent defers its whole subtree.
 - Note: "move task to project" moves single lines — move children before their parent.
 
+### Task statuses
+
+Besides `- [ ]` (to do) and `- [x]` (done), GTD Flow recognizes:
+
+- `- [/]` **in progress** — still available/actionable, highlighted yellow in the note.
+- `- [-]` **dropped / cancelled** — resolved but not completed (records a `❌` date). Treated like done: removed from Next Actions and the sequence advances past it, struck through in the note, and archivable.
+
+Change a task's status from the **Edit task** modal (Status dropdown), the **Drop (cancel) task under cursor** command, or just by editing the checkbox character. Completing a task from the views still records `✅` and handles 🔁 recurrence.
+
 ### Someday / Maybe
 
 Set a project's `status: someday` (via the properties modal or frontmatter) to park it as not-yet-committed. Someday projects are excluded from Next Actions, Forecast, and Timeline like on-hold projects, but the built-in **Someday** perspective lists their open tasks so you can review and promote them when ready.

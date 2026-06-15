@@ -1,13 +1,36 @@
+export type TaskState = "todo" | "in-progress" | "done" | "dropped";
+
 export interface TaskFields {
   indent: number;
   done: boolean;
+  dropped?: boolean;
+  inProgress?: boolean;
   completedOn?: string;
+  cancelledOn?: string;
   text: string;
   tags: string[];
   repeat?: string;
   defer?: string;
   due?: string;
   durationMin?: number;
+}
+
+export function stateOf(f: { done: boolean; dropped?: boolean; inProgress?: boolean }): TaskState {
+  if (f.dropped) return "dropped";
+  if (f.done) return "done";
+  if (f.inProgress) return "in-progress";
+  return "todo";
+}
+
+const STATE_CHAR: Record<TaskState, string> = {
+  todo: " ",
+  "in-progress": "/",
+  done: "x",
+  dropped: "-",
+};
+
+export function stateChar(state: TaskState): string {
+  return STATE_CHAR[state];
 }
 
 export function formatDuration(min: number): string {
@@ -24,12 +47,14 @@ export function parseDuration(s: string): number | undefined {
 }
 
 export function serializeTask(f: TaskFields): string {
-  let s = " ".repeat(f.indent) + `- [${f.done ? "x" : " "}] ${f.text}`;
+  const state = stateOf(f);
+  let s = " ".repeat(f.indent) + `- [${STATE_CHAR[state]}] ${f.text}`;
   for (const t of f.tags) s += ` #${t}`;
   if (f.repeat) s += ` 🔁 ${f.repeat}`;
   if (f.defer) s += ` 🛫 ${f.defer}`;
   if (f.due) s += ` 📅 ${f.due}`;
   if (f.durationMin) s += ` ⏱ ${formatDuration(f.durationMin)}`;
-  if (f.done && f.completedOn) s += ` ✅ ${f.completedOn}`;
+  if (state === "done" && f.completedOn) s += ` ✅ ${f.completedOn}`;
+  if (state === "dropped" && f.cancelledOn) s += ` ❌ ${f.cancelledOn}`;
   return s;
 }

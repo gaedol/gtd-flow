@@ -323,3 +323,14 @@ li.task-list-item.gtd-ln-deferred {
 li.task-list-item.gtd-ln-overdue {
   border-left: 2px solid var(--color-red);
 }
+
+.cm-line.gtd-ln-inprogress,
+li.task-list-item.gtd-ln-inprogress {
+  border-left: 2px solid var(--color-yellow);
+}
+
+.cm-line.gtd-ln-dropped,
+li.task-list-item.gtd-ln-dropped {
+  opacity: 0.5;
+  text-decoration: line-through;
+}

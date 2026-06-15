@@ -19,6 +19,7 @@ import { buildLineClasses } from "./inNote";
 import { todayISO } from "./dates";
 import { moveTask, ProjectSuggestModal } from "./moveTask";
 import { parseTaskLine } from "./parser";
+import { setTaskState } from "./completeTask";
 
 export default class GtdFlowPlugin extends Plugin {
   settings!: GtdSettings;
@@ -136,6 +137,21 @@ export default class GtdFlowPlugin extends Plugin {
           return;
         }
         new EditTaskModal(this.app, this, file.path, task).open();
+      },
+    });
+    this.addCommand({
+      id: "drop-task",
+      name: "Drop (cancel) task under cursor",
+      editorCallback: (editor, view) => {
+        const file = view.file;
+        if (!file) return;
+        const lineNo = editor.getCursor().line;
+        const task = parseTaskLine(editor.getLine(lineNo), lineNo);
+        if (!task) {
+          new Notice("Cursor is not on a task line");
+          return;
+        }
+        void setTaskState(this.app, file.path, task, "dropped");
       },
     });
     this.addCommand({

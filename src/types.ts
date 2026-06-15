@@ -11,6 +11,9 @@ export interface Task {
   completedOn?: string; // ISO date, ✅
   repeat?: string; // 🔁 rule, verbatim
   durationMin?: number; // ⏱ estimated duration in minutes
+  dropped?: boolean; // "[-]" cancelled — resolved (done=true) but not completed
+  inProgress?: boolean; // "[/]" started — still available
+  cancelledOn?: string; // ❌ cancellation date
   tags: string[];
 }
 
