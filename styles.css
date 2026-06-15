@@ -205,8 +205,29 @@
   padding: var(--size-4-2);
 }
 
+/* let each perspective's controls wrap instead of overflowing off-screen */
+.gtd-perspective-setting .setting-item-info {
+  display: none; /* no name label — reclaim the left space for controls */
+}
+
+.gtd-perspective-setting .setting-item-control {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: var(--size-4-2);
+}
+
+.gtd-perspective-setting input[type="text"] {
+  width: 130px;
+}
+
 .gtd-perspective-setting .gtd-narrow-input {
-  max-width: 80px;
+  width: 80px;
+}
+
+.gtd-perspective-setting .gtd-toggle-label {
+  align-self: center;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
 }
 
 .gtd-timeline .gtd-timeline-bar {

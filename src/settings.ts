@@ -224,44 +224,37 @@ export class GtdSettingTab extends PluginSettingTab {
 
   private renderPerspective(containerEl: HTMLElement, p: Perspective, i: number) {
     const save = async () => this.plugin.saveSettings();
-    const row1 = new Setting(containerEl).setClass("gtd-perspective-setting");
-    row1
-      .addText((t) => t.setPlaceholder("Name").setValue(p.name).onChange(async (v) => { p.name = v; await save(); }))
-      .addText((t) => t.setPlaceholder("#tag filter").setValue(p.tag).onChange(async (v) => { p.tag = v.replace(/^#/, ""); await save(); }))
-      .addText((t) => t.setPlaceholder("Project filter").setValue(p.project).onChange(async (v) => { p.project = v; await save(); }))
-      .addText((t) => {
-        t.setPlaceholder("Due ≤ days").setValue(p.dueWithin ? String(p.dueWithin) : "").onChange(async (v) => {
-          const n = parseInt(v, 10);
-          p.dueWithin = isNaN(n) || n < 0 ? 0 : n;
-          await save();
-        });
-        t.inputEl.addClass("gtd-narrow-input");
+    const s = new Setting(containerEl).setClass("gtd-perspective-setting");
+    s.addText((t) => t.setPlaceholder("Name").setValue(p.name).onChange(async (v) => { p.name = v; await save(); }));
+    s.addText((t) => t.setPlaceholder("#tag filter").setValue(p.tag).onChange(async (v) => { p.tag = v.replace(/^#/, ""); await save(); }));
+    s.addText((t) => t.setPlaceholder("Project filter").setValue(p.project).onChange(async (v) => { p.project = v; await save(); }));
+    s.addText((t) => {
+      t.setPlaceholder("Due ≤ days").setValue(p.dueWithin ? String(p.dueWithin) : "").onChange(async (v) => {
+        const n = parseInt(v, 10);
+        p.dueWithin = isNaN(n) || n < 0 ? 0 : n;
+        await save();
+      });
+      t.inputEl.addClass("gtd-narrow-input");
+    });
+    s.addDropdown((d) =>
+      d.addOption("project", "By project").addOption("tag", "By tag").addOption("due", "By due date")
+        .setValue(p.groupBy).onChange(async (v) => { p.groupBy = v as Perspective["groupBy"]; await save(); })
+    );
+    // labeled toggles (the label span is appended just before each toggle)
+    const toggle = (text: string, get: () => boolean, set: (v: boolean) => void) => {
+      s.controlEl.createSpan({ cls: "gtd-toggle-label", text });
+      s.addToggle((t) => t.setValue(get()).onChange(async (v) => { set(v); await save(); }));
+    };
+    toggle("avail", () => p.availableOnly, (v) => (p.availableOnly = v));
+    toggle("flag", () => p.flagged, (v) => (p.flagged = v));
+    toggle("someday", () => p.someday ?? false, (v) => (p.someday = v));
+    toggle("done", () => p.done ?? false, (v) => (p.done = v));
+    s.addExtraButton((b) =>
+      b.setIcon("trash").setTooltip("Delete perspective").onClick(async () => {
+        this.plugin.settings.perspectives.splice(i, 1);
+        await save();
+        this.display();
       })
-      .addDropdown((d) =>
-        d.addOption("project", "By project")
-          .addOption("tag", "By tag")
-          .addOption("due", "By due date")
-          .setValue(p.groupBy)
-          .onChange(async (v) => { p.groupBy = v as Perspective["groupBy"]; await save(); })
-      )
-      .addToggle((t) =>
-        t.setValue(p.availableOnly).setTooltip("Available tasks only").onChange(async (v) => { p.availableOnly = v; await save(); })
-      )
-      .addToggle((t) =>
-        t.setValue(p.flagged).setTooltip("Flagged only").onChange(async (v) => { p.flagged = v; await save(); })
-      )
-      .addToggle((t) =>
-        t.setValue(p.someday ?? false).setTooltip("Someday projects").onChange(async (v) => { p.someday = v; await save(); })
-      )
-      .addToggle((t) =>
-        t.setValue(p.done ?? false).setTooltip("Completed tasks").onChange(async (v) => { p.done = v; await save(); })
-      )
-      .addExtraButton((b) =>
-        b.setIcon("trash").setTooltip("Delete perspective").onClick(async () => {
-          this.plugin.settings.perspectives.splice(i, 1);
-          await save();
-          this.display();
-        })
-      );
+    );
   }
 }
