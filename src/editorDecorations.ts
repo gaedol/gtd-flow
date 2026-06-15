@@ -1,15 +1,11 @@
-import type { EditorView, ViewUpdate, DecorationSet } from "@codemirror/view";
+import { ViewPlugin, ViewUpdate, EditorView, Decoration, DecorationSet } from "@codemirror/view";
+import { RangeSetBuilder } from "@codemirror/state";
 import { editorInfoField } from "obsidian";
 import type GtdFlowPlugin from "./main";
 import { buildLineClasses } from "./inNote";
 import { todayISO } from "./dates";
 
-// CM modules required lazily so a missing/incompatible module degrades
-// to a caught error in main.ts instead of failing the whole plugin load
 export function gtdEditorDecorations(plugin: GtdFlowPlugin) {
-  const { ViewPlugin, Decoration } = require("@codemirror/view");
-  const { RangeSetBuilder } = require("@codemirror/state");
-
   function build(view: EditorView): DecorationSet {
     const file = view.state.field(editorInfoField).file;
     const project = file ? plugin.index.get(file.path) : undefined;
@@ -20,7 +16,7 @@ export function gtdEditorDecorations(plugin: GtdFlowPlugin) {
     for (let i = 1; i <= doc.lines; i++) lines.push(doc.line(i).text);
     const classes = buildLineClasses(project, lines, todayISO());
 
-    const b = new RangeSetBuilder();
+    const b = new RangeSetBuilder<Decoration>();
     for (let i = 1; i <= doc.lines; i++) {
       const cls = classes.get(i - 1);
       if (cls) {

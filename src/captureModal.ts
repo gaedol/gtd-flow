@@ -1,4 +1,4 @@
-import { App, Modal, Notice, Setting, TFile, normalizePath } from "obsidian";
+import { App, Modal, Notice, Setting, normalizePath } from "obsidian";
 import type GtdFlowPlugin from "./main";
 
 export class CaptureModal extends Modal {
