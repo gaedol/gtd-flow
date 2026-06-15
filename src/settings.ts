@@ -8,6 +8,7 @@ export interface GtdSettings {
   inboxNote: string;
   forecastDays: number;
   flagTag: string;
+  somedayTag: string;
   archiveAfterDays: number;
   archiveFolder: string;
   perspectives: Perspective[];
@@ -25,6 +26,7 @@ export const DEFAULT_SETTINGS: GtdSettings = {
   inboxNote: "GTD/Inbox.md",
   forecastDays: 7,
   flagTag: "flag",
+  somedayTag: "someday",
   archiveAfterDays: 7,
   archiveFolder: "GTD/Archive",
   perspectives: DEFAULT_PERSPECTIVES,
@@ -72,6 +74,16 @@ export class GtdSettingTab extends PluginSettingTab {
       .addText((t) =>
         t.setValue(this.plugin.settings.flagTag).onChange(async (v) => {
           this.plugin.settings.flagTag = v.replace(/^#/, "");
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Someday tag")
+      .setDesc("Tag (without #) that parks a single task as someday/maybe.")
+      .addText((t) =>
+        t.setValue(this.plugin.settings.somedayTag).onChange(async (v) => {
+          this.plugin.settings.somedayTag = v.replace(/^#/, "") || "someday";
           await this.plugin.saveSettings();
         })
       );

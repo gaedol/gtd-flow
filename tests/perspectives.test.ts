@@ -34,11 +34,17 @@ describe("hierarchy tag filter and someday pool", () => {
     expect([...g.values()].flat().map((i) => i.task.text)).toEqual(["a"]);
   });
 
-  it("someday perspective draws only from someday projects", () => {
-    const active = project("Active", { tasks: [task("now")] });
+  it("someday perspective draws from someday projects and #someday tasks", () => {
+    const active = project("Active", { tasks: [task("now"), task("maybe later", { tags: ["someday"] })] });
     const later = project("Maybe", { status: "someday", tasks: [task("learn piano"), task("done", { done: true })] });
     const g = runPerspective([active, later], persp({ someday: true, availableOnly: false }), TODAY, "flag");
-    expect([...g.values()].flat().map((i) => i.task.text)).toEqual(["learn piano"]);
+    expect([...g.values()].flat().map((i) => i.task.text).sort()).toEqual(["learn piano", "maybe later"]);
+  });
+
+  it("#someday tasks are hidden from a normal (non-someday) perspective", () => {
+    const p = project("P", { tasks: [task("active one"), task("parked", { tags: ["someday"] })] });
+    const g = runPerspective([p], persp({ availableOnly: false }), TODAY, "flag");
+    expect([...g.values()].flat().map((i) => i.task.text)).toEqual(["active one"]);
   });
 });
 

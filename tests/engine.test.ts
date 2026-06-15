@@ -112,6 +112,24 @@ describe("action groups (indentation)", () => {
   });
 });
 
+describe("someday tag", () => {
+  it("a #someday task is not available and does not block its sequence", () => {
+    const p = project({
+      flow: "sequential",
+      tasks: [task("park", { tags: ["someday"] }), task("next one")],
+    });
+    // skipped, and the following task becomes available instead of being blocked
+    expect(availableTasks(p, TODAY).map((t) => t.text)).toEqual(["next one"]);
+  });
+
+  it("a #someday parent removes its whole subtree from availability", () => {
+    const p = project({
+      tasks: [task("group", { tags: ["someday"] }), task("child", { indent: 2 }), task("other")],
+    });
+    expect(availableTasks(p, TODAY).map((t) => t.text)).toEqual(["other"]);
+  });
+});
+
 describe("overdueCount", () => {
   it("counts open overdue tasks in active projects only", () => {
     const p1 = project({ tasks: [task("a", { due: "2026-06-01" }), task("b", { due: "2026-06-01", done: true })] });

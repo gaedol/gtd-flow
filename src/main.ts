@@ -10,7 +10,7 @@ import { CaptureModal } from "./captureModal";
 import { gtdEditorDecorations } from "./editorDecorations";
 import { TaskSuggest } from "./taskSuggest";
 import { archiveDoneTasks } from "./archive";
-import { overdueCount, dueOrOverdue } from "./engine";
+import { overdueCount, dueOrOverdue, setSomedayTag } from "./engine";
 import { insertTaskLine } from "./insertLine";
 import { EditTaskModal } from "./editTaskModal";
 import { NewProjectModal } from "./newProjectModal";
@@ -31,6 +31,7 @@ export default class GtdFlowPlugin extends Plugin {
 
   async onload() {
     await this.loadSettings();
+    setSomedayTag(this.settings.somedayTag);
     this.addSettingTab(new GtdSettingTab(this.app, this));
 
     this.index = new TaskIndex(
@@ -170,6 +171,24 @@ export default class GtdFlowPlugin extends Plugin {
           return;
         }
         void setTaskState(this.app, file.path, task, "dropped");
+      },
+    });
+    this.addCommand({
+      id: "toggle-someday",
+      name: "Toggle someday on task under cursor",
+      editorCallback: (editor) => {
+        const lineNo = editor.getCursor().line;
+        const raw = editor.getLine(lineNo);
+        const task = parseTaskLine(raw, lineNo);
+        if (!task) {
+          new Notice("Cursor is not on a task line");
+          return;
+        }
+        const tag = this.settings.somedayTag;
+        const next = task.tags.includes(tag)
+          ? raw.replace(new RegExp(`\\s*#${tag}\\b`), "")
+          : raw.replace(/\s*$/, "") + ` #${tag}`;
+        editor.setLine(lineNo, next);
       },
     });
     this.addCommand({
@@ -447,6 +466,7 @@ export default class GtdFlowPlugin extends Plugin {
 
   async saveSettings() {
     await this.saveData(this.settings);
+    setSomedayTag(this.settings.somedayTag);
     await this.index.rebuild();
   }
 }

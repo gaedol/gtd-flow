@@ -334,3 +334,9 @@ li.task-list-item.gtd-ln-dropped {
   opacity: 0.5;
   text-decoration: line-through;
 }
+
+.cm-line.gtd-ln-someday,
+li.task-list-item.gtd-ln-someday {
+  opacity: 0.55;
+  font-style: italic;
+}

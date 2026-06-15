@@ -1,6 +1,6 @@
 import { Project, Task } from "./types";
 import { parseTaskLine } from "./parser";
-import { availableTasks } from "./engine";
+import { availableTasks, isSomedayTask } from "./engine";
 
 // Re-parses doc lines so decorations track unsaved edits, not the (possibly stale) index
 export function buildLineClasses(
@@ -21,6 +21,10 @@ export function buildLineClasses(
   tasks.forEach((t, i) => {
     if (t.done) {
       if (t.dropped) map.set(t.line, "gtd-ln-dropped");
+      return;
+    }
+    if (isSomedayTask(t)) {
+      map.set(t.line, "gtd-ln-someday");
       return;
     }
     const cls: string[] = [];

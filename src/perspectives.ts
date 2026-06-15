@@ -1,5 +1,5 @@
 import { Project, Task } from "./types";
-import { availableTasks, addInterval } from "./engine";
+import { availableTasks, addInterval, isSomedayTask } from "./engine";
 
 export interface Perspective {
   name: string;
@@ -39,14 +39,16 @@ export function runPerspective(
 
   for (const project of projects) {
     if (p.project && !project.name.toLowerCase().includes(p.project.toLowerCase())) continue;
+    const open = project.tasks.filter((t) => !t.done);
     const pool = p.someday
-      ? project.status === "someday"
-        ? project.tasks.filter((t) => !t.done)
-        : []
+      ? // someday-status project: all open; otherwise just #someday-tagged tasks
+        project.status === "someday"
+        ? open
+        : open.filter(isSomedayTask)
       : p.availableOnly
         ? availableTasks(project, today)
         : project.status === "active" || project.status === "on-hold"
-          ? project.tasks.filter((t) => !t.done)
+          ? open.filter((t) => !isSomedayTask(t)) // parked tasks hidden from normal views
           : [];
     for (const task of pool) {
       if (p.flagged && !task.tags.includes(flagTag)) continue;

@@ -24,17 +24,28 @@ function groupFlow(parent: Task, inherited: ProjectFlow): ProjectFlow {
   return inherited;
 }
 
+// the tag that parks a single task as someday (configurable; default "someday")
+let somedayTag = "someday";
+export function setSomedayTag(t: string): void {
+  somedayTag = t || "someday";
+}
+export function isSomedayTask(t: Task): boolean {
+  return t.tags.includes(somedayTag);
+}
+
 function collect(nodes: TaskNode[], flow: ProjectFlow, today: string, out: Task[]): void {
   let blocked = false;
   for (const n of nodes) {
     const deferred = !!n.task.defer && n.task.defer > today;
-    if (!n.task.done && !blocked && !deferred) {
+    const someday = isSomedayTask(n.task);
+    if (!n.task.done && !someday && !blocked && !deferred) {
       const openChildren = n.children.some((c) => !c.task.done);
       // a group with open children is a container, not an action
       if (!openChildren) out.push(n.task);
       else collect(n.children, groupFlow(n.task, flow), today, out);
     }
-    if (flow === "sequential" && !n.task.done) blocked = true;
+    // someday tasks are skipped without blocking the rest of a sequence
+    if (flow === "sequential" && !n.task.done && !someday) blocked = true;
   }
 }
 

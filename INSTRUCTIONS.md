@@ -86,7 +86,12 @@ It's opt-in (nothing is written until you run the command) and delimited by `%%`
 
 ### Someday / Maybe
 
-Set a project's `status: someday` (via the properties modal or frontmatter) to park it as not-yet-committed. Someday projects are excluded from Next Actions, Forecast, and Timeline like on-hold projects, but the built-in **Someday** perspective lists their open tasks so you can review and promote them when ready.
+Park things you're not committing to yet, at two levels:
+
+- **Whole project** — set `status: someday` (properties modal or frontmatter). Excluded from Next Actions/Forecast/Timeline like on-hold.
+- **Single task** — tag it `#someday` (tag configurable in settings; or use the **Toggle someday** command / the Someday toggle in the Edit modal). The task drops out of Next Actions and is *skipped without blocking* its sequence — the next action becomes available instead. Shown dimmed/italic in the note.
+
+Either way, the built-in **Someday** perspective gathers them all — open tasks in someday projects plus every `#someday`-tagged task — so you can review and promote them when ready.
 
 ### Contexts (hierarchical tags)
 

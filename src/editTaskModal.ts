@@ -12,6 +12,7 @@ export class EditTaskModal extends Modal {
   private duration: string;
   private repeat: string;
   private flagged: boolean;
+  private someday: boolean;
   private state: TaskState;
 
   constructor(
@@ -28,6 +29,7 @@ export class EditTaskModal extends Modal {
     this.duration = task.durationMin ? formatDuration(task.durationMin) : "";
     this.repeat = task.repeat ?? "";
     this.flagged = task.tags.includes(flagTag);
+    this.someday = task.tags.includes(plugin.settings.somedayTag);
     this.state = stateOf(task);
   }
 
@@ -64,6 +66,9 @@ export class EditTaskModal extends Modal {
     new Setting(contentEl).setName("Flagged").addToggle((t) =>
       t.setValue(this.flagged).onChange((v) => (this.flagged = v))
     );
+    new Setting(contentEl).setName("Someday").addToggle((t) =>
+      t.setValue(this.someday).onChange((v) => (this.someday = v))
+    );
     new Setting(contentEl).addButton((b) =>
       b.setButtonText("Save").setCta().onClick(() => this.save())
     );
@@ -80,8 +85,10 @@ export class EditTaskModal extends Modal {
       return;
     }
     const flagTag = this.plugin.settings.flagTag;
-    const tags = this.task.tags.filter((t) => t !== flagTag);
+    const somedayTag = this.plugin.settings.somedayTag;
+    const tags = this.task.tags.filter((t) => t !== flagTag && t !== somedayTag);
     if (this.flagged) tags.push(flagTag);
+    if (this.someday) tags.push(somedayTag);
 
     const newLine = serializeTask({
       indent: this.task.indent,
