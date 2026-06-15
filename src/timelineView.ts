@@ -42,7 +42,7 @@ export class TimelineView extends ItemView {
       });
       btn.onclick = () => {
         this.mode = m;
-        this.render();
+        void this.render();
       };
     }
 

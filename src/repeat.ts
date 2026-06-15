@@ -53,5 +53,5 @@ export function nextOccurrenceLine(rawLine: string, today: string): string | nul
   } else {
     map = (d) => addInterval(d, interval)!;
   }
-  return rawLine.replace(DATE_FIELD_RE, (_, emoji, d) => `${emoji} ${map(d)}`);
+  return rawLine.replace(DATE_FIELD_RE, (_: string, emoji: string, d: string) => `${emoji} ${map(d)}`);
 }

@@ -79,8 +79,8 @@ export class NextActionsView extends ItemView {
       const btn = row.createEl("button", { cls: "gtd-move-btn", attr: { "aria-label": "Move to project" } });
       setIcon(btn, "folder-input");
       btn.onclick = () => {
-        new ProjectSuggestModal(this.app, this.plugin.index.all(), async (p) => {
-          await moveTask(this.app, inboxPath, t, p.path, this.plugin.settings.insertPosition);
+        new ProjectSuggestModal(this.app, this.plugin.index.all(), (p) => {
+          void moveTask(this.app, inboxPath, t, p.path, this.plugin.settings.insertPosition);
         }).open();
       };
     }

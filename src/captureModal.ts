@@ -23,7 +23,7 @@ export class CaptureModal extends Modal {
       t.inputEl.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
           e.preventDefault();
-          this.submit();
+          void this.submit();
         }
       });
     });

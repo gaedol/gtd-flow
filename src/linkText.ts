@@ -38,7 +38,7 @@ export function renderTaskText(
       a.addEventListener("click", (e) => {
         e.stopPropagation();
         e.preventDefault();
-        app.workspace.openLinkText(seg.link!, sourcePath, false);
+        void app.workspace.openLinkText(seg.link!, sourcePath, false);
       });
     } else {
       span.appendText(seg.text);

@@ -21,7 +21,7 @@ export class NewProjectModal extends Modal {
       t.inputEl.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
           e.preventDefault();
-          this.create();
+          void this.create();
         }
       });
     });

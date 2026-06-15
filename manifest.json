@@ -1,8 +1,8 @@
 {
   "id": "gtd-flow",
   "name": "GTD Flow",
-  "version": "0.1.1",
-  "minAppVersion": "1.5.7",
+  "version": "0.1.2",
+  "minAppVersion": "1.7.2",
   "description": "Structured GTD: sequential/parallel projects, defer dates, next actions, forecast and review.",
   "author": "Marco Guidetti",
   "isDesktopOnly": false

@@ -37,11 +37,10 @@ export default class GtdFlowPlugin extends Plugin {
     );
 
     if (typeof Notification !== "undefined" && Notification.permission === "default") {
-      Notification.requestPermission();
+      void Notification.requestPermission();
     }
-    this.app.workspace.onLayoutReady(async () => {
-      await this.index.rebuild();
-      this.notifyDue();
+    this.app.workspace.onLayoutReady(() => {
+      void this.index.rebuild().then(() => this.notifyDue());
     });
     // re-check periodically while Obsidian is open (dedupe prevents repeats)
     this.registerInterval(window.setInterval(() => this.notifyDue(), 30 * 60 * 1000));
@@ -117,9 +116,9 @@ export default class GtdFlowPlugin extends Plugin {
           new Notice("Cursor is not on a task line");
           return;
         }
-        new ProjectSuggestModal(this.app, this.index.all(), async (p) => {
+        new ProjectSuggestModal(this.app, this.index.all(), (p) => {
           if (p.path === file.path) return;
-          await moveTask(this.app, file.path, task, p.path, this.settings.insertPosition);
+          void moveTask(this.app, file.path, task, p.path, this.settings.insertPosition);
         }).open();
       },
     });
@@ -150,7 +149,7 @@ export default class GtdFlowPlugin extends Plugin {
       checkCallback: (checking) => {
         const file = this.app.workspace.getActiveFile();
         if (!file || this.index.get(file.path)) return false;
-        if (!checking) this.convertToProject(file);
+        if (!checking) void this.convertToProject(file);
         return true;
       },
     });
@@ -185,9 +184,9 @@ export default class GtdFlowPlugin extends Plugin {
       checkCallback: (checking) => {
         const file = this.app.workspace.getActiveFile();
         const project = file ? this.index.get(file.path) : undefined;
-        if (!project) return false;
+        if (!file || !project) return false;
         if (!checking) {
-          this.app.fileManager.processFrontMatter(file!, (fm) => {
+          void this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
             fm["status"] = fm["status"] === "on-hold" ? "active" : "on-hold";
           });
           new Notice(
@@ -202,9 +201,11 @@ export default class GtdFlowPlugin extends Plugin {
       name: "Archive done tasks in this note",
       checkCallback: (checking) => {
         const file = this.app.workspace.getActiveFile();
-        const ok = !!file && (!!this.index.get(file.path) || file.path === normalizePath(this.settings.inboxNote));
-        if (ok && !checking) this.archiveNote(file!).then((n) => new Notice(`Archived ${n} task(s)`));
-        return ok;
+        if (!file) return false;
+        const inScope = !!this.index.get(file.path) || file.path === normalizePath(this.settings.inboxNote);
+        if (!inScope) return false;
+        if (!checking) void this.archiveNote(file).then((n) => new Notice(`Archived ${n} task(s)`));
+        return true;
       },
     });
     this.addCommand({
@@ -224,9 +225,9 @@ export default class GtdFlowPlugin extends Plugin {
       name: "Archive current project (complete + move)",
       checkCallback: (checking) => {
         const file = this.app.workspace.getActiveFile();
-        const ok = !!file && !!this.index.get(file.path);
-        if (ok && !checking) this.archiveProject(file!);
-        return ok;
+        if (!file || !this.index.get(file.path)) return false;
+        if (!checking) void this.archiveProject(file);
+        return true;
       },
     });
 
@@ -306,7 +307,7 @@ export default class GtdFlowPlugin extends Plugin {
   }
 
   async convertToProject(file: TFile) {
-    await this.app.fileManager.processFrontMatter(file, (fm) => {
+    await this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
       fm["type"] = "project";
       fm["status"] ??= "active";
       fm["flow"] ??= "parallel";
@@ -349,7 +350,7 @@ export default class GtdFlowPlugin extends Plugin {
   }
 
   async archiveProject(file: TFile) {
-    await this.app.fileManager.processFrontMatter(file, (fm) => {
+    await this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
       if (fm["status"] !== "dropped") fm["status"] = "completed";
     });
     const folder = normalizePath(this.settings.archiveFolder);
@@ -388,11 +389,11 @@ export default class GtdFlowPlugin extends Plugin {
     if (!existing && leaf) {
       await leaf.setViewState({ type, active: true });
     }
-    if (leaf) this.app.workspace.revealLeaf(leaf);
+    if (leaf) await this.app.workspace.revealLeaf(leaf);
   }
 
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, (await this.loadData()) as Partial<GtdSettings>);
   }
 
   async saveSettings() {

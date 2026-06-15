@@ -54,7 +54,7 @@ export class ReviewView extends ItemView {
     const name = card.createEl("div", { cls: "gtd-project-name", text: p.name });
     name.onclick = () => {
       const file = this.app.vault.getFileByPath(p.path);
-      if (file) this.app.workspace.getLeaf(false).openFile(file);
+      if (file) void this.app.workspace.getLeaf(false).openFile(file);
     };
 
     const open = p.tasks.filter((t) => !t.done);
@@ -83,7 +83,7 @@ export class ReviewView extends ItemView {
   private async markReviewed(p: Project) {
     const file = this.app.vault.getFileByPath(p.path);
     if (!(file instanceof TFile)) return;
-    await this.app.fileManager.processFrontMatter(file, (fm) => {
+    await this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
       fm["last-reviewed"] = todayISO();
     });
   }

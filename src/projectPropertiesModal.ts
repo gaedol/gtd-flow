@@ -79,7 +79,7 @@ export class ProjectPropertiesModal extends Modal {
   private async save() {
     const file = this.app.vault.getFileByPath(this.project.path);
     if (!(file instanceof TFile)) return;
-    await this.app.fileManager.processFrontMatter(file, (fm) => {
+    await this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
       fm["type"] = "project";
       fm["status"] = this.status;
       fm["flow"] = this.flow;
