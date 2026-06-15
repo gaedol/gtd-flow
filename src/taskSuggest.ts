@@ -23,9 +23,10 @@ const TASK_LINE_RE = /^\s*[-*] \[.\] /;
 const MARKER_DATE_RE = /[🛫📅⏳] *([\w-]*)$/u;
 const REPEAT_PARTIAL_RE = /🔁 *([a-z0-9 ]*)$/u;
 const DURATION_PARTIAL_RE = /⏱ *([\w]*)$/u;
+const TIME_PARTIAL_RE = /⏰ *([\d:]*)$/u;
 const FIELD_WORD_RE = /(?:^|\s)([a-zA-Z]*)$/;
 
-type Mode = "field" | "date" | "repeat" | "duration";
+type Mode = "field" | "date" | "repeat" | "duration" | "time";
 
 export class TaskSuggest extends EditorSuggest<Suggestion> {
   private mode: Mode = "field";
@@ -65,6 +66,11 @@ export class TaskSuggest extends EditorSuggest<Suggestion> {
       this.mode = "duration";
       return this.info(cursor, dur[1]);
     }
+    const tm = before.match(TIME_PARTIAL_RE);
+    if (tm) {
+      this.mode = "time";
+      return this.info(cursor, tm[1]);
+    }
     const word = before.match(FIELD_WORD_RE);
     if (word && before.replace(TASK_LINE_RE, "").trim().length + word[1].length > 0) {
       this.mode = "field";
@@ -96,8 +102,15 @@ export class TaskSuggest extends EditorSuggest<Suggestion> {
         { label: "due", detail: "📅 due date", insert: "📅 ", keywords: ["deadline", "by"] },
         { label: "repeat", detail: "🔁 recurrence", insert: "🔁 ", keywords: ["recur", "recurring", "every"] },
         { label: "scheduled", detail: "⏳ scheduled date", insert: "⏳ ", keywords: ["plan", "planned", "schedule"] },
-        { label: "duration", detail: "⏱ estimated time", insert: "⏱ ", keywords: ["time", "estimate", "est", "takes"] },
+        { label: "duration", detail: "⏱ estimated time", insert: "⏱ ", keywords: ["estimate", "est", "takes"] },
+        { label: "time", detail: "⏰ time of day", insert: "⏰ ", keywords: ["at", "clock", "schedule"] },
       ];
+    }
+    if (this.mode === "time") {
+      return ["08:00", "09:00", "10:00", "12:00", "14:00", "16:00", "18:00"].map((t) => ({
+        label: t,
+        insert: t + " ",
+      }));
     }
     if (this.mode === "duration") {
       return ["15m", "30m", "45m", "1h", "1h30m", "2h", "4h"].map((d) => ({

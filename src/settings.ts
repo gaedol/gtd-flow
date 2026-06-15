@@ -253,6 +253,9 @@ export class GtdSettingTab extends PluginSettingTab {
       .addToggle((t) =>
         t.setValue(p.someday ?? false).setTooltip("Someday projects").onChange(async (v) => { p.someday = v; await save(); })
       )
+      .addToggle((t) =>
+        t.setValue(p.done ?? false).setTooltip("Completed tasks").onChange(async (v) => { p.done = v; await save(); })
+      )
       .addExtraButton((b) =>
         b.setIcon("trash").setTooltip("Delete perspective").onClick(async () => {
           this.plugin.settings.perspectives.splice(i, 1);

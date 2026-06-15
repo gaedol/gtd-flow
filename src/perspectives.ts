@@ -10,12 +10,14 @@ export interface Perspective {
   dueWithin: number; // days, 0 = no due filter (overdue always included when > 0)
   groupBy: "project" | "tag" | "due";
   someday?: boolean; // when true, draw from someday projects instead of active ones
+  done?: boolean; // when true, list completed/dropped tasks instead of open ones
 }
 
 export const DEFAULT_PERSPECTIVES: Perspective[] = [
   { name: "Due soon", availableOnly: true, flagged: false, tag: "", project: "", dueWithin: 7, groupBy: "due" },
   { name: "Flagged", availableOnly: true, flagged: true, tag: "", project: "", dueWithin: 0, groupBy: "project" },
   { name: "Someday", availableOnly: false, flagged: false, tag: "", project: "", dueWithin: 0, groupBy: "project", someday: true },
+  { name: "Done", availableOnly: false, flagged: false, tag: "", project: "", dueWithin: 0, groupBy: "project", done: true },
 ];
 
 export interface PerspectiveItem {
@@ -40,7 +42,9 @@ export function runPerspective(
   for (const project of projects) {
     if (p.project && !project.name.toLowerCase().includes(p.project.toLowerCase())) continue;
     const open = project.tasks.filter((t) => !t.done);
-    const pool = p.someday
+    const pool = p.done
+      ? project.tasks.filter((t) => t.done) // completed and dropped
+      : p.someday
       ? // someday-status project: all open; otherwise just #someday-tagged tasks
         project.status === "someday"
         ? open

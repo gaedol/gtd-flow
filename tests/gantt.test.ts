@@ -101,6 +101,19 @@ describe("ganttSource day", () => {
     expect([...order].sort((x, y) => x - y)).toEqual(order);
   });
 
+  it("pins ⏰ tasks at their time and flows untimed ones around them", () => {
+    const p = project("Day", {
+      tasks: [
+        task("meeting", { due: "2026-06-12", durationMin: 60, startTime: "10:00" }),
+        task("emails", { due: "2026-06-12", durationMin: 90 }), // 09:00+90 hits the 10:00 meeting
+      ],
+    });
+    const src = ganttSource([p], "day", TODAY, OPTS);
+    expect(src).toContain("meeting :active, 2026-06-12T10:00, 60m");
+    // emails can't fit before the meeting (would overlap), so it jumps to 11:00
+    expect(src).toContain("emails :active, 2026-06-12T11:00, 90m");
+  });
+
   it("returns empty when nothing is dated to today", () => {
     const p = project("Seq", { tasks: [task("someday"), task("later", { defer: "2026-07-01" })] });
     expect(ganttSource([p], "day", TODAY, OPTS)).toBe("");

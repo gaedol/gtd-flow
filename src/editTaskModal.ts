@@ -10,6 +10,7 @@ export class EditTaskModal extends Modal {
   private defer: string;
   private due: string;
   private duration: string;
+  private startTime: string;
   private repeat: string;
   private flagged: boolean;
   private someday: boolean;
@@ -27,6 +28,7 @@ export class EditTaskModal extends Modal {
     this.defer = task.defer ?? "";
     this.due = task.due ?? "";
     this.duration = task.durationMin ? formatDuration(task.durationMin) : "";
+    this.startTime = task.startTime ?? "";
     this.repeat = task.repeat ?? "";
     this.flagged = task.tags.includes(flagTag);
     this.someday = task.tags.includes(plugin.settings.somedayTag);
@@ -48,6 +50,10 @@ export class EditTaskModal extends Modal {
     new Setting(contentEl).setName("Due (📅)").addText((t) => {
       t.inputEl.type = "date";
       t.setValue(this.due).onChange((v) => (this.due = v));
+    });
+    new Setting(contentEl).setName("Time (⏰)").addText((t) => {
+      t.inputEl.type = "time";
+      t.setValue(this.startTime).onChange((v) => (this.startTime = v));
     });
     new Setting(contentEl).setName("Duration (⏱)").addText((t) =>
       t.setPlaceholder("1h30m").setValue(this.duration).onChange((v) => (this.duration = v))
@@ -103,6 +109,7 @@ export class EditTaskModal extends Modal {
       defer: this.defer || undefined,
       due: this.due || undefined,
       durationMin: this.duration.trim() ? parseDuration(this.duration) : undefined,
+      startTime: this.startTime || undefined,
     });
 
     const file = this.app.vault.getFileByPath(this.path);

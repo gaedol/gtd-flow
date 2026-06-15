@@ -47,6 +47,11 @@ describe("parseTaskLine", () => {
     expect(parseTaskLine("- [ ] Later 🛫 2026-06-18 ⏳ 2026-06-20", 0)!.defer).toBe("2026-06-18");
   });
 
+  it("parses ⏰ time of day and strips it from text", () => {
+    const t = parseTaskLine("- [ ] Standup ⏰ 9:30 ⏱ 30m 📅 2026-06-20", 0)!;
+    expect(t).toMatchObject({ text: "Standup", startTime: "09:30", durationMin: 30, due: "2026-06-20" });
+  });
+
   it("parses ⏱ durations into minutes and strips them from text", () => {
     expect(parseTaskLine("- [ ] quick ⏱ 30m", 0)).toMatchObject({ text: "quick", durationMin: 30 });
     expect(parseTaskLine("- [ ] long ⏱ 1h30m 📅 2026-06-15", 0)).toMatchObject({

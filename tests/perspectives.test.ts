@@ -41,6 +41,14 @@ describe("hierarchy tag filter and someday pool", () => {
     expect([...g.values()].flat().map((i) => i.task.text).sort()).toEqual(["learn piano", "maybe later"]);
   });
 
+  it("a done perspective lists completed and dropped tasks across projects", () => {
+    const p = project("P", {
+      tasks: [task("open one"), task("finished", { done: true }), task("cancelled", { done: true, dropped: true })],
+    });
+    const g = runPerspective([p], persp({ done: true, availableOnly: false }), TODAY, "flag");
+    expect([...g.values()].flat().map((i) => i.task.text).sort()).toEqual(["cancelled", "finished"]);
+  });
+
   it("#someday tasks are hidden from a normal (non-someday) perspective", () => {
     const p = project("P", { tasks: [task("active one"), task("parked", { tags: ["someday"] })] });
     const g = runPerspective([p], persp({ availableOnly: false }), TODAY, "flag");

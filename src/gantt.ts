@@ -139,15 +139,56 @@ function dayChart(projects: Project[], today: string, opts: GanttOptions): strin
     "  section Today",
   ];
   const multi = new Set(items.map((i) => i.project.path)).size > 1;
-  let clock = `${today}T${opts.dayStart}`;
-  for (const { task: t, project: p, avail } of items) {
-    const dur = t.durationMin ?? opts.defaultDurationMin;
-    const text = multi ? `${label(t.text, 28)} (${clean(p.name)})` : label(t.text);
-    lines.push(`    ${text} :${tags(t, avail, today)}${clock}, ${dur}m`);
-    clock = addMinutes(clock, dur);
+  // tasks with ⏰ are pinned at their clock time; untimed tasks fill the gaps
+  interface Placed { row: string; startMin: number; dur: number }
+  const placed: Placed[] = [];
+  const occupied: [number, number][] = [];
+  const meta = items.map(({ task: t, project: p, avail }) => ({
+    label: (multi ? `${label(t.text, 28)} (${clean(p.name)})` : label(t.text)) + ` :${tags(t, avail, today)}`,
+    dur: t.durationMin ?? opts.defaultDurationMin,
+    startMin: t.startTime ? toMin(t.startTime) : undefined,
+  }));
+
+  for (const m of meta) {
+    if (m.startMin === undefined) continue;
+    placed.push({ row: `    ${m.label}${stamp(today, m.startMin)}, ${m.dur}m`, startMin: m.startMin, dur: m.dur });
+    occupied.push([m.startMin, m.startMin + m.dur]);
   }
+  occupied.sort((a, b) => a[0] - b[0]);
+
+  let clock = toMin(opts.dayStart);
+  for (const m of meta) {
+    if (m.startMin !== undefined) continue;
+    for (let moved = true; moved; ) {
+      moved = false;
+      for (const [os, oe] of occupied) {
+        if (clock < oe && clock + m.dur > os) {
+          clock = oe;
+          moved = true;
+        }
+      }
+    }
+    placed.push({ row: `    ${m.label}${stamp(today, clock)}, ${m.dur}m`, startMin: clock, dur: m.dur });
+    occupied.push([clock, clock + m.dur]);
+    occupied.sort((a, b) => a[0] - b[0]);
+    clock += m.dur;
+  }
+
+  placed.sort((a, b) => a.startMin - b.startMin);
+  for (const p of placed) lines.push(p.row);
   lines.push(...bounds(`${today}T${opts.dayStart}`, `${today}T${opts.dayEnd}`));
   return lines.join("\n");
+}
+
+function toMin(hhmm: string): number {
+  const [h, m] = hhmm.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function stamp(today: string, min: number): string {
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return `${today}T${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
 // compact gantt of one project's open dated tasks, for the in-note status block
@@ -171,8 +212,3 @@ export function projectGanttSource(p: Project, today: string): string {
   return ["gantt", "  dateFormat YYYY-MM-DD", "  axisFormat %d %b", `  section ${clean(p.name)}`, ...rows].join("\n");
 }
 
-function addMinutes(stamp: string, min: number): string {
-  const d = new Date(stamp + ":00Z");
-  d.setUTCMinutes(d.getUTCMinutes() + min);
-  return d.toISOString().slice(0, 16);
-}

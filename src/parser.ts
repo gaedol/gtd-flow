@@ -6,8 +6,9 @@ const SCHEDULED_RE = /⏳ *(\d{4}-\d{2}-\d{2})/u;
 const DUE_RE = /📅 *(\d{4}-\d{2}-\d{2})/u;
 const DONE_RE = /✅ *(\d{4}-\d{2}-\d{2})/u;
 const CANCELLED_RE = /❌ *(\d{4}-\d{2}-\d{2})/u;
-const REPEAT_RE = /🔁 *([^🛫📅✅❌⏳➕🔺⏫🔼🔽⏬⏱#]*)/u;
+const REPEAT_RE = /🔁 *([^🛫📅✅❌⏳➕🔺⏫🔼🔽⏬⏱⏰#]*)/u;
 const DURATION_RE = /⏱ *(?:(\d+)h)? *(?:(\d+)m)?/u;
+const TIME_RE = /⏰ *(\d{1,2}:\d{2})/u;
 const TAG_RE = /#([\w/-]+)/gu;
 
 export function parseTaskLine(line: string, lineNo: number): Task | null {
@@ -36,6 +37,8 @@ export function parseTaskLine(line: string, lineNo: number): Task | null {
   if (dur && (dur[1] || dur[2])) {
     task.durationMin = (parseInt(dur[1] ?? "0", 10) * 60) + parseInt(dur[2] ?? "0", 10);
   }
+  const tm = body.match(TIME_RE)?.[1];
+  if (tm) task.startTime = tm.padStart(5, "0");
   return task;
 }
 
@@ -45,6 +48,7 @@ function stripMetadata(body: string): string {
     .replace(REPEAT_RE, "")
     .replace(/[🔺⏫🔼🔽⏬]/gu, "")
     .replace(/⏱ *(?:\d+h)? *(?:\d+m)?/gu, "")
+    .replace(/⏰ *\d{1,2}:\d{2}/gu, "")
     .replace(TAG_RE, "")
     .replace(/\s+/g, " ")
     .trim();
