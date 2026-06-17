@@ -60,11 +60,34 @@ export function isAvailable(task: Task, project: Project, today: string): boolea
   return availableTasks(project, today).includes(task);
 }
 
+// a parent with any open descendant is a container, not an action itself
+export function hasOpenSubtasks(tasks: Task[], i: number): boolean {
+  const indent = tasks[i].indent;
+  for (let j = i + 1; j < tasks.length && tasks[j].indent > indent; j++) {
+    if (!tasks[j].done) return true;
+  }
+  return false;
+}
+
+// leaf action eligible for counts/badges: open, not parked, not a container
+export function datedActionable(tasks: Task[], i: number): boolean {
+  const t = tasks[i];
+  return !t.done && !isSomedayTask(t) && !hasOpenSubtasks(tasks, i);
+}
+
+// shown in date views even when blocked (a blocked action still has a deadline);
+// only done and parked-someday tasks are hidden
+export function datedVisible(t: Task): boolean {
+  return !t.done && !isSomedayTask(t);
+}
+
 export function overdueCount(projects: Project[], today: string): number {
   let n = 0;
   for (const p of projects) {
     if (p.status !== "active") continue;
-    for (const t of p.tasks) if (!t.done && t.due && t.due < today) n++;
+    p.tasks.forEach((t, i) => {
+      if (datedActionable(p.tasks, i) && t.due && t.due < today) n++;
+    });
   }
   return n;
 }
@@ -79,7 +102,9 @@ export function dueOrOverdue(projects: Project[], today: string): DatedTask[] {
   const out: DatedTask[] = [];
   for (const p of projects) {
     if (p.status !== "active") continue;
-    for (const t of p.tasks) if (!t.done && t.due && t.due <= today) out.push({ project: p, task: t });
+    p.tasks.forEach((t, i) => {
+      if (datedActionable(p.tasks, i) && t.due && t.due <= today) out.push({ project: p, task: t });
+    });
   }
   return out;
 }
@@ -116,6 +141,7 @@ export interface ForecastItem {
   task: Task;
   date: string;
   kind: "due" | "becomes-available";
+  available: boolean; // false when the task is blocked (waiting on order/subtasks)
 }
 
 export function forecast(projects: Project[], today: string, days: number): ForecastItem[] {
@@ -123,16 +149,17 @@ export function forecast(projects: Project[], today: string, days: number): Fore
   const items: ForecastItem[] = [];
   for (const p of projects) {
     if (p.status !== "active") continue;
+    const avail = new Set(availableTasks(p, today));
     for (const t of p.tasks) {
-      if (t.done) continue;
+      if (!datedVisible(t)) continue; // hide only done/someday; blocked tasks still show
       if (t.due) {
         // overdue items surface on today; defer is ignored once a due date exists (due wins over defer)
         if (t.due <= end) {
-          items.push({ project: p, task: t, date: t.due < today ? today : t.due, kind: "due" });
+          items.push({ project: p, task: t, date: t.due < today ? today : t.due, kind: "due", available: avail.has(t) });
         }
       } else if (t.defer && t.defer >= today && t.defer <= end) {
         // defer == today surfaces in the Today column; past defers are just available (Next Actions)
-        items.push({ project: p, task: t, date: t.defer, kind: "becomes-available" });
+        items.push({ project: p, task: t, date: t.defer, kind: "becomes-available", available: false });
       }
     }
   }

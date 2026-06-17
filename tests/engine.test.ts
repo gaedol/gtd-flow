@@ -202,6 +202,19 @@ describe("forecast", () => {
     expect(forecast([past], TODAY, 7)).toEqual([]);
   });
 
+  it("keeps a blocked container visible on its date but marks it unavailable", () => {
+    const p = project({
+      flow: "parallel",
+      tasks: [
+        task("group", { due: "2026-06-13", tags: ["sequential"] }), // blocked action (open child)
+        task("the actual step", { indent: 4, due: "2026-06-13" }),
+      ],
+    });
+    const avail = Object.fromEntries(forecast([p], TODAY, 7).map((i) => [i.task.text, i.available]));
+    expect(avail["the actual step"]).toBe(true);
+    expect(avail["group"]).toBe(false); // shown (it has a deadline) but not actionable yet
+  });
+
   it("collects due and becoming-available items in window, overdue on today", () => {
     const p = project({
       tasks: [

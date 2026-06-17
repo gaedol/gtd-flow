@@ -1,5 +1,5 @@
 import { Project, Task } from "./types";
-import { availableTasks, addInterval } from "./engine";
+import { availableTasks, addInterval, datedVisible } from "./engine";
 
 export type TimelineMode = "day" | "week" | "month";
 
@@ -66,15 +66,15 @@ function rangeChart(projects: Project[], mode: "week" | "month", today: string):
     if (p.status !== "active") continue;
     const avail = new Set(availableTasks(p, today));
     const rows: string[] = [];
-    for (const t of p.tasks) {
-      if (t.done) continue;
+    p.tasks.forEach((t) => {
+      if (!datedVisible(t)) return; // hide only done/someday; blocked tasks still show
       const start = t.defer ?? t.due;
       const due = t.due ?? t.defer;
-      if (!start || !due) continue;
+      if (!start || !due) return;
       // clamp overdue starts to the visible range
       const s = start < today ? today : start;
       if (s > end || due < today) {
-        if (!(t.due && t.due < today)) continue; // overdue tasks stay visible on today
+        if (!(t.due && t.due < today)) return; // overdue tasks stay visible on today
       }
       const from = t.due && t.due < today ? today : s;
       // clip to the window so one long task can't stretch the whole axis
@@ -85,7 +85,7 @@ function rangeChart(projects: Project[], mode: "week" | "month", today: string):
           ? `    ${label(t.text)} :${tags(t, avail, today)}${from}, 1d`
           : `    ${label(t.text)} :${tags(t, avail, today)}${from}, ${to}`
       );
-    }
+    });
     if (rows.length > 0) {
       // header row: a 0-day (zero-width) task puts the project name on its own
       // line; Mermaid's overlapping section title is hidden via CSS
@@ -118,9 +118,9 @@ function dayChart(projects: Project[], today: string, opts: GanttOptions): strin
   for (const p of projects) {
     if (p.status !== "active") continue;
     const avail = new Set(availableTasks(p, today));
-    for (const t of p.tasks) {
-      if (isToday(t, today)) items.push({ task: t, project: p, avail });
-    }
+    p.tasks.forEach((t) => {
+      if (datedVisible(t) && isToday(t, today)) items.push({ task: t, project: p, avail });
+    });
   }
   if (items.length === 0) return "";
   items.sort((a, b) => {
@@ -195,11 +195,11 @@ function stamp(today: string, min: number): string {
 export function projectGanttSource(p: Project, today: string): string {
   const avail = new Set(availableTasks(p, today));
   const rows: string[] = [];
-  for (const t of p.tasks) {
-    if (t.done) continue;
+  p.tasks.forEach((t) => {
+    if (!datedVisible(t)) return;
     const start = t.defer ?? t.due;
     const due = t.due ?? t.defer;
-    if (!start || !due) continue;
+    if (!start || !due) return;
     const from = start < today ? today : start;
     const to = due < from ? from : due;
     rows.push(
@@ -207,7 +207,7 @@ export function projectGanttSource(p: Project, today: string): string {
         ? `    ${label(t.text)} :${tags(t, avail, today)}${from}, 1d`
         : `    ${label(t.text)} :${tags(t, avail, today)}${from}, ${to}`
     );
-  }
+  });
   if (rows.length === 0) return "";
   return ["gantt", "  dateFormat YYYY-MM-DD", "  axisFormat %d %b", `  section ${clean(p.name)}`, ...rows].join("\n");
 }

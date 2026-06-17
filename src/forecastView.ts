@@ -61,14 +61,20 @@ export class ForecastView extends ItemView {
     const row = parent.createDiv({ cls: "gtd-task" });
     if (it.kind === "due") {
       const cb = row.createEl("input", { type: "checkbox" });
-      if (it.task.inProgress) {
-        cb.indeterminate = true;
-        row.addClass("gtd-inprogress");
-      }
-      cb.onclick = async () => {
+      if (!it.available) {
+        // blocked action (waiting on order/subtasks): show the deadline but not actionable
         cb.disabled = true;
-        await completeTask(this.app, it.project.path, it.task);
-      };
+        row.addClass("gtd-blocked-row");
+      } else {
+        if (it.task.inProgress) {
+          cb.indeterminate = true;
+          row.addClass("gtd-inprogress");
+        }
+        cb.onclick = async () => {
+          cb.disabled = true;
+          await completeTask(this.app, it.project.path, it.task);
+        };
+      }
       if (it.task.due! < today) row.addClass("gtd-overdue-row");
     } else {
       const icon = row.createSpan({ cls: "gtd-avail-icon", attr: { "aria-label": "Becomes available" } });

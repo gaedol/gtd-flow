@@ -98,6 +98,14 @@
   color: var(--color-red);
 }
 
+.gtd-forecast .gtd-blocked-row {
+  opacity: 0.5;
+}
+
+.gtd-forecast .gtd-blocked-row .gtd-task-text {
+  font-style: italic;
+}
+
 .gtd-forecast .gtd-avail-icon {
   color: var(--text-faint);
   display: flex;
