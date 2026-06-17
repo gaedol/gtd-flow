@@ -57,7 +57,7 @@ export default class GtdFlowPlugin extends Plugin {
     this.registerEvent(
       this.app.vault.on("rename", (f, oldPath) => {
         this.index.remove(oldPath);
-        if (f instanceof TFile) this.index.update(f);
+        if (f instanceof TFile) void this.index.update(f);
       })
     );
 
