@@ -275,6 +275,28 @@
   color: var(--color-yellow);
 }
 
+/* drag-to-reorder handle (Forecast / Perspectives) */
+.gtd-grip {
+  display: flex;
+  align-self: center;
+  color: var(--text-faint);
+  cursor: grab;
+  touch-action: none; /* let pointer-drag work on touch without scrolling */
+}
+
+.gtd-grip:active {
+  cursor: grabbing;
+}
+
+.gtd-grip svg {
+  width: 14px;
+  height: 14px;
+}
+
+.gtd-task.gtd-dragging {
+  opacity: 0.6;
+}
+
 .gtd-statusbar-alert {
   color: var(--color-red);
   font-weight: var(--font-semibold);

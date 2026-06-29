@@ -469,4 +469,9 @@ export default class GtdFlowPlugin extends Plugin {
     setSomedayTag(this.settings.somedayTag);
     await this.index.rebuild();
   }
+
+  // persist settings (e.g. manual order) without re-indexing
+  async persistData() {
+    await this.saveData(this.settings);
+  }
 }

@@ -19,6 +19,8 @@ export interface GtdSettings {
   defaultReviewInterval: string;
   dueNotifications: boolean;
   statusBlockChart: boolean;
+  forecastOrder: Record<string, string[]>; // dateKey -> block ids in manual order
+  perspectiveOrder: Record<string, string[]>; // perspective+group key -> block ids
 }
 
 export const DEFAULT_SETTINGS: GtdSettings = {
@@ -37,6 +39,8 @@ export const DEFAULT_SETTINGS: GtdSettings = {
   defaultReviewInterval: "1w",
   dueNotifications: true,
   statusBlockChart: false,
+  forecastOrder: {},
+  perspectiveOrder: {},
 };
 
 export class GtdSettingTab extends PluginSettingTab {

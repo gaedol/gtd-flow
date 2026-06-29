@@ -10,6 +10,7 @@ const REPEAT_RE = /🔁 *([^🛫📅✅❌⏳➕🔺⏫🔼🔽⏬⏱⏰#]*)/u;
 const DURATION_RE = /⏱ *(?:(\d+)h)? *(?:(\d+)m)?/u;
 const TIME_RE = /⏰ *(\d{1,2}:\d{2})/u;
 const TAG_RE = /#([\w/-]+)/gu;
+const BLOCK_ID_RE = /\s\^([A-Za-z0-9-]+)\s*$/;
 
 export function parseTaskLine(line: string, lineNo: number): Task | null {
   const m = line.match(TASK_RE);
@@ -39,6 +40,7 @@ export function parseTaskLine(line: string, lineNo: number): Task | null {
   }
   const tm = body.match(TIME_RE)?.[1];
   if (tm) task.startTime = tm.padStart(5, "0");
+  task.blockId = body.match(BLOCK_ID_RE)?.[1];
   return task;
 }
 
@@ -49,6 +51,7 @@ function stripMetadata(body: string): string {
     .replace(/[🔺⏫🔼🔽⏬]/gu, "")
     .replace(/⏱ *(?:\d+h)? *(?:\d+m)?/gu, "")
     .replace(/⏰ *\d{1,2}:\d{2}/gu, "")
+    .replace(BLOCK_ID_RE, "")
     .replace(TAG_RE, "")
     .replace(/\s+/g, " ")
     .trim();

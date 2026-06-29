@@ -4,6 +4,9 @@ import { forecast, ForecastItem } from "./engine";
 import { todayISO } from "./dates";
 import { completeTask } from "./completeTask";
 import { renderTaskText } from "./linkText";
+import { defaultSort, applyManualOrder } from "./ordering";
+import { makeReorderable } from "./dragReorder";
+import { ensureBlockId } from "./blockId";
 
 export const FORECAST_VIEW = "gtd-forecast";
 
@@ -50,15 +53,44 @@ export class ForecastView extends ItemView {
       (byDate.get(it.date) ?? byDate.set(it.date, []).get(it.date)!).push(it);
     }
 
+    const flagTag = this.plugin.settings.flagTag;
     for (const [date, dayItems] of byDate) {
       const day = root.createDiv({ cls: "gtd-day" });
       day.createEl("div", { cls: "gtd-day-header", text: dayLabel(date, today) });
-      for (const it of dayItems) this.renderItem(day, it, today);
+      const rowsEl = day.createDiv({ cls: "gtd-day-rows" });
+      // default order (overdue → flagged → rest), then the user's saved arrangement
+      const ordered = applyManualOrder(
+        defaultSort(dayItems, today, flagTag),
+        this.plugin.settings.forecastOrder[date] ?? []
+      );
+      const keyToItem = new Map<string, ForecastItem>();
+      ordered.forEach((it, i) => {
+        const key = it.task.blockId ?? `t${i}`;
+        keyToItem.set(key, it);
+        this.renderItem(rowsEl, it, today, key);
+      });
+      makeReorderable(rowsEl, (keys) => {
+        void this.saveDayOrder(date, keys.map((k) => keyToItem.get(k)).filter((x): x is ForecastItem => !!x));
+      });
     }
   }
 
-  private renderItem(parent: HTMLElement, it: ForecastItem, today: string) {
+  // assign block ids to the day's tasks as needed, then persist their order
+  private async saveDayOrder(date: string, items: ForecastItem[]) {
+    const ids: string[] = [];
+    for (const it of items) {
+      const id = await ensureBlockId(this.app, it.project.path, it.task);
+      if (id) ids.push(id);
+    }
+    this.plugin.settings.forecastOrder[date] = ids;
+    await this.plugin.persistData();
+  }
+
+  private renderItem(parent: HTMLElement, it: ForecastItem, today: string, key: string) {
     const row = parent.createDiv({ cls: "gtd-task" });
+    row.dataset.gtdKey = key;
+    const grip = row.createSpan({ cls: "gtd-grip", attr: { "aria-label": "Drag to reorder" } });
+    setIcon(grip, "grip-vertical");
     if (it.kind === "due") {
       const cb = row.createEl("input", { type: "checkbox" });
       if (!it.available) {
