@@ -1,6 +1,6 @@
 {
   "name": "gtd-flow",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Structured GTD plugin for Obsidian",
   "main": "main.js",
   "scripts": {
