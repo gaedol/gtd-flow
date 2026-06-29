@@ -1,9 +1,10 @@
 // pointer-based drag reordering (mouse + touch). Each direct-child row of
 // `container` must have class "gtd-task", a "gtd-grip" handle child, and a
 // data-gtd-key. onDrop is called with the new key order when a drag finishes.
-// Move/up are bound to `document` during the drag so tracking keeps working even
-// when the pointer leaves the handle.
+// Move/up are bound to the container's own document during the drag so tracking
+// keeps working off the handle and stays correct in pop-out windows.
 export function makeReorderable(container: HTMLElement, onDrop: (keys: string[]) => void): void {
+  const doc = container.ownerDocument;
   const rows = () => Array.from(container.querySelectorAll<HTMLElement>(":scope > .gtd-task"));
 
   container.querySelectorAll<HTMLElement>(":scope > .gtd-task > .gtd-grip").forEach((handle) => {
@@ -26,15 +27,15 @@ export function makeReorderable(container: HTMLElement, onDrop: (keys: string[])
       };
       const onUp = () => {
         row.removeClass("gtd-dragging");
-        document.removeEventListener("pointermove", onMove);
-        document.removeEventListener("pointerup", onUp);
-        document.removeEventListener("pointercancel", onUp);
+        doc.removeEventListener("pointermove", onMove);
+        doc.removeEventListener("pointerup", onUp);
+        doc.removeEventListener("pointercancel", onUp);
         onDrop(rows().map((r) => r.dataset.gtdKey ?? ""));
       };
 
-      document.addEventListener("pointermove", onMove);
-      document.addEventListener("pointerup", onUp);
-      document.addEventListener("pointercancel", onUp);
+      doc.addEventListener("pointermove", onMove);
+      doc.addEventListener("pointerup", onUp);
+      doc.addEventListener("pointercancel", onUp);
     });
   });
 }
