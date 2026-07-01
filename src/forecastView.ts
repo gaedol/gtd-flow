@@ -75,14 +75,18 @@ export class ForecastView extends ItemView {
     }
   }
 
-  // assign block ids to the day's tasks as needed, then persist their order
+  // assign block ids to the day's tasks as needed, then persist their order;
+  // past days can never be shown again, so their saved orders are pruned
   private async saveDayOrder(date: string, items: ForecastItem[]) {
     const ids: string[] = [];
     for (const it of items) {
       const id = await ensureBlockId(this.app, it.project.path, it.task);
       if (id) ids.push(id);
     }
-    this.plugin.settings.forecastOrder[date] = ids;
+    const today = todayISO();
+    const order = this.plugin.settings.forecastOrder;
+    for (const key of Object.keys(order)) if (key < today) delete order[key];
+    order[date] = ids;
     await this.plugin.persistData();
   }
 

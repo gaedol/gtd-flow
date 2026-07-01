@@ -90,13 +90,15 @@ describe("ganttSource day", () => {
     expect(src).not.toContain("future");
   });
 
-  it("orders overdue, then due today, then starting today", () => {
-    const a = project("A", { tasks: [task("starts", { defer: "2026-06-12" })] });
+  it("orders overdue, then flagged, then due today, then starting today", () => {
+    const a = project("A", {
+      tasks: [task("starts", { defer: "2026-06-12" }), task("flagged", { due: "2026-06-12", tags: ["flag"] })],
+    });
     const b = project("B", {
       tasks: [task("due today", { due: "2026-06-12" }), task("overdue", { due: "2026-06-01" })],
     });
     const src = ganttSource([a, b], "day", TODAY, OPTS);
-    const order = ["overdue (B)", "due today (B)", "starts (A)"].map((l) => src.indexOf(l));
+    const order = ["overdue (B)", "flagged (A)", "due today (B)", "starts (A)"].map((l) => src.indexOf(l));
     expect(order.every((i) => i >= 0)).toBe(true);
     expect([...order].sort((x, y) => x - y)).toEqual(order);
   });

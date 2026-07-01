@@ -98,11 +98,13 @@ function rangeChart(projects: Project[], mode: "week" | "month", today: string):
   return lines.join("\n");
 }
 
-// urgency rank for the day: overdue, then due today, then starting today
-function dayRank(t: Task, today: string): number {
+// urgency rank for the day — same policy as the list views: overdue, then
+// flagged, then due today, then starting today
+function dayRank(t: Task, today: string, flagTag: string): number {
   if (t.due && t.due < today) return 0;
-  if (t.due === today) return 1;
-  return 2; // defer === today
+  if (t.tags.includes(flagTag)) return 1;
+  if (t.due === today) return 2;
+  return 3; // defer === today
 }
 
 // only what actually belongs to today: due today, overdue, or deferred-until-today
@@ -124,7 +126,7 @@ function dayChart(projects: Project[], today: string, opts: GanttOptions): strin
   }
   if (items.length === 0) return "";
   items.sort((a, b) => {
-    const r = dayRank(a.task, today) - dayRank(b.task, today);
+    const r = dayRank(a.task, today, opts.flagTag) - dayRank(b.task, today, opts.flagTag);
     if (r !== 0) return r;
     return (a.task.due ?? "9999").localeCompare(b.task.due ?? "9999");
   });

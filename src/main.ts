@@ -32,6 +32,7 @@ export default class GtdFlowPlugin extends Plugin {
   async onload() {
     await this.loadSettings();
     setSomedayTag(this.settings.somedayTag);
+    this.pruneStaleOrders();
     this.addSettingTab(new GtdSettingTab(this.app, this));
 
     this.index = new TaskIndex(
@@ -473,5 +474,15 @@ export default class GtdFlowPlugin extends Plugin {
   // persist settings (e.g. manual order) without re-indexing
   async persistData() {
     await this.saveData(this.settings);
+  }
+
+  // drop saved forecast orders for days already in the past
+  pruneStaleOrders() {
+    const today = todayISO();
+    const order = this.settings.forecastOrder;
+    const stale = Object.keys(order).filter((k) => k < today);
+    if (stale.length === 0) return;
+    for (const k of stale) delete order[k];
+    void this.persistData();
   }
 }
