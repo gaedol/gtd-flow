@@ -161,6 +161,10 @@ The Tasks plugin is **optional**. GTD Flow works standalone; nothing in it depen
 - **Right-click the projects folder** in the file explorer → **New GTD project** (same modal). Right-click any non-project note → **Convert to GTD project**: adds the full frontmatter (keeping existing keys) and moves the note into the projects folder. Also available as the command **Convert current note to project**.
 - **Edit project properties** — command on a project note (also a "Properties" button on Review cards): modal with status and flow dropdowns, review-interval, a last-reviewed date picker, a **page color** picker, and a **banner image** (vault path or URL).
 
+### Explorer-matched project colors
+
+If the **Color Folders and Files** plugin is installed, GTD Flow renders project names in its views (Next Actions headers, Forecast/Perspectives project labels, Review cards) as pills using your explorer colors — exact file styles win, then folder styles per their apply-to-files/subfolders rules. Toggle via **Match file-explorer colors** (the setting only appears when that plugin is present).
+
 ### Project page styling
 
 `color:` tints the project page background (14% mix with the theme background); `banner:` sets a cover background image. Both live in frontmatter, so they sync like everything else and can be edited by hand. For anything fancier, Obsidian's native `cssclasses:` frontmatter key applies your own CSS snippet classes to the note — it composes freely with GTD Flow's styling.

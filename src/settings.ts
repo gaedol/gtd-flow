@@ -2,6 +2,7 @@ import { App, PluginSettingTab, Setting } from "obsidian";
 import type GtdFlowPlugin from "./main";
 import { Perspective, DEFAULT_PERSPECTIVES } from "./perspectives";
 import { InsertPosition } from "./insertLine";
+import { explorerStyles } from "./projectColors";
 
 export interface GtdSettings {
   projectsFolder: string;
@@ -20,6 +21,7 @@ export interface GtdSettings {
   dueNotifications: boolean;
   statusBlockChart: boolean;
   promptDropReason: boolean;
+  explorerColors: boolean;
   forecastOrder: Record<string, string[]>; // dateKey -> block ids in manual order
   perspectiveOrder: Record<string, string[]>; // perspective+group key -> block ids
 }
@@ -41,6 +43,7 @@ export const DEFAULT_SETTINGS: GtdSettings = {
   dueNotifications: true,
   statusBlockChart: false,
   promptDropReason: true,
+  explorerColors: true,
   forecastOrder: {},
   perspectiveOrder: {},
 };
@@ -151,6 +154,18 @@ export class GtdSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         })
       );
+
+    if (explorerStyles(this.app)) {
+      new Setting(containerEl)
+        .setName("Match file-explorer colors")
+        .setDesc("Color project names in GTD views using your 'Color Folders and Files' styles.")
+        .addToggle((t) =>
+          t.setValue(this.plugin.settings.explorerColors).onChange(async (v) => {
+            this.plugin.settings.explorerColors = v;
+            await this.plugin.saveSettings();
+          })
+        );
+    }
 
     new Setting(containerEl)
       .setName("Ask for a reason when dropping a task")

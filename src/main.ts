@@ -21,6 +21,7 @@ import { moveTask, ProjectSuggestModal } from "./moveTask";
 import { parseTaskLine } from "./parser";
 import { setTaskState } from "./completeTask";
 import { ReasonModal } from "./reasonModal";
+import { explorerStyles, resolveStyle, applyPill } from "./projectColors";
 import { statusBlockText, upsertStatusBlock } from "./statusBlock";
 import { projectGanttSource } from "./gantt";
 
@@ -481,6 +482,15 @@ export default class GtdFlowPlugin extends Plugin {
   // persist settings (e.g. manual order) without re-indexing
   async persistData() {
     await this.saveData(this.settings);
+  }
+
+  // explorer pill for a project path, when enabled and the color plugin is present
+  pillFor(el: HTMLElement, path: string) {
+    if (!this.settings.explorerColors) return;
+    const styles = explorerStyles(this.app);
+    if (!styles) return;
+    const s = resolveStyle(styles, path);
+    if (s) applyPill(el, s);
   }
 
   // drop saved forecast orders for days already in the past

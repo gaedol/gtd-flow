@@ -275,6 +275,14 @@
   color: var(--color-yellow);
 }
 
+/* explorer-matched project pill (colors set inline from Color Folders and Files) */
+.gtd-pill {
+  display: inline-block;
+  border-radius: var(--radius-s);
+  padding: 0 var(--size-4-2);
+  line-height: 1.6;
+}
+
 .gtd-reason {
   color: var(--text-muted);
   font-size: var(--font-ui-smaller);

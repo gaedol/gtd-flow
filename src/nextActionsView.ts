@@ -56,6 +56,7 @@ export class NextActionsView extends ItemView {
       const section = root.createDiv({ cls: "gtd-project" });
       const header = section.createEl("div", { cls: "gtd-project-name" });
       header.setText(project.name);
+      this.plugin.pillFor(header, project.path);
       header.onclick = () => this.openTask(project, tasks[0], false);
       for (const t of tasks) this.renderTask(section, project, t, today);
     }
@@ -133,7 +134,7 @@ export class NextActionsView extends ItemView {
     if (task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${task.reason}` });
     label.onclick = () => this.openTask(project, task, true);
     this.editButton(row, project.path, task);
-    if (showProject) row.createSpan({ cls: "gtd-project-ref", text: project.name });
+    if (showProject) this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: project.name }), project.path);
     if (task.due) {
       row.createSpan({
         cls: "gtd-due" + (task.due < today ? " gtd-overdue" : task.due === today ? " gtd-due-today" : ""),

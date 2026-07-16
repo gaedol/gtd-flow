@@ -68,7 +68,11 @@ export class PerspectiveView extends ItemView {
     const flagTag = this.plugin.settings.flagTag;
     for (const [groupKey, items] of groups) {
       const section = root.createDiv({ cls: "gtd-project" });
-      section.createEl("div", { cls: "gtd-project-name", text: groupKey });
+      const header = section.createEl("div", { cls: "gtd-project-name", text: groupKey });
+      if (current.groupBy === "project") {
+        const first = items[0];
+        if (first) this.plugin.pillFor(header, first.project.path);
+      }
       const rowsEl = section.createDiv({ cls: "gtd-day-rows" });
       const orderKey = current.name + " | " + groupKey;
       const ordered = applyManualOrder(
@@ -135,6 +139,6 @@ export class PerspectiveView extends ItemView {
         text: it.task.due,
       });
     }
-    if (showProject) row.createSpan({ cls: "gtd-project-ref", text: it.project.name });
+    if (showProject) this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: it.project.name }), it.project.path);
   }
 }

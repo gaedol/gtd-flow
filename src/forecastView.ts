@@ -123,7 +123,7 @@ export class ForecastView extends ItemView {
     const label = renderTaskText(row, it.task.text, this.app, it.project.path);
     if (it.task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${it.task.reason}` });
     label.onclick = () => this.openTask(it);
-    row.createSpan({ cls: "gtd-project-ref", text: it.project.name });
+    this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: it.project.name }), it.project.path);
   }
 
   private async openTask(it: ForecastItem) {

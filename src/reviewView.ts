@@ -52,6 +52,7 @@ export class ReviewView extends ItemView {
   private renderProject(root: HTMLElement, p: Project, today: string) {
     const card = root.createDiv({ cls: "gtd-review-card" });
     const name = card.createEl("div", { cls: "gtd-project-name", text: p.name });
+    this.plugin.pillFor(name, p.path);
     name.onclick = () => {
       const file = this.app.vault.getFileByPath(p.path);
       if (file) void this.app.workspace.getLeaf(false).openFile(file);
