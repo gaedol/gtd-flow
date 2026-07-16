@@ -19,6 +19,7 @@ export interface GtdSettings {
   defaultReviewInterval: string;
   dueNotifications: boolean;
   statusBlockChart: boolean;
+  promptDropReason: boolean;
   forecastOrder: Record<string, string[]>; // dateKey -> block ids in manual order
   perspectiveOrder: Record<string, string[]>; // perspective+group key -> block ids
 }
@@ -39,6 +40,7 @@ export const DEFAULT_SETTINGS: GtdSettings = {
   defaultReviewInterval: "1w",
   dueNotifications: true,
   statusBlockChart: false,
+  promptDropReason: true,
   forecastOrder: {},
   perspectiveOrder: {},
 };
@@ -146,6 +148,16 @@ export class GtdSettingTab extends PluginSettingTab {
       .addText((t) =>
         t.setValue(this.plugin.settings.defaultReviewInterval).onChange(async (v) => {
           this.plugin.settings.defaultReviewInterval = v.trim();
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Ask for a reason when dropping a task")
+      .setDesc("The 'Drop (cancel) task' command prompts for a 💬 reason (Enter/Esc to skip).")
+      .addToggle((t) =>
+        t.setValue(this.plugin.settings.promptDropReason).onChange(async (v) => {
+          this.plugin.settings.promptDropReason = v;
           await this.plugin.saveSettings();
         })
       );

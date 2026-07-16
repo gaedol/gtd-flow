@@ -47,6 +47,15 @@ describe("serializeTask", () => {
     expect(line).toBe("- [x] Done ✅ 2026-06-10");
   });
 
+  it("round-trips a dropped task with a 💬 reason", () => {
+    const line = serializeTask({
+      indent: 0, done: true, dropped: true, cancelledOn: "2026-07-03",
+      reason: "superseded by Q3 rewrite", text: "Old plan", tags: [],
+    });
+    expect(line).toBe("- [-] Old plan 💬 superseded by Q3 rewrite ❌ 2026-07-03");
+    expect(parseTaskLine(line, 0)).toMatchObject({ dropped: true, reason: "superseded by Q3 rewrite", cancelledOn: "2026-07-03" });
+  });
+
   it("writes dropped and in-progress checkboxes round-trip", () => {
     const dropped = serializeTask({ indent: 0, done: true, dropped: true, cancelledOn: "2026-06-11", text: "Nope", tags: [] });
     expect(dropped).toBe("- [-] Nope ❌ 2026-06-11");

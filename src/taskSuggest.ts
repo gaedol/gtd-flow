@@ -104,6 +104,7 @@ export class TaskSuggest extends EditorSuggest<Suggestion> {
         { label: "scheduled", detail: "⏳ scheduled date", insert: "⏳ ", keywords: ["plan", "planned", "schedule"] },
         { label: "duration", detail: "⏱ estimated time", insert: "⏱ ", keywords: ["estimate", "est", "takes"] },
         { label: "time", detail: "⏰ time of day", insert: "⏰ ", keywords: ["at", "clock", "schedule"] },
+        { label: "reason", detail: "💬 why closed/dropped", insert: "💬 ", keywords: ["why", "because", "closed"] },
       ];
     }
     if (this.mode === "time") {

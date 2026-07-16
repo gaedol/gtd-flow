@@ -14,6 +14,7 @@ export interface TaskFields {
   due?: string;
   durationMin?: number;
   startTime?: string;
+  reason?: string;
 }
 
 export function stateOf(f: { done: boolean; dropped?: boolean; inProgress?: boolean }): TaskState {
@@ -56,6 +57,7 @@ export function serializeTask(f: TaskFields): string {
   if (f.due) s += ` 📅 ${f.due}`;
   if (f.startTime) s += ` ⏰ ${f.startTime}`;
   if (f.durationMin) s += ` ⏱ ${formatDuration(f.durationMin)}`;
+  if (f.reason) s += ` 💬 ${f.reason}`;
   if (state === "done" && f.completedOn) s += ` ✅ ${f.completedOn}`;
   if (state === "dropped" && f.cancelledOn) s += ` ❌ ${f.cancelledOn}`;
   return s;

@@ -15,6 +15,7 @@ export interface Task {
   dropped?: boolean; // "[-]" cancelled — resolved (done=true) but not completed
   inProgress?: boolean; // "[/]" started — still available
   cancelledOn?: string; // ❌ cancellation date
+  reason?: string; // 💬 why it was closed/dropped
   blockId?: string; // trailing ^id — stable identity for manual ordering
   tags: string[];
 }

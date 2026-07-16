@@ -130,6 +130,7 @@ export class NextActionsView extends ItemView {
       setIcon(flag, "flag");
     }
     const label = renderTaskText(row, task.text, this.app, project.path);
+    if (task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${task.reason}` });
     label.onclick = () => this.openTask(project, task, true);
     this.editButton(row, project.path, task);
     if (showProject) row.createSpan({ cls: "gtd-project-ref", text: project.name });

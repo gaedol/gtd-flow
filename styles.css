@@ -275,6 +275,12 @@
   color: var(--color-yellow);
 }
 
+.gtd-reason {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  font-style: italic;
+}
+
 /* drag-to-reorder handle (Forecast / Perspectives) */
 .gtd-grip {
   display: flex;

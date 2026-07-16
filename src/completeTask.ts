@@ -31,8 +31,9 @@ export async function completeTask(app: App, path: string, task: Task): Promise<
   return ok;
 }
 
-// surgical status change preserving all other metadata; for drop/in-progress/todo
-export async function setTaskState(app: App, path: string, task: Task, state: TaskState): Promise<boolean> {
+// surgical status change preserving all other metadata; for drop/in-progress/todo.
+// An optional reason is appended as 💬 before the status date.
+export async function setTaskState(app: App, path: string, task: Task, state: TaskState, reason?: string): Promise<boolean> {
   const file = app.vault.getFileByPath(path);
   if (!(file instanceof TFile)) return false;
   let ok = false;
@@ -45,6 +46,7 @@ export async function setTaskState(app: App, path: string, task: Task, state: Ta
       return content;
     }
     let line = raw.replace(STATUS_DATE_RE, "").replace(CHECKBOX_RE, `$1[${stateChar(state)}]`);
+    if (reason?.trim()) line = line.trimEnd() + ` 💬 ${reason.trim()}`;
     if (state === "done") line = line.trimEnd() + ` ✅ ${todayISO()}`;
     if (state === "dropped") line = line.trimEnd() + ` ❌ ${todayISO()}`;
     lines[task.line] = line;

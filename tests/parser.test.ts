@@ -47,6 +47,13 @@ describe("parseTaskLine", () => {
     expect(parseTaskLine("- [ ] Later 🛫 2026-06-18 ⏳ 2026-06-20", 0)!.defer).toBe("2026-06-18");
   });
 
+  it("parses a 💬 reason, stopping at the next marker, and strips it from text", () => {
+    const t = parseTaskLine("- [-] Old vendor call 💬 superseded by new vendor ❌ 2026-07-03", 0)!;
+    expect(t).toMatchObject({ dropped: true, reason: "superseded by new vendor", cancelledOn: "2026-07-03", text: "Old vendor call" });
+    const open = parseTaskLine("- [ ] Task 💬 note to self 📅 2026-07-10", 0)!;
+    expect(open).toMatchObject({ reason: "note to self", due: "2026-07-10", text: "Task" });
+  });
+
   it("captures a trailing ^block-id and strips it from text", () => {
     const t = parseTaskLine("- [ ] Plan trip 📅 2026-06-20 ^gtd1a2b", 0)!;
     expect(t).toMatchObject({ text: "Plan trip", due: "2026-06-20", blockId: "gtd1a2b" });

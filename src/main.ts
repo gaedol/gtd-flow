@@ -20,6 +20,7 @@ import { todayISO } from "./dates";
 import { moveTask, ProjectSuggestModal } from "./moveTask";
 import { parseTaskLine } from "./parser";
 import { setTaskState } from "./completeTask";
+import { ReasonModal } from "./reasonModal";
 import { statusBlockText, upsertStatusBlock } from "./statusBlock";
 import { projectGanttSource } from "./gantt";
 
@@ -171,7 +172,13 @@ export default class GtdFlowPlugin extends Plugin {
           new Notice("Cursor is not on a task line");
           return;
         }
-        void setTaskState(this.app, file.path, task, "dropped");
+        if (this.settings.promptDropReason) {
+          new ReasonModal(this.app, (reason) => {
+            void setTaskState(this.app, file.path, task, "dropped", reason);
+          }).open();
+        } else {
+          void setTaskState(this.app, file.path, task, "dropped");
+        }
       },
     });
     this.addCommand({

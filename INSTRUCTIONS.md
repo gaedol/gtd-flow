@@ -70,6 +70,10 @@ Besides `- [ ]` (to do) and `- [x]` (done), GTD Flow recognizes:
 
 Change a task's status from the **Edit task** modal (Status dropdown), the **Drop (cancel) task under cursor** command, or just by editing the checkbox character. Completing a task from the views still records `✅` and handles 🔁 recurrence.
 
+### Closure reasons (💬)
+
+Record *why* something was closed with a `💬 reason` on the task line (e.g. `- [-] Call old vendor 💬 superseded by new contract ❌ 2026-07-03`). The reason runs until the next metadata marker or end of line. Capture it via: the **Drop (cancel) task** command, which prompts for a reason (Enter/Esc to skip; disable via the **Ask for a reason when dropping** setting); the **Reason field in the Edit modal**; or typing `reason` in the task auto-suggest. Reasons show as a muted italic suffix on rows in all views (notably the Done perspective) and survive archiving. Longer explanations can simply go in an indented plain bullet under the task.
+
 ### Project status block
 
 Run **Insert / update project status block** on a project note to add an auto-maintained summary at the top:

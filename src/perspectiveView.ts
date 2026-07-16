@@ -122,6 +122,7 @@ export class PerspectiveView extends ItemView {
       setIcon(flag, "flag");
     }
     const label = renderTaskText(row, it.task.text, this.app, it.project.path);
+    if (it.task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${it.task.reason}` });
     label.onclick = async () => {
       const file = this.app.vault.getFileByPath(it.project.path);
       if (!file) return;

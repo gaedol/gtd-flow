@@ -11,6 +11,7 @@ export class EditTaskModal extends Modal {
   private due: string;
   private duration: string;
   private startTime: string;
+  private reason: string;
   private repeat: string;
   private flagged: boolean;
   private someday: boolean;
@@ -29,6 +30,7 @@ export class EditTaskModal extends Modal {
     this.due = task.due ?? "";
     this.duration = task.durationMin ? formatDuration(task.durationMin) : "";
     this.startTime = task.startTime ?? "";
+    this.reason = task.reason ?? "";
     this.repeat = task.repeat ?? "";
     this.flagged = task.tags.includes(flagTag);
     this.someday = task.tags.includes(plugin.settings.somedayTag);
@@ -61,6 +63,10 @@ export class EditTaskModal extends Modal {
     new Setting(contentEl).setName("Repeat (🔁)").addText((t) =>
       t.setPlaceholder("every week").setValue(this.repeat).onChange((v) => (this.repeat = v))
     );
+    new Setting(contentEl).setName("Reason (💬)").addText((t) => {
+      t.setPlaceholder("why closed/dropped").setValue(this.reason).onChange((v) => (this.reason = v));
+      t.inputEl.addClass("gtd-capture-text");
+    });
     new Setting(contentEl).setName("Status").addDropdown((d) =>
       d.addOption("todo", "To do")
         .addOption("in-progress", "In progress")
@@ -110,6 +116,7 @@ export class EditTaskModal extends Modal {
       due: this.due || undefined,
       durationMin: this.duration.trim() ? parseDuration(this.duration) : undefined,
       startTime: this.startTime || undefined,
+      reason: this.reason.trim() || undefined,
     });
 
     const file = this.app.vault.getFileByPath(this.path);
