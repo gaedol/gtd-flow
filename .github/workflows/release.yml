@@ -20,6 +20,11 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - name: Version-stamp styles.css (unique digest per release)
+        run: |
+          VERSION=$(node -p "require('./manifest.json').version")
+          printf '/* gtd-flow %s */\n' "$VERSION" | cat - styles.css > styles.tmp
+          mv styles.tmp styles.css
       # one attestation per asset: some verifiers mishandle multi-subject bundles
       - name: Attest main.js
         uses: actions/attest-build-provenance@v3
