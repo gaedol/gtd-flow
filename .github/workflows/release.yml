@@ -25,19 +25,20 @@ jobs:
           VERSION=$(node -p "require('./manifest.json').version")
           printf '/* gtd-flow %s */\n' "$VERSION" | cat - styles.css > styles.tmp
           mv styles.tmp styles.css
-      # one attestation per asset: some verifiers mishandle multi-subject bundles
+      # one build-provenance attestation per asset, via the current canonical
+      # action (actions/attest@v4) per GitHub's artifact-attestations guide
       - name: Attest main.js
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest@v4
         with:
-          subject-path: main.js
+          subject-path: 'main.js'
       - name: Attest manifest.json
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest@v4
         with:
-          subject-path: manifest.json
+          subject-path: 'manifest.json'
       - name: Attest styles.css
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest@v4
         with:
-          subject-path: styles.css
+          subject-path: 'styles.css'
       - name: Create release with plugin artifacts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
