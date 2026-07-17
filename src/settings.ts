@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, PluginSettingTab, Setting, SettingDefinitionItem, SettingGroupItem } from "obsidian";
 import type GtdFlowPlugin from "./main";
 import { Perspective, DEFAULT_PERSPECTIVES } from "./perspectives";
 import { InsertPosition } from "./insertLine";
@@ -51,6 +51,83 @@ export const DEFAULT_SETTINGS: GtdSettings = {
 export class GtdSettingTab extends PluginSettingTab {
   constructor(app: App, private plugin: GtdFlowPlugin) {
     super(app, plugin);
+  }
+
+  // declarative settings (Obsidian 1.13+: rendered instead of display(),
+  // and indexed by the global settings search); display() below remains the
+  // fallback for older versions
+  getSettingDefinitions(): SettingDefinitionItem[] {
+    const p = this.plugin;
+    return [
+      { name: "Projects folder", desc: "Folder containing project notes (one note per project).", control: { type: "folder", key: "projectsFolder" } },
+      { name: "Inbox note", desc: "Note where quick-captured tasks are appended.", control: { type: "file", key: "inboxNote" } },
+      { name: "Flag tag", desc: "Tag (without #) marking a task as flagged.", control: { type: "text", key: "flagTag" } },
+      { name: "Someday tag", desc: "Tag (without #) that parks a single task as someday/maybe.", control: { type: "text", key: "somedayTag" } },
+      {
+        name: "Match file-explorer colors",
+        desc: "Color project names in GTD views using your 'Color Folders and Files' styles.",
+        visible: () => !!explorerStyles(this.app),
+        control: { type: "toggle", key: "explorerColors" },
+      },
+      { name: "Ask for a reason when dropping a task", desc: "The 'Drop (cancel) task' command prompts for a 💬 reason.", control: { type: "toggle", key: "promptDropReason" } },
+      { name: "Notify about due tasks", desc: "System notification for overdue / due-today tasks while Obsidian is open.", control: { type: "toggle", key: "dueNotifications" } },
+      { name: "Status block: include timeline", desc: "Add a per-project Mermaid gantt inside the project status block.", control: { type: "toggle", key: "statusBlockChart" } },
+      {
+        name: "Insert captured/moved tasks at",
+        desc: "Where new task lines land in a project note (always above ## Archive).",
+        control: { type: "dropdown", key: "insertPosition", options: { bottom: "Bottom of list", top: "Top of list" } },
+      },
+      { name: "Default review interval", desc: "Used by 'New project' (e.g. 1w, 3d, 2m; empty = no review).", control: { type: "text", key: "defaultReviewInterval" } },
+      { name: "Forecast horizon (days)", control: { type: "number", key: "forecastDays", min: 1 } },
+      { name: "Archive tasks done for (days)", desc: "'Archive done tasks' only moves items completed at least this many days ago (0 = all).", control: { type: "number", key: "archiveAfterDays", min: 0 } },
+      { name: "Archive folder", desc: "Completed project notes are moved here by 'Archive current project'.", control: { type: "folder", key: "archiveFolder" } },
+      { name: "Day starts at", desc: "Start time for the day timeline (HH:MM).", control: { type: "text", key: "dayStart", placeholder: "09:00" } },
+      { name: "Day ends at", desc: "End time for the day timeline (HH:MM).", control: { type: "text", key: "dayEnd", placeholder: "22:00" } },
+      { name: "Default task duration (minutes)", desc: "Used in the day timeline when a task has no ⏱ duration.", control: { type: "number", key: "defaultDurationMin", min: 1 } },
+      {
+        type: "group",
+        heading: "Perspectives",
+        items: [
+          ...p.settings.perspectives.map((persp, i): SettingGroupItem => ({
+            name: persp.name || "(unnamed perspective)",
+            searchable: false,
+            render: (setting: Setting) => this.configurePerspective(setting, persp, i),
+          })),
+          {
+            name: "Add perspective",
+            action: async () => {
+              p.settings.perspectives.push({
+                name: "New perspective", availableOnly: true, flagged: false,
+                tag: "", project: "", dueWithin: 0, groupBy: "project",
+              });
+              await p.saveSettings();
+              this.refresh();
+            },
+          },
+        ],
+      },
+    ];
+  }
+
+  // route declarative control writes through saveSettings so side effects
+  // (someday-tag refresh, index rebuild) still run; normalize tag inputs
+  async setControlValue(key: string, value: unknown): Promise<void> {
+    const s = this.plugin.settings as unknown as Record<string, unknown>;
+    if ((key === "flagTag" || key === "somedayTag") && typeof value === "string") {
+      value = value.replace(/^#/, "") || (key === "somedayTag" ? "someday" : "flag");
+    }
+    if ((key === "dayStart" || key === "dayEnd") && typeof value === "string" && !/^\d{2}:\d{2}$/.test(value)) {
+      return; // ignore invalid times, keep previous value
+    }
+    s[key] = value;
+    await this.plugin.saveSettings();
+  }
+
+  // re-render whichever settings surface is active (1.13 definitions or display)
+  private refresh(): void {
+    const update = (this as Partial<{ update: () => void }>).update;
+    if (typeof update === "function") update.call(this);
+    else this.display();
   }
 
   display(): void {
@@ -254,8 +331,15 @@ export class GtdSettingTab extends PluginSettingTab {
   }
 
   private renderPerspective(containerEl: HTMLElement, p: Perspective, i: number) {
+    const s = new Setting(containerEl);
+    this.configurePerspective(s, p, i);
+  }
+
+  // configures one perspective's editing row; shared by display() and the
+  // declarative render definitions
+  private configurePerspective(s: Setting, p: Perspective, i: number) {
     const save = async () => this.plugin.saveSettings();
-    const s = new Setting(containerEl).setClass("gtd-perspective-setting");
+    s.setClass("gtd-perspective-setting");
     s.addText((t) => t.setPlaceholder("Name").setValue(p.name).onChange(async (v) => { p.name = v; await save(); }));
     s.addText((t) => t.setPlaceholder("#tag filter").setValue(p.tag).onChange(async (v) => { p.tag = v.replace(/^#/, ""); await save(); }));
     s.addText((t) => t.setPlaceholder("Project filter").setValue(p.project).onChange(async (v) => { p.project = v; await save(); }));
@@ -284,7 +368,7 @@ export class GtdSettingTab extends PluginSettingTab {
       b.setIcon("trash").setTooltip("Delete perspective").onClick(async () => {
         this.plugin.settings.perspectives.splice(i, 1);
         await save();
-        this.display();
+        this.refresh();
       })
     );
   }
