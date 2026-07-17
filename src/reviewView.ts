@@ -41,17 +41,17 @@ export class ReviewView extends ItemView {
       .sort((a, b) => (a.lastReviewed ?? "").localeCompare(b.lastReviewed ?? ""));
 
     if (due.length === 0) {
-      root.createEl("div", { text: "All projects reviewed. 🎉", cls: "gtd-empty" });
+      root.createDiv({ text: "All projects reviewed. 🎉", cls: "gtd-empty" });
       return;
     }
 
-    root.createEl("div", { cls: "gtd-review-count", text: `${due.length} project(s) to review` });
+    root.createDiv({ cls: "gtd-review-count", text: `${due.length} project(s) to review` });
     for (const p of due) this.renderProject(root, p, today);
   }
 
   private renderProject(root: HTMLElement, p: Project, today: string) {
     const card = root.createDiv({ cls: "gtd-review-card" });
-    const name = card.createEl("div", { cls: "gtd-project-name", text: p.name });
+    const name = card.createDiv({ cls: "gtd-project-name", text: p.name });
     this.plugin.pillFor(name, p.path);
     name.onclick = () => {
       const file = this.app.vault.getFileByPath(p.path);
@@ -65,11 +65,11 @@ export class ReviewView extends ItemView {
       p.flow,
       p.lastReviewed ? `last reviewed ${p.lastReviewed}` : "never reviewed",
     ];
-    card.createEl("div", { cls: "gtd-review-meta", text: info.join(" · ") });
+    card.createDiv({ cls: "gtd-review-meta", text: info.join(" · ") });
     if (open.length > 0) {
-      card.createEl("div", { cls: "gtd-review-next", text: "Next: " + (avail[0]?.text ?? "(nothing available)") });
+      card.createDiv({ cls: "gtd-review-next", text: "Next: " + (avail[0]?.text ?? "(nothing available)") });
     } else {
-      card.createEl("div", { cls: "gtd-review-next gtd-review-stalled", text: "No open tasks — complete or drop?" });
+      card.createDiv({ cls: "gtd-review-next gtd-review-stalled", text: "No open tasks — complete or drop?" });
     }
 
     const btn = card.createEl("button", { cls: "gtd-review-btn", text: "Mark reviewed" });

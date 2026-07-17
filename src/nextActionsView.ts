@@ -48,13 +48,13 @@ export class NextActionsView extends ItemView {
     this.renderFlagged(root, projects, today);
 
     if (projects.length === 0) {
-      root.createEl("div", { text: "No available tasks.", cls: "gtd-empty" });
+      root.createDiv({ text: "No available tasks.", cls: "gtd-empty" });
       return;
     }
 
     for (const { project, tasks } of projects) {
       const section = root.createDiv({ cls: "gtd-project" });
-      const header = section.createEl("div", { cls: "gtd-project-name" });
+      const header = section.createDiv({ cls: "gtd-project-name" });
       header.setText(project.name);
       this.plugin.pillFor(header, project.path);
       header.onclick = () => this.openTask(project, tasks[0], false);
@@ -67,7 +67,7 @@ export class NextActionsView extends ItemView {
     if (tasks.length === 0) return;
     const inboxPath = normalizePath(this.plugin.settings.inboxNote);
     const section = root.createDiv({ cls: "gtd-project gtd-inbox" });
-    section.createEl("div", { cls: "gtd-project-name", text: `Inbox (${tasks.length})` });
+    section.createDiv({ cls: "gtd-project-name", text: `Inbox (${tasks.length})` });
     for (const t of tasks) {
       const row = section.createDiv({ cls: "gtd-task" });
       const cb = row.createEl("input", { type: "checkbox" });
@@ -102,7 +102,7 @@ export class NextActionsView extends ItemView {
     );
     if (flagged.length === 0) return;
     const section = root.createDiv({ cls: "gtd-project gtd-flagged" });
-    section.createEl("div", { cls: "gtd-project-name", text: `Flagged (${flagged.length})` });
+    section.createDiv({ cls: "gtd-project-name", text: `Flagged (${flagged.length})` });
     for (const f of flagged) {
       this.renderTask(section, f.project, f.task, today, true);
     }

@@ -41,7 +41,7 @@ export class PerspectiveView extends ItemView {
 
     const all = this.plugin.settings.perspectives;
     if (all.length === 0) {
-      root.createEl("div", { text: "No perspectives defined — add them in settings.", cls: "gtd-empty" });
+      root.createDiv({ text: "No perspectives defined — add them in settings.", cls: "gtd-empty" });
       return;
     }
     const current = all.find((p) => p.name === this.selected) ?? all[0];
@@ -61,14 +61,14 @@ export class PerspectiveView extends ItemView {
     const groups = runPerspective(this.plugin.index.all(), current, today, this.plugin.settings.flagTag);
 
     if (groups.size === 0) {
-      root.createEl("div", { text: "Nothing matches this perspective.", cls: "gtd-empty" });
+      root.createDiv({ text: "Nothing matches this perspective.", cls: "gtd-empty" });
       return;
     }
 
     const flagTag = this.plugin.settings.flagTag;
     for (const [groupKey, items] of groups) {
       const section = root.createDiv({ cls: "gtd-project" });
-      const header = section.createEl("div", { cls: "gtd-project-name", text: groupKey });
+      const header = section.createDiv({ cls: "gtd-project-name", text: groupKey });
       if (current.groupBy === "project") {
         const first = items[0];
         if (first) this.plugin.pillFor(header, first.project.path);

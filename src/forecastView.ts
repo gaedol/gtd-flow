@@ -41,7 +41,7 @@ export class ForecastView extends ItemView {
     const items = forecast(this.plugin.index.all(), today, this.plugin.settings.forecastDays);
 
     if (items.length === 0) {
-      root.createEl("div", {
+      root.createDiv({
         text: `Nothing due or becoming available in the next ${this.plugin.settings.forecastDays} days.`,
         cls: "gtd-empty",
       });
@@ -56,7 +56,7 @@ export class ForecastView extends ItemView {
     const flagTag = this.plugin.settings.flagTag;
     for (const [date, dayItems] of byDate) {
       const day = root.createDiv({ cls: "gtd-day" });
-      day.createEl("div", { cls: "gtd-day-header", text: dayLabel(date, today) });
+      day.createDiv({ cls: "gtd-day-header", text: dayLabel(date, today) });
       const rowsEl = day.createDiv({ cls: "gtd-day-rows" });
       // default order (overdue → flagged → rest), then the user's saved arrangement
       const ordered = applyManualOrder(

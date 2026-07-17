@@ -54,7 +54,7 @@ export class TimelineView extends ItemView {
     });
     const body = root.createDiv();
     if (!src) {
-      body.createEl("div", { text: "Nothing to chart for this range.", cls: "gtd-empty" });
+      body.createDiv({ text: "Nothing to chart for this range.", cls: "gtd-empty" });
       return;
     }
     await MarkdownRenderer.render(this.app, "```mermaid\n" + src + "\n```", body, "", this);
