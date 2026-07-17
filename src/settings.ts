@@ -325,7 +325,7 @@ export class GtdSettingTab extends PluginSettingTab {
           groupBy: "project",
         });
         await this.plugin.saveSettings();
-        this.display();
+        this.refresh();
       })
     );
   }
