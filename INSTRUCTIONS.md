@@ -10,7 +10,7 @@ Structured GTD for Obsidian: sequential/parallel projects, defer dates, next-act
 | Sequential / parallel | `flow:` frontmatter key |
 | Defer date | 🛫 start date (Tasks-plugin syntax) |
 | Due date | 📅 |
-| Repeat | 🔁 (parsing only; auto-recurrence not implemented yet) |
+| Repeat | 🔁 — completing from a GTD Flow view writes the next occurrence |
 | Inbox | A single inbox note collecting quick captures |
 | Next action | First *available* task of each active project |
 | Review | `review-interval` / `last-reviewed` frontmatter + Review view |
@@ -21,12 +21,13 @@ A task is **available** when its project is `active`, its defer date (if any) ha
 
 1. Build (`npm install && npm run build`) and link/copy the folder into `<vault>/.obsidian/plugins/gtd-flow/` (needs `manifest.json`, `main.js`, `styles.css`).
 2. Enable **GTD Flow** in Settings → Community plugins.
-3. In the plugin settings, set:
-   - **Projects folder** (default `GTD/Projects`)
-   - **Inbox note** (default `GTD/Inbox.md`)
+3. In the plugin settings, set at minimum:
+   - **Projects folder** (default `GTD/Projects`) and **Inbox note** (default `GTD/Inbox.md`)
    - **Forecast horizon** in days (default 7)
-   - **Flag tag** (default `flag`)
+   - **Flag tag** (default `flag`) and **Someday tag** (default `someday`)
    - **Archive tasks done for (days)** (default 7) and **Archive folder** (default `GTD/Archive`)
+
+   Further settings cover insert position for captured/moved tasks, default review interval, drop-reason prompt, due-task notifications, the status-block timeline, day start/end and default duration for the Day timeline, explorer-color matching, and the perspectives editor. On Obsidian 1.13+ all of these are findable via the built-in settings search.
 
 ## Project note format
 
@@ -201,8 +202,16 @@ src/
   insertLine.ts      pure: position-aware task insertion (archive-safe)
   serialize.ts       pure: task fields → line; duration parsing/formatting
   editTaskModal.ts   edit modal rewriting a task line in place
+  reasonModal.ts     one-field 💬 reason prompt used by the drop command
   newProjectModal.ts name+flow modal creating a project note
-  projectPropertiesModal.ts status/flow/review editor writing frontmatter
+  projectPropertiesModal.ts status/flow/review/color/banner editor writing frontmatter
+  ordering.ts        pure: default sort (overdue→flagged→rest) + manual-order merge
+  dragReorder.ts     pointer-based drag handles for Forecast/Perspectives rows
+  blockId.ts         assigns ^block-ids used as stable identity for manual order
+  projectColors.ts   pure: resolve Color-Folders-and-Files styles into project pills
+  statusBlock.ts     pure: %% gtd:status %% summary block text + upsert
+  dateParse.ts       pure: natural-language date choices for the suggester
+  linkText.ts        renders [[wikilinks]] in task text as clickable links
   inNote.ts          pure: doc lines → per-line availability CSS classes
   editorDecorations.ts CM6 line decorations for Live Preview (reading mode via post-processor in main)
   settings.ts        settings tab
@@ -231,4 +240,6 @@ With **Notify about due tasks** enabled (default on), a system notification anno
 
 ## Roadmap
 
-1. Mobile verification
+1. In-note editing affordances (context menu on task lines; in-editor checkbox completion with 🔁 recurrence)
+2. `#important` marker with an Important perspective
+3. Folder-note overview block (aggregated project stats when Folder Notes is installed)

@@ -6,13 +6,9 @@ GTD Flow brings serious project structure — sequential and parallel projects, 
 
 It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so the two can share the same files.
 
-> ⚠️ Early release (0.1.0) — in active use and testing. Feedback welcome.
-
 ---
 
 ## Screenshots
-
-<!-- Replace these with your own captures -->
 
 | Next actions | Forecast | Timeline |
 |---|---|---|
@@ -41,6 +37,8 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 | Sequential / parallel | `flow:` key (overridable per action group) |
 | Defer / Due | 🛫 / 📅 on the task line |
 | Flag | a tag (default `#flag`) |
+| Someday / Maybe | `status: someday` projects and a `#someday` tag for single tasks |
+| Contexts | hierarchical tags (`#home/plumbing`), filterable in perspectives |
 | Forecast | Forecast + Timeline views |
 | Review | per-project interval + a review queue |
 | Inbox | a capture note you triage into projects |
@@ -48,16 +46,17 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 ## Feature highlights
 
 - Sequential/parallel **projects** with nested **action groups**
-- **Defer, due, duration (⏱), repeat (🔁)** on tasks, with inline auto-suggest
-- **Next Actions**, **Forecast**, **Timeline** (Gantt), **Review**, and **Perspectives** views
+- **Defer, due, time of day (⏰), duration (⏱), repeat (🔁)** on tasks, with inline auto-suggest (natural-language dates: "Thursday", "end of week"…)
+- **Task statuses** — to-do, in-progress `[/]`, done, dropped `[-]` — with **💬 closure reasons**
+- **Next Actions**, **Forecast**, **Timeline** (Gantt), **Review**, and **Perspectives** views, with **drag-to-reorder** in Forecast/Perspectives
 - **Quick capture** (modal, command, and URL handler) and **inbox triage** into projects
-- **Repeat-on-complete**, **flags**, **archiving**, and an **overdue badge** in the status bar
-- **In-note highlighting** of next/available/blocked/overdue tasks
-- **Per-project page styling** (background tint and banner)
+- **Repeat-on-complete**, **flags**, **someday/maybe**, **archiving**, an **overdue badge**, and due-task **notifications**
+- **In-note highlighting** of next/available/blocked/deferred/overdue tasks, plus an opt-in per-project **status block**
+- **Per-project page styling** (tint/banner) and project pills matching your **file-explorer colors**
 
 ## Install
 
-While in beta, install with [BRAT](https://github.com/TfTHacker/obsidian42-brat): add this repository as a beta plugin, then enable **GTD Flow** in *Settings → Community plugins*.
+Until the community-directory listing is live, install with [BRAT](https://github.com/TfTHacker/obsidian42-brat): add this repository as a beta plugin, then enable **GTD Flow** in *Settings → Community plugins*. Works on desktop and mobile.
 
 Manual install: download `main.js`, `manifest.json`, and `styles.css` from a [release](../../releases) into `<vault>/.obsidian/plugins/gtd-flow/` and enable the plugin.
 
