@@ -41,9 +41,11 @@ export function resolveStyle(styles: StyleMap, path: string): FolderStyle | null
 // apply a resolved style to an element as an explorer-like pill
 export function applyPill(el: HTMLElement, s: FolderStyle): void {
   el.addClass("gtd-pill");
-  if (s.backgroundColor) el.style.backgroundColor = s.backgroundColor;
-  if (s.textColor) el.style.color = s.textColor;
-  if (s.isBold) el.style.fontWeight = "600";
-  if (s.isItalic) el.style.fontStyle = "italic";
-  if (s.opacity !== undefined) el.style.opacity = String(s.opacity);
+  const styles: Partial<CSSStyleDeclaration> = {};
+  if (s.backgroundColor) styles.backgroundColor = s.backgroundColor;
+  if (s.textColor) styles.color = s.textColor;
+  if (s.isBold) styles.fontWeight = "600";
+  if (s.isItalic) styles.fontStyle = "italic";
+  if (s.opacity !== undefined) styles.opacity = String(s.opacity);
+  el.setCssStyles(styles);
 }

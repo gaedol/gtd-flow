@@ -355,15 +355,14 @@ export default class GtdFlowPlugin extends Plugin {
       const p = view.file ? this.index.get(view.file.path) : undefined;
       const styled = !!(p && (p.color || p.banner));
       el.toggleClass("gtd-project-styled", styled);
-      if (p?.color) el.style.setProperty("--gtd-project-color", p.color);
-      else el.style.removeProperty("--gtd-project-color");
+      el.setCssProps({ "--gtd-project-color": p?.color ?? "" });
       if (p?.banner) {
         const url = /^https?:\/\//.test(p.banner)
           ? p.banner
           : this.app.vault.adapter.getResourcePath(normalizePath(p.banner));
-        el.style.setProperty("--gtd-project-banner", `url("${url}")`);
+        el.setCssProps({ "--gtd-project-banner": `url("${url}")` });
       } else {
-        el.style.removeProperty("--gtd-project-banner");
+        el.setCssProps({ "--gtd-project-banner": "" });
       }
     }
   }
