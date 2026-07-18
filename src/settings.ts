@@ -95,13 +95,12 @@ export class GtdSettingTab extends PluginSettingTab {
           })),
           {
             name: "Add perspective",
-            action: async () => {
+            action: () => {
               p.settings.perspectives.push({
                 name: "New perspective", availableOnly: true, flagged: false,
                 tag: "", project: "", dueWithin: 0, groupBy: "project",
               });
-              await p.saveSettings();
-              this.refresh();
+              void p.saveSettings().then(() => this.refresh());
             },
           },
         ],
