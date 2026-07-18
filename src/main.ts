@@ -19,8 +19,12 @@ import { buildLineClasses } from "./inNote";
 import { todayISO } from "./dates";
 import { moveTask, ProjectSuggestModal } from "./moveTask";
 import { parseTaskLine } from "./parser";
-import { setTaskState } from "./completeTask";
+import type { Task } from "./types";
+import { completeTask, setTaskState } from "./completeTask";
+import { checkboxClickAction } from "./clickCycle";
+import { gtdCheckboxClicks } from "./checkboxClicks";
 import { ReasonModal } from "./reasonModal";
+import type { Editor } from "obsidian";
 import { explorerStyles, resolveStyle, applyPill } from "./projectColors";
 import { statusBlockText, upsertStatusBlock } from "./statusBlock";
 import { projectGanttSource } from "./gantt";
@@ -173,13 +177,7 @@ export default class GtdFlowPlugin extends Plugin {
           new Notice("Cursor is not on a task line");
           return;
         }
-        if (this.settings.promptDropReason) {
-          new ReasonModal(this.app, (reason) => {
-            void setTaskState(this.app, file.path, task, "dropped", reason);
-          }).open();
-        } else {
-          void setTaskState(this.app, file.path, task, "dropped");
-        }
+        this.dropTask(file.path, task);
       },
     });
     this.addCommand({
@@ -193,11 +191,7 @@ export default class GtdFlowPlugin extends Plugin {
           new Notice("Cursor is not on a task line");
           return;
         }
-        const tag = this.settings.somedayTag;
-        const next = task.tags.includes(tag)
-          ? raw.replace(new RegExp(`\\s*#${tag}\\b`), "")
-          : raw.replace(/\s*$/, "") + ` #${tag}`;
-        editor.setLine(lineNo, next);
+        editor.setLine(lineNo, this.toggleSomedayLine(raw, task.tags));
       },
     });
     this.addCommand({
@@ -264,8 +258,7 @@ export default class GtdFlowPlugin extends Plugin {
       checkCallback: (checking) => {
         const file = this.app.workspace.getActiveFile();
         if (!file) return false;
-        const inScope = !!this.index.get(file.path) || file.path === normalizePath(this.settings.inboxNote);
-        if (!inScope) return false;
+        if (!this.noteInScope(file.path)) return false;
         if (!checking) void this.archiveNote(file).then((n) => new Notice(`Archived ${n} task(s)`));
         return true;
       },
@@ -293,6 +286,38 @@ export default class GtdFlowPlugin extends Plugin {
       },
     });
 
+    // right-click / long-press menu on a task line in project notes and the inbox
+    this.registerEvent(
+      this.app.workspace.on("editor-menu", (menu, editor: Editor, view) => {
+        const file = view.file;
+        if (!file || !this.noteInScope(file.path)) return;
+        const lineNo = editor.getCursor().line;
+        const raw = editor.getLine(lineNo);
+        const task = parseTaskLine(raw, lineNo);
+        if (!task) return;
+        const path = file.path;
+        menu.addSeparator();
+        menu.addItem((i) =>
+          i.setTitle("Edit task").setIcon("pencil").onClick(() => new EditTaskModal(this.app, this, path, task).open())
+        );
+        if (!task.done) {
+          menu.addItem((i) =>
+            i.setTitle("Complete task").setIcon("check").onClick(() => void completeTask(this.app, path, task))
+          );
+          menu.addItem((i) =>
+            i.setTitle("Drop task…").setIcon("x-circle").onClick(() => this.dropTask(path, task))
+          );
+          const isSomeday = task.tags.includes(this.settings.somedayTag);
+          menu.addItem((i) =>
+            i
+              .setTitle(isSomeday ? "Remove someday" : "Mark someday")
+              .setIcon("clock")
+              .onClick(() => editor.setLine(lineNo, this.toggleSomedayLine(raw, task.tags)))
+          );
+        }
+      })
+    );
+
     this.registerEditorSuggest(new TaskSuggest(this.app, this));
 
     // obsidian://gtd-capture?vault=...&text=...&due=YYYY-MM-DD&defer=YYYY-MM-DD
@@ -312,6 +337,7 @@ export default class GtdFlowPlugin extends Plugin {
     // last + isolated: an editor-extension failure must not take down the plugin
     try {
       this.registerEditorExtension(gtdEditorDecorations(this));
+      this.registerEditorExtension(gtdCheckboxClicks(this));
       this.index.on("changed", () => this.app.workspace.updateOptions());
     } catch (e) {
       console.error("GTD Flow: in-note Live Preview decorations disabled", e);
@@ -340,11 +366,69 @@ export default class GtdFlowPlugin extends Plugin {
       for (let i = info.lineStart; i <= info.lineEnd; i++) {
         if (classes.has(i) || /^\s*[-*] \[.\] /.test(lines[i] ?? "")) taskLines.push(i);
       }
+      const scoped = this.noteInScope(ctx.sourcePath);
       el.querySelectorAll("li.task-list-item").forEach((li, idx) => {
-        const cls = classes.get(taskLines[idx]);
+        const srcLine = taskLines[idx];
+        const cls = classes.get(srcLine);
         if (cls) li.classList.add(...cls.split(" "));
+        // reading-mode completion: route the checkbox through GTD Flow so ✅ +
+        // 🔁 recurrence happen, matching the editor/views behaviour
+        if (!scoped) return;
+        const box = li.querySelector<HTMLInputElement>("input.task-list-item-checkbox");
+        const raw = lines[srcLine];
+        if (!box || raw === undefined) return;
+        this.registerDomEvent(
+          box,
+          "click",
+          (evt) => {
+            if (!this.settings.handleEditorClicks) return;
+            if (this.routeCheckbox(ctx.sourcePath, srcLine, raw)) {
+              evt.preventDefault();
+              evt.stopPropagation();
+            }
+          },
+          { capture: true }
+        );
       });
     });
+  }
+
+  // a note whose tasks GTD Flow manages: a project note or the configured inbox
+  noteInScope(path: string): boolean {
+    return !!this.index.get(path) || path === normalizePath(this.settings.inboxNote);
+  }
+
+  // decide and perform what a checkbox click does on a source line; returns true
+  // when GTD Flow handled it (caller should suppress the default toggle)
+  routeCheckbox(path: string, lineNo: number, rawLine: string): boolean {
+    const m = rawLine.match(/^\s*[-*] \[(.)\]/);
+    if (!m) return false;
+    const action = checkboxClickAction(m[1], this.settings.clickCycles);
+    if (action === "none") return false;
+    const task = parseTaskLine(rawLine, lineNo);
+    if (!task) return false;
+    if (action === "in-progress") void setTaskState(this.app, path, task, "in-progress");
+    else void completeTask(this.app, path, task);
+    return true;
+  }
+
+  // drop (cancel) a task, prompting for a 💬 reason when that setting is on
+  dropTask(path: string, task: Task) {
+    if (this.settings.promptDropReason) {
+      new ReasonModal(this.app, (reason) => {
+        void setTaskState(this.app, path, task, "dropped", reason);
+      }).open();
+    } else {
+      void setTaskState(this.app, path, task, "dropped");
+    }
+  }
+
+  // toggle the someday tag on a task source line, returning the rewritten line
+  toggleSomedayLine(raw: string, tags: string[]): string {
+    const tag = this.settings.somedayTag;
+    return tags.includes(tag)
+      ? raw.replace(new RegExp(`\\s*#${tag}\\b`), "")
+      : raw.replace(/\s*$/, "") + ` #${tag}`;
   }
 
   applyProjectStyles() {

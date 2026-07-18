@@ -22,6 +22,8 @@ export interface GtdSettings {
   statusBlockChart: boolean;
   promptDropReason: boolean;
   explorerColors: boolean;
+  handleEditorClicks: boolean;
+  clickCycles: boolean;
   projectSort: "alpha" | "folder" | "manual";
   projectOrder: string[]; // project paths in manual order
   forecastOrder: Record<string, string[]>; // dateKey -> block ids in manual order
@@ -46,6 +48,8 @@ export const DEFAULT_SETTINGS: GtdSettings = {
   statusBlockChart: false,
   promptDropReason: true,
   explorerColors: true,
+  handleEditorClicks: true,
+  clickCycles: false,
   projectSort: "alpha",
   projectOrder: [],
   forecastOrder: {},
@@ -74,6 +78,8 @@ export class GtdSettingTab extends PluginSettingTab {
         control: { type: "toggle", key: "explorerColors" },
       },
       { name: "Ask for a reason when dropping a task", desc: "The 'Drop (cancel) task' command prompts for a 💬 reason.", control: { type: "toggle", key: "promptDropReason" } },
+      { name: "Handle checkbox clicks in notes", desc: "Completing a task by clicking its checkbox in a project note writes ✅ and the 🔁 next occurrence (like the GTD views).", control: { type: "toggle", key: "handleEditorClicks" } },
+      { name: "Click cycles to-do → in-progress → done", desc: "With this on, the first checkbox click marks a task in-progress [/]; the next completes it. Requires checkbox handling above.", control: { type: "toggle", key: "clickCycles" } },
       { name: "Notify about due tasks", desc: "System notification for overdue / due-today tasks while Obsidian is open.", control: { type: "toggle", key: "dueNotifications" } },
       { name: "Status block: include timeline", desc: "Add a per-project Mermaid gantt inside the project status block.", control: { type: "toggle", key: "statusBlockChart" } },
       {
@@ -272,6 +278,26 @@ export class GtdSettingTab extends PluginSettingTab {
       .addToggle((t) =>
         t.setValue(this.plugin.settings.promptDropReason).onChange(async (v) => {
           this.plugin.settings.promptDropReason = v;
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Handle checkbox clicks in notes")
+      .setDesc("Completing a task by clicking its checkbox in a project note writes ✅ and the 🔁 next occurrence (like the GTD views).")
+      .addToggle((t) =>
+        t.setValue(this.plugin.settings.handleEditorClicks).onChange(async (v) => {
+          this.plugin.settings.handleEditorClicks = v;
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Click cycles to-do → in-progress → done")
+      .setDesc("With this on, the first checkbox click marks a task in-progress [/]; the next completes it. Requires checkbox handling above.")
+      .addToggle((t) =>
+        t.setValue(this.plugin.settings.clickCycles).onChange(async (v) => {
+          this.plugin.settings.clickCycles = v;
           await this.plugin.saveSettings();
         })
       );
