@@ -6,6 +6,8 @@ import { completeTask } from "./completeTask";
 import { moveTask, ProjectSuggestModal } from "./moveTask";
 import { EditTaskModal } from "./editTaskModal";
 import { renderTaskText } from "./linkText";
+import { applySavedOrder } from "./ordering";
+import { makeReorderable } from "./dragReorder";
 import { Project, Task } from "./types";
 
 export const NEXT_ACTIONS_VIEW = "gtd-next-actions";
@@ -38,11 +40,19 @@ export class NextActionsView extends ItemView {
     root.addClass("gtd-next-actions");
 
     const today = todayISO();
-    const projects = this.plugin.index
+    const mode = this.plugin.settings.projectSort;
+    let projects = this.plugin.index
       .all()
       .map((p) => ({ project: p, tasks: availableTasks(p, today) }))
       .filter((g) => g.tasks.length > 0)
-      .sort((a, b) => a.project.name.localeCompare(b.project.name));
+      .sort((a, b) =>
+        mode === "folder"
+          ? a.project.path.localeCompare(b.project.path)
+          : a.project.name.localeCompare(b.project.name)
+      );
+    if (mode === "manual") {
+      projects = applySavedOrder(projects, (g) => g.project.path, this.plugin.settings.projectOrder);
+    }
 
     this.renderInbox(root);
     this.renderFlagged(root, projects, today);
@@ -52,14 +62,31 @@ export class NextActionsView extends ItemView {
       return;
     }
 
+    const list = root.createDiv({ cls: "gtd-projects-list" });
     for (const { project, tasks } of projects) {
-      const section = root.createDiv({ cls: "gtd-project" });
+      const section = list.createDiv({ cls: "gtd-project" });
+      section.dataset.gtdKey = project.path;
       const header = section.createDiv({ cls: "gtd-project-name" });
-      header.setText(project.name);
-      this.plugin.pillFor(header, project.path);
+      if (mode === "manual") {
+        const grip = header.createSpan({ cls: "gtd-grip", attr: { "aria-label": "Drag to reorder projects" } });
+        setIcon(grip, "grip-vertical");
+        grip.addEventListener("click", (e) => e.stopPropagation()); // don't open the note after a drag
+      }
+      const nameEl = header.createSpan({ text: project.name });
+      this.plugin.pillFor(nameEl, project.path);
       header.onclick = () => this.openTask(project, tasks[0], false);
       for (const t of tasks) this.renderTask(section, project, t, today);
     }
+    if (mode === "manual") {
+      makeReorderable(list, (keys) => void this.saveProjectOrder(keys), ".gtd-project");
+    }
+  }
+
+  private async saveProjectOrder(paths: string[]) {
+    // keep only real project paths; stale entries are dropped on each save
+    const known = new Set(this.plugin.index.all().map((p) => p.path));
+    this.plugin.settings.projectOrder = paths.filter((p) => known.has(p));
+    await this.plugin.persistData();
   }
 
   private renderInbox(root: HTMLElement) {

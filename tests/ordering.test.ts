@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { defaultSort, applyManualOrder } from "../src/ordering";
+import { defaultSort, applyManualOrder, applySavedOrder } from "../src/ordering";
 import { Task } from "../src/types";
 
 const TODAY = "2026-06-14";
@@ -22,6 +22,21 @@ describe("defaultSort", () => {
       "plain a",
       "plain b",
     ]);
+  });
+});
+
+describe("applySavedOrder (generic, e.g. project paths)", () => {
+  const paths = ["A/one.md", "B/two.md", "C/three.md"].map((p) => ({ path: p }));
+
+  it("applies a saved path sequence and drops unknown saved entries", () => {
+    const out = applySavedOrder(paths, (x) => x.path, ["C/three.md", "gone.md", "A/one.md"]);
+    expect(out.map((x) => x.path)).toEqual(["C/three.md", "A/one.md", "B/two.md"]);
+  });
+
+  it("weaves an unsaved item after its default predecessor", () => {
+    const withNew = [{ path: "A/one.md" }, { path: "A/new.md" }, { path: "B/two.md" }];
+    const out = applySavedOrder(withNew, (x) => x.path, ["B/two.md", "A/one.md"]);
+    expect(out.map((x) => x.path)).toEqual(["B/two.md", "A/one.md", "A/new.md"]);
   });
 });
 

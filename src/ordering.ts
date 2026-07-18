@@ -12,15 +12,20 @@ export function defaultSort<T extends { task: Task }>(items: T[], today: string,
   return [...items].sort((a, b) => defaultRank(a.task, today, flagTag) - defaultRank(b.task, today, flagTag));
 }
 
-// merge a saved manual order (block ids) over the default-sorted list: tasks the
-// user has positioned follow the saved sequence; new tasks weave into the default
-// slot after their nearest already-positioned predecessor
-export function applyManualOrder<T extends { task: Task }>(defaultSorted: T[], savedOrder: string[]): T[] {
+// merge a saved manual order over a default-sorted list: items the user has
+// positioned follow the saved sequence; unknown (new) items weave into their
+// default slot after the nearest already-positioned predecessor
+export function applySavedOrder<T>(
+  defaultSorted: T[],
+  keyOf: (item: T) => string | undefined,
+  savedOrder: string[]
+): T[] {
   if (savedOrder.length === 0) return defaultSorted;
   const pos = new Map(savedOrder.map((id, i) => [id, i] as const));
   let lastKnown = -1;
   const keyed = defaultSorted.map((it, di) => {
-    const si = it.task.blockId !== undefined ? pos.get(it.task.blockId) : undefined;
+    const key = keyOf(it);
+    const si = key !== undefined ? pos.get(key) : undefined;
     if (si !== undefined) {
       lastKnown = si;
       return { it, primary: si, secondary: 0, di };
@@ -29,4 +34,8 @@ export function applyManualOrder<T extends { task: Task }>(defaultSorted: T[], s
   });
   keyed.sort((a, b) => a.primary - b.primary || a.secondary - b.secondary || a.di - b.di);
   return keyed.map((k) => k.it);
+}
+
+export function applyManualOrder<T extends { task: Task }>(defaultSorted: T[], savedOrder: string[]): T[] {
+  return applySavedOrder(defaultSorted, (it) => it.task.blockId, savedOrder);
 }

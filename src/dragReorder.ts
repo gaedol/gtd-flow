@@ -1,14 +1,19 @@
 // pointer-based drag reordering (mouse + touch). Each direct-child row of
-// `container` must have class "gtd-task", a "gtd-grip" handle child, and a
-// data-gtd-key. onDrop is called with the new key order when a drag finishes.
+// `container` matching `rowSelector` must carry a data-gtd-key and contain a
+// "gtd-grip" handle. onDrop is called with the new key order when a drag ends.
 // Move/up are bound to the container's own document during the drag so tracking
 // keeps working off the handle and stays correct in pop-out windows.
-export function makeReorderable(container: HTMLElement, onDrop: (keys: string[]) => void): void {
+export function makeReorderable(
+  container: HTMLElement,
+  onDrop: (keys: string[]) => void,
+  rowSelector = ".gtd-task"
+): void {
   const doc = container.ownerDocument;
-  const rows = () => Array.from(container.querySelectorAll<HTMLElement>(":scope > .gtd-task"));
+  const rows = () => Array.from(container.querySelectorAll<HTMLElement>(`:scope > ${rowSelector}`));
 
-  container.querySelectorAll<HTMLElement>(":scope > .gtd-task > .gtd-grip").forEach((handle) => {
-    const row = handle.parentElement as HTMLElement;
+  rows().forEach((row) => {
+    const handle = row.querySelector<HTMLElement>(".gtd-grip");
+    if (!handle) return;
 
     handle.addEventListener("pointerdown", (e: PointerEvent) => {
       e.preventDefault();

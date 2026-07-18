@@ -153,7 +153,7 @@ The Tasks plugin is **optional**. GTD Flow works standalone; nothing in it depen
 
 ## Usage
 
-- **Ribbon icon (list-checks)** or command **Open next actions** — sidebar view of available tasks grouped by project. Checking a box writes `[x]` + ✅ date into the note; in sequential projects the next task appears automatically. Click a task to jump to its line; due badges turn orange (today) or red (overdue).
+- **Ribbon icon (list-checks)** or command **Open next actions** — sidebar view of available tasks grouped by project. Checking a box writes `[x]` + ✅ date into the note; in sequential projects the next task appears automatically. Click a task to jump to its line; due badges turn orange (today) or red (overdue). Project sections sort per the **Sort projects in Next Actions** setting: alphabetical, by folder (explorer-like path order), or manual — manual shows a drag grip on each project header, and new projects slot into their default position within your arrangement.
 - **Ribbon icon (plus-circle)** or command **Capture task** — modal with task text (Enter submits), optional defer/due dates, and a target dropdown (Inbox or any active project). Appends the formatted task line without leaving your current note; the inbox note is created on demand.
 - **Inbox section** (top of the sidebar when non-empty) — folder icon on each task opens a project picker and moves the task line, metadata intact, to the end of the chosen project note.
 - **Move task under cursor to project** — same picker for the task line under the cursor in any note; also works project → project. Captured/moved tasks land at the top or bottom of the list per the **Insert captured/moved tasks at** setting, always above `## Archive`.

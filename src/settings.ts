@@ -22,6 +22,8 @@ export interface GtdSettings {
   statusBlockChart: boolean;
   promptDropReason: boolean;
   explorerColors: boolean;
+  projectSort: "alpha" | "folder" | "manual";
+  projectOrder: string[]; // project paths in manual order
   forecastOrder: Record<string, string[]>; // dateKey -> block ids in manual order
   perspectiveOrder: Record<string, string[]>; // perspective+group key -> block ids
 }
@@ -44,6 +46,8 @@ export const DEFAULT_SETTINGS: GtdSettings = {
   statusBlockChart: false,
   promptDropReason: true,
   explorerColors: true,
+  projectSort: "alpha",
+  projectOrder: [],
   forecastOrder: {},
   perspectiveOrder: {},
 };
@@ -76,6 +80,11 @@ export class GtdSettingTab extends PluginSettingTab {
         name: "Insert captured/moved tasks at",
         desc: "Where new task lines land in a project note (always above ## Archive).",
         control: { type: "dropdown", key: "insertPosition", options: { bottom: "Bottom of list", top: "Top of list" } },
+      },
+      {
+        name: "Sort projects in Next Actions",
+        desc: "Manual shows drag handles on the project headers.",
+        control: { type: "dropdown", key: "projectSort", options: { alpha: "Alphabetical", folder: "By folder (explorer-like)", manual: "Manual (drag)" } },
       },
       { name: "Default review interval", desc: "Used by 'New project' (e.g. 1w, 3d, 2m; empty = no review).", control: { type: "text", key: "defaultReviewInterval" } },
       { name: "Forecast horizon (days)", control: { type: "number", key: "forecastDays", min: 1 } },
@@ -217,6 +226,20 @@ export class GtdSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.insertPosition)
           .onChange(async (v) => {
             this.plugin.settings.insertPosition = v as InsertPosition;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Sort projects in Next Actions")
+      .setDesc("Manual shows drag handles on the project headers.")
+      .addDropdown((d) =>
+        d.addOption("alpha", "Alphabetical")
+          .addOption("folder", "By folder (explorer-like)")
+          .addOption("manual", "Manual (drag)")
+          .setValue(this.plugin.settings.projectSort)
+          .onChange(async (v) => {
+            this.plugin.settings.projectSort = v as GtdSettings["projectSort"];
             await this.plugin.saveSettings();
           })
       );

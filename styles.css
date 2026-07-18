@@ -7,6 +7,9 @@
   color: var(--text-accent);
   cursor: pointer;
   margin-bottom: var(--size-4-1);
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-1);
 }
 
 .gtd-next-actions .gtd-task {
