@@ -1,4 +1,5 @@
 import { Project, ProjectFlow, Task } from "./types";
+import { nextDueFromRule } from "./repeat";
 
 export interface TaskNode {
   task: Task;
@@ -142,6 +143,7 @@ export interface ForecastItem {
   date: string;
   kind: "due" | "becomes-available";
   available: boolean; // false when the task is blocked (waiting on order/subtasks)
+  preview?: boolean; // a non-actionable 🔁 next-occurrence hint, not a real task
 }
 
 export function forecast(projects: Project[], today: string, days: number): ForecastItem[] {
@@ -156,6 +158,13 @@ export function forecast(projects: Project[], today: string, days: number): Fore
         // overdue items surface on today; defer is ignored once a due date exists (due wins over defer)
         if (t.due <= end) {
           items.push({ project: p, task: t, date: t.due < today ? today : t.due, kind: "due", available: avail.has(t) });
+          // preview the next fixed-schedule occurrence if it also lands in the window
+          if (t.repeat) {
+            const nd = nextDueFromRule(t.repeat, t.due);
+            if (nd && nd > t.due && nd <= end) {
+              items.push({ project: p, task: t, date: nd, kind: "due", available: false, preview: true });
+            }
+          }
         }
       } else if (t.defer && t.defer >= today && t.defer <= end) {
         // defer == today surfaces in the Today column; past defers are just available (Next Actions)

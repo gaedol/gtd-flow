@@ -58,9 +58,11 @@ export class ForecastView extends ItemView {
       const day = root.createDiv({ cls: "gtd-day" });
       day.createDiv({ cls: "gtd-day-header", text: dayLabel(date, today) });
       const rowsEl = day.createDiv({ cls: "gtd-day-rows" });
-      // default order (overdue → flagged → rest), then the user's saved arrangement
+      // preview rows (🔁 next occurrences) are non-actionable and excluded from
+      // ordering/drag; real items are sorted then merged with the saved order
+      const previews = dayItems.filter((it) => it.preview);
       const ordered = applyManualOrder(
-        defaultSort(dayItems, today, flagTag),
+        defaultSort(dayItems.filter((it) => !it.preview), today, flagTag),
         this.plugin.settings.forecastOrder[date] ?? []
       );
       const keyToItem = new Map<string, ForecastItem>();
@@ -72,6 +74,7 @@ export class ForecastView extends ItemView {
       makeReorderable(rowsEl, (keys) => {
         void this.saveDayOrder(date, keys.map((k) => keyToItem.get(k)).filter((x): x is ForecastItem => !!x));
       });
+      for (const it of previews) this.renderPreview(rowsEl, it);
     }
   }
 
@@ -122,6 +125,18 @@ export class ForecastView extends ItemView {
     }
     const label = renderTaskText(row, it.task.text, this.app, it.project.path);
     if (it.task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${it.task.reason}` });
+    label.onclick = () => this.openTask(it);
+    this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: it.project.name }), it.project.path);
+  }
+
+  // non-draggable, dimmed hint that a repeating task recurs on this day; clicking
+  // jumps to the originating task line. Class is not "gtd-task", so the reorder
+  // helper never picks it up.
+  private renderPreview(parent: HTMLElement, it: ForecastItem) {
+    const row = parent.createDiv({ cls: "gtd-preview-row" });
+    const icon = row.createSpan({ cls: "gtd-repeat-icon", attr: { "aria-label": "Repeats" } });
+    setIcon(icon, "rotate-cw");
+    const label = renderTaskText(row, it.task.text, this.app, it.project.path);
     label.onclick = () => this.openTask(it);
     this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: it.project.name }), it.project.path);
   }

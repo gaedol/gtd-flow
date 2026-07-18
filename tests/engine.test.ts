@@ -190,6 +190,22 @@ describe("forecast", () => {
     expect(items[0]).toMatchObject({ kind: "due", date: "2026-06-15" });
   });
 
+  it("previews the next fixed-schedule occurrence when it also falls in the window", () => {
+    const p = project({ tasks: [task("water plants", { due: "2026-06-12", repeat: "every 3 days" })] });
+    const items = forecast([p], TODAY, 7);
+    expect(items).toHaveLength(2);
+    expect(items[0]).toMatchObject({ date: "2026-06-12", kind: "due" });
+    expect(items[0].preview).toBeFalsy();
+    expect(items[1]).toMatchObject({ date: "2026-06-15", preview: true, available: false });
+  });
+
+  it("does not preview when the next occurrence is beyond the window or 'when done'", () => {
+    const far = project({ tasks: [task("weekly", { due: "2026-06-12", repeat: "every week" })] });
+    expect(forecast([far], TODAY, 7).filter((i) => i.preview)).toHaveLength(0); // next is 06-19, past end
+    const whenDone = project({ tasks: [task("chore", { due: "2026-06-12", repeat: "every 3 days when done" })] });
+    expect(forecast([whenDone], TODAY, 7).filter((i) => i.preview)).toHaveLength(0);
+  });
+
   it("defer-only tasks appear on their defer date", () => {
     const p = project({ tasks: [task("later", { defer: "2026-06-14" })] });
     expect(forecast([p], TODAY, 7)[0]).toMatchObject({ kind: "becomes-available", date: "2026-06-14" });

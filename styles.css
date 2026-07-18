@@ -120,6 +120,26 @@
   height: 12px;
 }
 
+.gtd-forecast .gtd-preview-row {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  opacity: 0.55;
+  font-style: italic;
+  padding-left: var(--size-4-4);
+}
+
+.gtd-forecast .gtd-repeat-icon {
+  color: var(--text-faint);
+  display: flex;
+  align-self: center;
+}
+
+.gtd-forecast .gtd-repeat-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
 .gtd-forecast .gtd-project-ref {
   font-size: var(--font-ui-smaller);
   color: var(--text-muted);

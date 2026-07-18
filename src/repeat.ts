@@ -19,6 +19,16 @@ export function parseRepeat(rule: string): RepeatRule | null {
   };
 }
 
+// Due date of the next occurrence after `due`, from the rule alone — for
+// previewing an upcoming recurrence without completing the task. Only defined
+// for fixed-schedule rules; "when done" recurrence depends on the completion
+// date, so it has no meaningful preview.
+export function nextDueFromRule(repeat: string, due: string): string | undefined {
+  const rule = parseRepeat(repeat);
+  if (!rule || rule.whenDone) return undefined;
+  return addInterval(due, `${rule.n}${rule.unit}`);
+}
+
 const DATE_FIELD_RE = /([🛫📅⏳]) *(\d{4}-\d{2}-\d{2})/gu;
 
 function shiftDays(iso: string, days: number): string {

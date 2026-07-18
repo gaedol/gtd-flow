@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseRepeat, nextOccurrenceLine } from "../src/repeat";
+import { parseRepeat, nextOccurrenceLine, nextDueFromRule } from "../src/repeat";
 
 const TODAY = "2026-06-12";
 
@@ -30,5 +30,17 @@ describe("nextOccurrenceLine", () => {
   it("returns null without a repeat rule or without dates", () => {
     expect(nextOccurrenceLine("- [ ] plain 📅 2026-06-12", TODAY)).toBeNull();
     expect(nextOccurrenceLine("- [ ] dateless 🔁 every week", TODAY)).toBeNull();
+  });
+});
+
+describe("nextDueFromRule", () => {
+  it("adds the interval to the due date for fixed schedules", () => {
+    expect(nextDueFromRule("every week", "2026-06-11")).toBe("2026-06-18");
+    expect(nextDueFromRule("every 2 weeks", "2026-06-11")).toBe("2026-06-25");
+    expect(nextDueFromRule("every month", "2026-06-11")).toBe("2026-07-11");
+  });
+  it("is undefined for 'when done' rules and unparseable rules", () => {
+    expect(nextDueFromRule("every week when done", "2026-06-11")).toBeUndefined();
+    expect(nextDueFromRule("sometimes", "2026-06-11")).toBeUndefined();
   });
 });
