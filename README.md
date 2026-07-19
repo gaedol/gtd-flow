@@ -48,6 +48,7 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 - Sequential/parallel **projects** with nested **action groups**
 - **Defer, due, time of day (⏰), duration (⏱), repeat (🔁)** on tasks, with inline auto-suggest (natural-language dates: "Thursday", "end of week"…)
 - **Task statuses** — to-do, in-progress `[/]`, done, dropped `[-]` — with **💬 closure reasons**
+- **Edit right in the note** — right-click menu on task lines and checkbox clicks that record ✅ and the 🔁 next occurrence, no Tasks plugin needed
 - **Next Actions**, **Forecast**, **Timeline** (Gantt), **Review**, and **Perspectives** views, with **drag-to-reorder** in Forecast/Perspectives
 - **Quick capture** (modal, command, and URL handler) and **inbox triage** into projects
 - **Repeat-on-complete**, **flags**, **someday/maybe**, **archiving**, an **overdue badge**, and due-task **notifications**
