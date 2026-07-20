@@ -426,3 +426,73 @@ li.task-list-item.gtd-ln-someday {
   opacity: 0.55;
   font-style: italic;
 }
+
+.gtd-done-block {
+  font-size: var(--font-ui-small);
+}
+
+.gtd-done-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--size-4-2);
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding-bottom: var(--size-4-1);
+  margin-bottom: var(--size-4-2);
+}
+
+.gtd-done-range {
+  font-weight: var(--font-semibold);
+}
+
+.gtd-done-count {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.gtd-done-group {
+  font-weight: var(--font-semibold);
+  color: var(--text-accent);
+  margin-top: var(--size-4-2);
+  margin-bottom: var(--size-4-1);
+}
+
+.gtd-done-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--size-4-2);
+  padding: 2px 0;
+}
+
+.gtd-done-row .gtd-task-text {
+  cursor: pointer;
+}
+
+.gtd-done-icon {
+  color: var(--text-faint);
+  align-self: center;
+  display: flex;
+}
+
+.gtd-done-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.gtd-done-date {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  font-variant-numeric: tabular-nums;
+}
+
+.gtd-done-dropped {
+  opacity: 0.65;
+}
+
+.gtd-done-dropped .gtd-task-text {
+  text-decoration: line-through;
+}
+
+.gtd-hidden {
+  display: none;
+}

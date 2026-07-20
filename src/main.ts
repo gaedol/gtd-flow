@@ -18,8 +18,10 @@ import { ProjectPropertiesModal } from "./projectPropertiesModal";
 import { buildLineClasses } from "./inNote";
 import { todayISO } from "./dates";
 import { moveTask, ProjectSuggestModal } from "./moveTask";
-import { parseTaskLine } from "./parser";
-import type { Task } from "./types";
+import { parseTaskLine, parseProject } from "./parser";
+import type { Task, Project } from "./types";
+import { DoneBlock } from "./doneBlock";
+import { DoneReportModal } from "./doneReportModal";
 import { completeTask, setTaskState } from "./completeTask";
 import { checkboxClickAction } from "./clickCycle";
 import { gtdCheckboxClicks } from "./checkboxClicks";
@@ -195,6 +197,18 @@ export default class GtdFlowPlugin extends Plugin {
       },
     });
     this.addCommand({
+      id: "export-done-report",
+      name: "Export done report",
+      callback: () => new DoneReportModal(this.app, this).open(),
+    });
+    this.addCommand({
+      id: "insert-done-query",
+      name: "Insert done query block",
+      editorCallback: (editor) => {
+        editor.replaceSelection("```gtd-done\nrange: last-week\ngroup: project\n```\n");
+      },
+    });
+    this.addCommand({
       id: "new-project",
       name: "New project",
       callback: () => new NewProjectModal(this.app, this).open(),
@@ -318,6 +332,10 @@ export default class GtdFlowPlugin extends Plugin {
       })
     );
 
+    this.registerMarkdownCodeBlockProcessor("gtd-done", (source, el, ctx) => {
+      ctx.addChild(new DoneBlock(el, this, source));
+    });
+
     this.registerEditorSuggest(new TaskSuggest(this.app, this));
 
     // obsidian://gtd-capture?vault=...&text=...&due=YYYY-MM-DD&defer=YYYY-MM-DD
@@ -391,6 +409,23 @@ export default class GtdFlowPlugin extends Plugin {
         );
       });
     });
+  }
+
+  // projects to search in a done query: the live index, plus archived project
+  // notes read on demand (they live outside the indexed projects folder)
+  async projectsForQuery(includeArchived: boolean): Promise<Project[]> {
+    const projects = this.index.all();
+    if (!includeArchived) return projects;
+    const folder = normalizePath(this.settings.archiveFolder);
+    const extra: Project[] = [];
+    for (const f of this.app.vault.getMarkdownFiles()) {
+      if (!f.path.startsWith(folder + "/")) continue;
+      if (this.index.get(f.path)) continue; // already indexed
+      const fm = this.app.metadataCache.getFileCache(f)?.frontmatter;
+      const p = parseProject(f.path, await this.app.vault.cachedRead(f), fm);
+      if (p) extra.push(p);
+    }
+    return [...projects, ...extra];
   }
 
   // a note whose tasks GTD Flow manages: a project note or the configured inbox
