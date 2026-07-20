@@ -177,6 +177,35 @@ If the **Color Folders and Files** plugin is installed, GTD Flow renders project
 - **Completing a 🔁 repeating task from any GTD Flow view** inserts the next occurrence above the completed line: all dates advance by the interval (`every day/week/month/year`, optional count: `every 2 weeks`); with `when done` the next due date is completion + interval and other dates keep their relative offsets. Recurrence requires at least one date on the task.
 - **Capture from outside Obsidian** via URI: `obsidian://gtd-capture?vault=<name>&text=Buy+milk&due=2026-06-20&defer=2026-06-15` appends to the inbox; without `text` it opens the capture modal.
 - **Ribbon icon (gantt-chart)** or command **Open timeline** — Mermaid Gantt charts with a Day/Week/Month switcher. Week/month: one bar per open task spanning defer → due (single date = 1-day bar; overdue bars surface red on today; available tasks highlighted), one section per project. Day: only the tasks that actually belong to today — overdue, due today, or deferred-until-today — stacked from **Day starts at** (default 09:00) in that order, each sized by its ⏱ duration (or the **Default task duration** setting, 30 min), with the project in parentheses. Available-but-undated backlog tasks are *not* shown (that's what Next Actions is for). All three charts always span their full window (day = **Day starts/ends at**, 09:00–22:00 by default), with ticks every 3 h / day / week respectively. Wikilinks in task text are shown as their display text and long labels are truncated.
+### Done queries (what got closed)
+
+Put a `gtd-done` block in any note — a Weekly Review note is the natural home — and it lists everything closed in a period, re-rendering whenever your vault changes:
+
+````
+```gtd-done
+range: last-week
+group: project
+```
+````
+
+Keys (all optional, one per line):
+
+| Key | Values |
+|---|---|
+| `range` | `today`, `yesterday`, `this-week`, `last-week`, `this-month`, `last-month`, `last-7-days`, `last-30-days`, `this-year`, `last-year`, `all` (weeks start Monday; default `last-7-days`) |
+| `from` / `to` | `YYYY-MM-DD`; either alone leaves that end open. Explicit dates override `range`. |
+| `project` | case-insensitive substring of the project name |
+| `folder` | only projects under this folder, e.g. `Work` |
+| `include` | `dropped`, `archived` (or `dropped: true` / `archived: true` on their own lines) |
+| `group` | `project` (default), `day`, or `none` |
+| `limit` | max items |
+
+Completed tasks are matched on their ✅ date, dropped ones on ❌ (with the 💬 reason shown). Clicking a row jumps to the task's line. `include: archived` also scans the archive folder, so projects you've completed and moved out still count — without it they're invisible to the query, since archived notes leave the index.
+
+The command **Insert done query block** drops a starter block at the cursor.
+
+**Export done report** — command opening a modal (period, project filter, grouping, dropped/archived toggles) that writes a static note next to your inbox, e.g. `Done 2026-07-06 to 2026-07-12.md`. It's plain markdown checklist lines, so it stays readable with the plugin disabled — good for sharing a "what I shipped" summary or keeping a frozen record after a review.
+
 - **Ribbon icon (eye)** or command **Open review** — queue of active projects whose `last-reviewed + review-interval` has passed (never-reviewed projects with an interval are always due). Each card shows open/available counts, the next action, a stalled warning when no tasks remain, and a **Mark reviewed** button that writes today's date into `last-reviewed`.
 
 Moves append to the target before deleting from the source and verify the source line is unchanged before deleting, so a race can at worst duplicate a task (with a notice), never lose one.
@@ -213,6 +242,9 @@ src/
   projectColors.ts   pure: resolve Color-Folders-and-Files styles into project pills
   statusBlock.ts     pure: %% gtd:status %% summary block text + upsert
   dateParse.ts       pure: natural-language date choices for the suggester
+  doneQuery.ts       pure: gtd-done block parsing, date presets, filtering, markdown
+  doneBlock.ts       gtd-done code-block render child (live, re-renders on index change)
+  doneReportModal.ts period/filter modal writing a static done-report note
   linkText.ts        renders [[wikilinks]] in task text as clickable links
   inNote.ts          pure: doc lines → per-line availability CSS classes
   editorDecorations.ts CM6 line decorations for Live Preview (reading mode via post-processor in main)

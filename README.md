@@ -52,6 +52,7 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 - **Next Actions**, **Forecast**, **Timeline** (Gantt), **Review**, and **Perspectives** views, with **drag-to-reorder** in Forecast/Perspectives
 - **Quick capture** (modal, command, and URL handler) and **inbox triage** into projects
 - **Repeat-on-complete**, **flags**, **someday/maybe**, **archiving**, an **overdue badge**, and due-task **notifications**
+- **Done queries** — a `gtd-done` block that lists what you closed in any period (presets, project/folder filters), plus an exportable report note
 - **In-note highlighting** of next/available/blocked/deferred/overdue tasks, plus an opt-in per-project **status block**
 - **Per-project page styling** (tint/banner) and project pills matching your **file-explorer colors**
 
