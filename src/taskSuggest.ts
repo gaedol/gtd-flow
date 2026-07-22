@@ -11,6 +11,7 @@ import {
 import type GtdFlowPlugin from "./main";
 import { todayISO } from "./dates";
 import { dateChoices } from "./dateParse";
+import { repeatSuggestMode } from "./repeatSuggest";
 
 interface Suggestion {
   label: string;
@@ -58,8 +59,11 @@ export class TaskSuggest extends EditorSuggest<Suggestion> {
     }
     const rep = before.match(REPEAT_PARTIAL_RE);
     if (rep) {
-      this.mode = "repeat";
-      return this.info(cursor, rep[1]);
+      // a complete rule followed by a new word means the user has moved on to
+      // another field (e.g. "due"); hand off instead of showing empty presets
+      const decided = repeatSuggestMode(rep[1]);
+      this.mode = decided.mode;
+      return this.info(cursor, decided.query);
     }
     const dur = before.match(DURATION_PARTIAL_RE);
     if (dur) {
