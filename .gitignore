@@ -4,3 +4,4 @@ main.js
 .DS_Store
 .deploy.env
 PLAN.md
+REFACTOR.md
