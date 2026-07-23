@@ -4,8 +4,10 @@ import { parseProject, parseTaskLine } from "./parser";
 
 // In-memory project index; markdown stays the source of truth
 export class TaskIndex extends Events {
+  // single source of truth: real project notes plus the inbox, held as a
+  // synthesized "Inbox" project under its own path. get()/all() hide the inbox
+  // so project-note logic is unaffected; date/urgency views use allWithInbox().
   private projects = new Map<string, Project>();
-  inbox: Task[] = [];
 
   constructor(
     private app: App,
@@ -16,10 +18,23 @@ export class TaskIndex extends Events {
   }
 
   all(): Project[] {
+    const inbox = this.inboxPath();
+    return [...this.projects.values()].filter((p) => p.path !== inbox);
+  }
+
+  // real projects + the inbox pseudo-project — for Forecast, perspectives, and
+  // the overdue badge / notifications, so dated inbox tasks aren't invisible
+  allWithInbox(): Project[] {
     return [...this.projects.values()];
   }
 
+  // open inbox tasks, for the Next Actions inbox section
+  inboxTasks(): Task[] {
+    return this.projects.get(this.inboxPath())?.tasks.filter((t) => !t.done) ?? [];
+  }
+
   get(path: string): Project | undefined {
+    if (path === this.inboxPath()) return undefined; // inbox isn't a project note
     return this.projects.get(path);
   }
 
@@ -37,12 +52,7 @@ export class TaskIndex extends Events {
   }
 
   remove(path: string): void {
-    if (path === this.inboxPath()) {
-      this.inbox = [];
-      this.trigger("changed");
-    } else if (this.projects.delete(path)) {
-      this.trigger("changed");
-    }
+    if (this.projects.delete(path)) this.trigger("changed");
   }
 
   private inScope(file: TFile): boolean {
@@ -53,10 +63,17 @@ export class TaskIndex extends Events {
   private async indexFile(file: TFile): Promise<void> {
     const content = await this.app.vault.cachedRead(file);
     if (file.path === this.inboxPath()) {
-      this.inbox = [];
+      const tasks: Task[] = [];
       content.split("\n").forEach((line, i) => {
         const t = parseTaskLine(line, i);
-        if (t && !t.done) this.inbox.push(t);
+        if (t) tasks.push(t);
+      });
+      this.projects.set(file.path, {
+        path: file.path,
+        name: "Inbox",
+        status: "active",
+        flow: "parallel",
+        tasks,
       });
       return;
     }

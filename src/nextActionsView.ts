@@ -90,7 +90,7 @@ export class NextActionsView extends ItemView {
   }
 
   private renderInbox(root: HTMLElement) {
-    const tasks = this.plugin.index.inbox;
+    const tasks = this.plugin.index.inboxTasks();
     if (tasks.length === 0) return;
     const inboxPath = normalizePath(this.plugin.settings.inboxNote);
     const section = root.createDiv({ cls: "gtd-project gtd-inbox" });

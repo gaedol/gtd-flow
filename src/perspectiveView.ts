@@ -58,7 +58,7 @@ export class PerspectiveView extends ItemView {
     };
 
     const today = todayISO();
-    const groups = runPerspective(this.plugin.index.all(), current, today, this.plugin.settings.flagTag, this.plugin.settings.importantTag);
+    const groups = runPerspective(this.plugin.index.allWithInbox(), current, today, this.plugin.settings.flagTag, this.plugin.settings.importantTag);
 
     if (groups.size === 0) {
       root.createDiv({ text: "Nothing matches this perspective.", cls: "gtd-empty" });

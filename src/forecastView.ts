@@ -38,7 +38,7 @@ export class ForecastView extends ItemView {
     root.addClass("gtd-forecast");
 
     const today = todayISO();
-    const items = forecast(this.plugin.index.all(), today, this.plugin.settings.forecastDays);
+    const items = forecast(this.plugin.index.allWithInbox(), today, this.plugin.settings.forecastDays);
 
     if (items.length === 0) {
       root.createDiv({

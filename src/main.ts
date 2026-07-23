@@ -387,7 +387,7 @@ export default class GtdFlowPlugin extends Plugin {
     statusBar.addClass("gtd-statusbar");
     statusBar.onclick = () => this.activateView(FORECAST_VIEW);
     const updateBadge = () => {
-      const n = overdueCount(this.index.all(), todayISO());
+      const n = overdueCount(this.index.allWithInbox(), todayISO());
       statusBar.setText(n > 0 ? `${n} overdue` : "");
       statusBar.toggleClass("gtd-statusbar-alert", n > 0);
     };
@@ -598,7 +598,7 @@ export default class GtdFlowPlugin extends Plugin {
       this.notifyDay = today;
       this.notified.clear();
     }
-    const items = dueOrOverdue(this.index.all(), today);
+    const items = dueOrOverdue(this.index.allWithInbox(), today);
     const fresh = items.filter((i) => !this.notified.has(i.project.path + "::" + i.task.text));
     if (fresh.length === 0) return;
     for (const i of items) this.notified.add(i.project.path + "::" + i.task.text);
@@ -647,11 +647,17 @@ export default class GtdFlowPlugin extends Plugin {
 
   // drop saved forecast orders for days already in the past
   pruneStaleOrders() {
+    let changed = false;
+    // forecast: drop saved orders for days already past
     const today = todayISO();
-    const order = this.settings.forecastOrder;
-    const stale = Object.keys(order).filter((k) => k < today);
-    if (stale.length === 0) return;
-    for (const k of stale) delete order[k];
-    void this.persistData();
+    const fOrder = this.settings.forecastOrder;
+    for (const k of Object.keys(fOrder)) if (k < today) { delete fOrder[k]; changed = true; }
+    // perspectives: keys are "name | group"; drop those whose perspective is gone
+    const names = new Set(this.settings.perspectives.map((p) => p.name));
+    const pOrder = this.settings.perspectiveOrder;
+    for (const k of Object.keys(pOrder)) {
+      if (!names.has(k.split(" | ")[0])) { delete pOrder[k]; changed = true; }
+    }
+    if (changed) void this.persistData();
   }
 }
