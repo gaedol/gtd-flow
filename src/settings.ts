@@ -9,6 +9,7 @@ export interface GtdSettings {
   inboxNote: string;
   forecastDays: number;
   flagTag: string;
+  importantTag: string;
   somedayTag: string;
   archiveAfterDays: number;
   archiveFolder: string;
@@ -35,6 +36,7 @@ export const DEFAULT_SETTINGS: GtdSettings = {
   inboxNote: "GTD/Inbox.md",
   forecastDays: 7,
   flagTag: "flag",
+  importantTag: "important",
   somedayTag: "someday",
   archiveAfterDays: 7,
   archiveFolder: "GTD/Archive",
@@ -70,6 +72,7 @@ export class GtdSettingTab extends PluginSettingTab {
       { name: "Projects folder", desc: "Folder containing project notes (one note per project).", control: { type: "folder", key: "projectsFolder" } },
       { name: "Inbox note", desc: "Note where quick-captured tasks are appended.", control: { type: "file", key: "inboxNote" } },
       { name: "Flag tag", desc: "Tag (without #) marking a task as flagged.", control: { type: "text", key: "flagTag" } },
+      { name: "Important tag", desc: "Tag (without #) marking a task as important (star).", control: { type: "text", key: "importantTag" } },
       { name: "Someday tag", desc: "Tag (without #) that parks a single task as someday/maybe.", control: { type: "text", key: "somedayTag" } },
       {
         name: "Match file-explorer colors",
@@ -127,8 +130,9 @@ export class GtdSettingTab extends PluginSettingTab {
   // (someday-tag refresh, index rebuild) still run; normalize tag inputs
   async setControlValue(key: string, value: unknown): Promise<void> {
     const s = this.plugin.settings as unknown as Record<string, unknown>;
-    if ((key === "flagTag" || key === "somedayTag") && typeof value === "string") {
-      value = value.replace(/^#/, "") || (key === "somedayTag" ? "someday" : "flag");
+    if ((key === "flagTag" || key === "importantTag" || key === "somedayTag") && typeof value === "string") {
+      const fallback = key === "somedayTag" ? "someday" : key === "importantTag" ? "important" : "flag";
+      value = value.replace(/^#/, "") || fallback;
     }
     if ((key === "dayStart" || key === "dayEnd") && typeof value === "string" && !/^\d{2}:\d{2}$/.test(value)) {
       return; // ignore invalid times, keep previous value
@@ -174,6 +178,16 @@ export class GtdSettingTab extends PluginSettingTab {
       .addText((t) =>
         t.setValue(this.plugin.settings.flagTag).onChange(async (v) => {
           this.plugin.settings.flagTag = v.replace(/^#/, "");
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Important tag")
+      .setDesc("Tag (without #) marking a task as important (star).")
+      .addText((t) =>
+        t.setValue(this.plugin.settings.importantTag).onChange(async (v) => {
+          this.plugin.settings.importantTag = v.replace(/^#/, "") || "important";
           await this.plugin.saveSettings();
         })
       );
@@ -410,6 +424,7 @@ export class GtdSettingTab extends PluginSettingTab {
     };
     toggle("avail", () => p.availableOnly, (v) => (p.availableOnly = v));
     toggle("flag", () => p.flagged, (v) => (p.flagged = v));
+    toggle("important", () => p.important ?? false, (v) => (p.important = v));
     toggle("someday", () => p.someday ?? false, (v) => (p.someday = v));
     toggle("done", () => p.done ?? false, (v) => (p.done = v));
     s.addExtraButton((b) =>

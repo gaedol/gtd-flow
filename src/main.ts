@@ -1,4 +1,4 @@
-import { MarkdownView, Plugin, TFile, normalizePath, Notice, WorkspaceLeaf } from "obsidian";
+import { MarkdownView, Plugin, TFile, normalizePath, Notice, WorkspaceLeaf, setIcon } from "obsidian";
 import { GtdSettings, DEFAULT_SETTINGS, GtdSettingTab } from "./settings";
 import { TaskIndex } from "./taskIndex";
 import { NextActionsView, NEXT_ACTIONS_VIEW } from "./nextActionsView";
@@ -197,6 +197,20 @@ export default class GtdFlowPlugin extends Plugin {
       },
     });
     this.addCommand({
+      id: "toggle-important",
+      name: "Toggle important on task under cursor",
+      editorCallback: (editor) => {
+        const lineNo = editor.getCursor().line;
+        const raw = editor.getLine(lineNo);
+        const task = parseTaskLine(raw, lineNo);
+        if (!task) {
+          new Notice("Cursor is not on a task line");
+          return;
+        }
+        editor.setLine(lineNo, this.toggleTagLine(raw, task.tags, this.settings.importantTag));
+      },
+    });
+    this.addCommand({
       id: "export-done-report",
       name: "Export done report",
       callback: () => new DoneReportModal(this.app, this).open(),
@@ -320,6 +334,15 @@ export default class GtdFlowPlugin extends Plugin {
           );
           menu.addItem((i) =>
             i.setTitle("Drop task…").setIcon("x-circle").onClick(() => this.dropTask(path, task))
+          );
+          const isImportant = task.tags.includes(this.settings.importantTag);
+          menu.addItem((i) =>
+            i
+              .setTitle(isImportant ? "Remove important" : "Mark important")
+              .setIcon("star")
+              .onClick(() =>
+                editor.setLine(lineNo, this.toggleTagLine(raw, task.tags, this.settings.importantTag))
+              )
           );
           const isSomeday = task.tags.includes(this.settings.somedayTag);
           menu.addItem((i) =>
@@ -460,10 +483,21 @@ export default class GtdFlowPlugin extends Plugin {
 
   // toggle the someday tag on a task source line, returning the rewritten line
   toggleSomedayLine(raw: string, tags: string[]): string {
-    const tag = this.settings.somedayTag;
+    return this.toggleTagLine(raw, tags, this.settings.somedayTag);
+  }
+
+  // add/remove a tag on a task source line, returning the rewritten line
+  toggleTagLine(raw: string, tags: string[], tag: string): string {
     return tags.includes(tag)
       ? raw.replace(new RegExp(`\\s*#${tag}\\b`), "")
       : raw.replace(/\s*$/, "") + ` #${tag}`;
+  }
+
+  // star span in views for #important tasks
+  importantFor(el: HTMLElement, task: Task) {
+    if (!task.tags.includes(this.settings.importantTag)) return;
+    const s = el.createSpan({ cls: "gtd-important", attr: { "aria-label": "Important" } });
+    setIcon(s, "star");
   }
 
   applyProjectStyles() {

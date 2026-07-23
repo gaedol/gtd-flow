@@ -83,6 +83,20 @@ describe("runPerspective", () => {
     expect([...off.values()].flat().map((i) => i.task.text)).toEqual(["paint", "second (blocked)"]);
   });
 
+  it("important filter matches only the important-tagged tasks", () => {
+    const p = project("P", {
+      tasks: [task("big", { tags: ["important"] }), task("small"), task("also big", { tags: ["important"] })],
+    });
+    const g = runPerspective([p], persp({ important: true }), TODAY, "flag", "important");
+    expect([...g.values()].flat().map((i) => i.task.text)).toEqual(["big", "also big"]);
+  });
+
+  it("honours a custom important tag name", () => {
+    const p = project("P", { tasks: [task("hot", { tags: ["star"] }), task("cold") ] });
+    const g = runPerspective([p], persp({ important: true }), TODAY, "flag", "star");
+    expect([...g.values()].flat().map((i) => i.task.text)).toEqual(["hot"]);
+  });
+
   it("tag and project filters", () => {
     const byTag = runPerspective(projects, persp({ tag: "errand" }), TODAY, "flag");
     expect([...byTag.values()].flat().map((i) => i.task.text)).toEqual(["fix sink"]);

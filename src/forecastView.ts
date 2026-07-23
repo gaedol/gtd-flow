@@ -123,6 +123,7 @@ export class ForecastView extends ItemView {
       const flag = row.createSpan({ cls: "gtd-flag", attr: { "aria-label": "Flagged" } });
       setIcon(flag, "flag");
     }
+    this.plugin.importantFor(row, it.task);
     const label = renderTaskText(row, it.task.text, this.app, it.project.path);
     if (it.task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${it.task.reason}` });
     label.onclick = () => this.openTask(it);

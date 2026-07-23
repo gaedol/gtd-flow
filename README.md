@@ -37,6 +37,7 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 | Sequential / parallel | `flow:` key (overridable per action group) |
 | Defer / Due | 🛫 / 📅 on the task line |
 | Flag | a tag (default `#flag`) |
+| Important | a tag (default `#important`) — star in views + an Important perspective |
 | Someday / Maybe | `status: someday` projects and a `#someday` tag for single tasks |
 | Contexts | hierarchical tags (`#home/plumbing`), filterable in perspectives |
 | Forecast | Forecast + Timeline views |

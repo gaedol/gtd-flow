@@ -157,6 +157,7 @@ export class NextActionsView extends ItemView {
       const flag = row.createSpan({ cls: "gtd-flag", attr: { "aria-label": "Flagged" } });
       setIcon(flag, "flag");
     }
+    this.plugin.importantFor(row, task);
     const label = renderTaskText(row, task.text, this.app, project.path);
     if (task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${task.reason}` });
     label.onclick = () => this.openTask(project, task, true);

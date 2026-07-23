@@ -5,6 +5,7 @@ export interface Perspective {
   name: string;
   availableOnly: boolean;
   flagged: boolean;
+  important?: boolean; // when true, only #important-tagged tasks
   tag: string; // context tag/hierarchy element, "" = any (e.g. "home" matches "home/plumbing")
   project: string; // substring match on project name, "" = any
   dueWithin: number; // days, 0 = no due filter (overdue always included when > 0)
@@ -16,6 +17,7 @@ export interface Perspective {
 export const DEFAULT_PERSPECTIVES: Perspective[] = [
   { name: "Due soon", availableOnly: true, flagged: false, tag: "", project: "", dueWithin: 7, groupBy: "due" },
   { name: "Flagged", availableOnly: true, flagged: true, tag: "", project: "", dueWithin: 0, groupBy: "project" },
+  { name: "Important", availableOnly: true, flagged: false, important: true, tag: "", project: "", dueWithin: 0, groupBy: "project" },
   { name: "Someday", availableOnly: false, flagged: false, tag: "", project: "", dueWithin: 0, groupBy: "project", someday: true },
   { name: "Done", availableOnly: false, flagged: false, tag: "", project: "", dueWithin: 0, groupBy: "project", done: true },
 ];
@@ -34,7 +36,8 @@ export function runPerspective(
   projects: Project[],
   p: Perspective,
   today: string,
-  flagTag: string
+  flagTag: string,
+  importantTag = "important"
 ): Map<string, PerspectiveItem[]> {
   const items: PerspectiveItem[] = [];
   const horizon = p.dueWithin > 0 ? addInterval(today, `${p.dueWithin}d`)! : "";
@@ -56,6 +59,7 @@ export function runPerspective(
           : [];
     for (const task of pool) {
       if (p.flagged && !task.tags.includes(flagTag)) continue;
+      if (p.important && !task.tags.includes(importantTag)) continue;
       if (p.tag && !tagMatches(task.tags, p.tag)) continue;
       if (p.dueWithin > 0 && (!task.due || task.due > horizon)) continue;
       items.push({ project, task });
@@ -71,7 +75,7 @@ export function runPerspective(
     if (p.groupBy === "project") add(it.project.name, it);
     else if (p.groupBy === "due") add(it.task.due ?? "no due date", it);
     else {
-      const tags = it.task.tags.filter((t) => t !== flagTag && t !== "sequential" && t !== "parallel");
+      const tags = it.task.tags.filter((t) => t !== flagTag && t !== importantTag && t !== "sequential" && t !== "parallel");
       if (tags.length === 0) add("untagged", it);
       else for (const t of tags) add("#" + t, it);
     }

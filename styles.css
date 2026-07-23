@@ -371,6 +371,17 @@
   height: 12px;
 }
 
+.gtd-important {
+  color: var(--color-yellow);
+  display: flex;
+  align-self: center;
+}
+
+.gtd-important svg {
+  width: 12px;
+  height: 12px;
+}
+
 .gtd-next-actions .gtd-flagged .gtd-project-name {
   color: var(--color-orange);
 }

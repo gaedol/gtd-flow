@@ -58,7 +58,7 @@ export class PerspectiveView extends ItemView {
     };
 
     const today = todayISO();
-    const groups = runPerspective(this.plugin.index.all(), current, today, this.plugin.settings.flagTag);
+    const groups = runPerspective(this.plugin.index.all(), current, today, this.plugin.settings.flagTag, this.plugin.settings.importantTag);
 
     if (groups.size === 0) {
       root.createDiv({ text: "Nothing matches this perspective.", cls: "gtd-empty" });
@@ -125,6 +125,7 @@ export class PerspectiveView extends ItemView {
       const flag = row.createSpan({ cls: "gtd-flag" });
       setIcon(flag, "flag");
     }
+    this.plugin.importantFor(row, it.task);
     const label = renderTaskText(row, it.task.text, this.app, it.project.path);
     if (it.task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${it.task.reason}` });
     label.onclick = async () => {
