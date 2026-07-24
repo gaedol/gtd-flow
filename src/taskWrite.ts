@@ -13,6 +13,11 @@ export function setCheckboxChar(raw: string, char: string): string {
   return raw.replace(CHECKBOX_RE, `$1[${char}]`);
 }
 
+// the current status character of a task line, or null if it isn't a task
+export function checkboxCharOf(raw: string): string | null {
+  return raw.match(/^\s*[-*] \[(.)\]/)?.[1] ?? null;
+}
+
 // mark done: check the box, append ✅ today, and return the next 🔁 occurrence
 // line to insert above (or null). Assumes the line is an open task.
 export function completeLine(raw: string, today: string): { line: string; next: string | null } {

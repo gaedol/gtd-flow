@@ -6,29 +6,20 @@ import { ForecastView, FORECAST_VIEW } from "./forecastView";
 import { ReviewView, REVIEW_VIEW } from "./reviewView";
 import { PerspectiveView, PERSPECTIVE_VIEW } from "./perspectiveView";
 import { TimelineView, TIMELINE_VIEW } from "./timelineView";
-import { CaptureModal } from "./captureModal";
-import { gtdEditorDecorations } from "./editorDecorations";
-import { TaskSuggest } from "./taskSuggest";
 import { archiveDoneTasks } from "./archive";
-import { overdueCount, dueOrOverdue, setSomedayTag } from "./engine";
+import { dueOrOverdue, setSomedayTag } from "./engine";
 import { insertTaskLine } from "./insertLine";
-import { EditTaskModal } from "./editTaskModal";
-import { NewProjectModal } from "./newProjectModal";
-import { ProjectPropertiesModal } from "./projectPropertiesModal";
-import { buildLineClasses } from "./inNote";
 import { todayISO } from "./dates";
-import { moveTask, ProjectSuggestModal } from "./moveTask";
 import { parseTaskLine, parseProject } from "./parser";
 import type { Task, Project } from "./types";
-import { DoneBlock } from "./doneBlock";
-import { DoneReportModal } from "./doneReportModal";
 import { projectNotes, taskContainers } from "./selectors";
-import { toggleTagLine } from "./taskWrite";
+import { toggleTagLine, checkboxCharOf } from "./taskWrite";
 import { completeTask, setTaskState } from "./completeTask";
 import { checkboxClickAction } from "./clickCycle";
-import { gtdCheckboxClicks } from "./checkboxClicks";
 import { ReasonModal } from "./reasonModal";
-import type { Editor } from "obsidian";
+import { registerCommands } from "./commands";
+import { registerMenus } from "./menus";
+import { registerIntegrations } from "./integrations";
 import { explorerStyles, resolveStyle, applyPill } from "./projectColors";
 import { statusBlockText, upsertStatusBlock } from "./statusBlock";
 import { projectGanttSource } from "./gantt";
@@ -77,363 +68,10 @@ export default class GtdFlowPlugin extends Plugin {
     this.registerView(REVIEW_VIEW, (leaf) => new ReviewView(leaf, this));
     this.registerView(PERSPECTIVE_VIEW, (leaf) => new PerspectiveView(leaf, this));
     this.registerView(TIMELINE_VIEW, (leaf) => new TimelineView(leaf, this));
-    const ribbon: [string, string, string, () => void][] = [
-      ["list-checks", "GTD: Next actions", "gtd-ribbon-next", () => this.activateView(NEXT_ACTIONS_VIEW)],
-      ["calendar-clock", "GTD: Forecast", "gtd-ribbon-forecast", () => this.activateView(FORECAST_VIEW)],
-      ["eye", "GTD: Review", "gtd-ribbon-review", () => this.activateView(REVIEW_VIEW)],
-      ["telescope", "GTD: Perspectives", "gtd-ribbon-perspectives", () => this.activateView(PERSPECTIVE_VIEW)],
-      ["gantt-chart", "GTD: Timeline", "gtd-ribbon-timeline", () => this.activateView(TIMELINE_VIEW)],
-      ["plus-circle", "GTD: Capture task", "gtd-ribbon-capture", () => new CaptureModal(this.app, this).open()],
-    ];
-    for (const [icon, label, cls, fn] of ribbon) {
-      this.addRibbonIcon(icon, label, fn).addClass(cls);
-    }
 
-    this.addCommand({
-      id: "capture-to-inbox",
-      name: "Capture task",
-      callback: () => new CaptureModal(this.app, this).open(),
-    });
-    this.addCommand({
-      id: "open-review",
-      name: "Open review",
-      callback: () => this.activateView(REVIEW_VIEW),
-    });
-    this.addCommand({
-      id: "open-next-actions",
-      name: "Open next actions",
-      callback: () => this.activateView(NEXT_ACTIONS_VIEW),
-    });
-    this.addCommand({
-      id: "open-forecast",
-      name: "Open forecast",
-      callback: () => this.activateView(FORECAST_VIEW),
-    });
-    this.addCommand({
-      id: "open-perspectives",
-      name: "Open perspectives",
-      callback: () => this.activateView(PERSPECTIVE_VIEW),
-    });
-    this.addCommand({
-      id: "open-timeline",
-      name: "Open timeline",
-      callback: () => this.activateView(TIMELINE_VIEW),
-    });
-    this.addCommand({
-      id: "move-task-to-project",
-      name: "Move task under cursor to project",
-      editorCallback: (editor, view) => {
-        const file = view.file;
-        if (!file) return;
-        const lineNo = editor.getCursor().line;
-        const task = parseTaskLine(editor.getLine(lineNo), lineNo);
-        if (!task) {
-          new Notice("Cursor is not on a task line");
-          return;
-        }
-        new ProjectSuggestModal(this.app, this.projectNotes(), (p) => {
-          if (p.path === file.path) return;
-          void moveTask(this.app, file.path, task, p.path, this.settings.insertPosition);
-        }).open();
-      },
-    });
-
-    this.addCommand({
-      id: "edit-task",
-      name: "Edit task under cursor",
-      editorCallback: (editor, view) => {
-        const file = view.file;
-        if (!file) return;
-        const lineNo = editor.getCursor().line;
-        const task = parseTaskLine(editor.getLine(lineNo), lineNo);
-        if (!task) {
-          new Notice("Cursor is not on a task line");
-          return;
-        }
-        new EditTaskModal(this.app, this, file.path, task).open();
-      },
-    });
-    this.addCommand({
-      id: "project-status-block",
-      name: "Insert / update project status block",
-      checkCallback: (checking) => {
-        const file = this.app.workspace.getActiveFile();
-        if (!file || !this.index.get(file.path)) return false;
-        if (!checking) void this.writeStatusBlock(file, true);
-        return true;
-      },
-    });
-    // refresh an existing status block when its project note is opened
-    this.registerEvent(
-      this.app.workspace.on("file-open", (file) => {
-        if (file && this.index.get(file.path)) void this.writeStatusBlock(file, false);
-      })
-    );
-    this.addCommand({
-      id: "drop-task",
-      name: "Drop (cancel) task under cursor",
-      editorCallback: (editor, view) => {
-        const file = view.file;
-        if (!file) return;
-        const lineNo = editor.getCursor().line;
-        const task = parseTaskLine(editor.getLine(lineNo), lineNo);
-        if (!task) {
-          new Notice("Cursor is not on a task line");
-          return;
-        }
-        this.dropTask(file.path, task);
-      },
-    });
-    this.addCommand({
-      id: "toggle-someday",
-      name: "Toggle someday on task under cursor",
-      editorCallback: (editor) => {
-        const lineNo = editor.getCursor().line;
-        const raw = editor.getLine(lineNo);
-        const task = parseTaskLine(raw, lineNo);
-        if (!task) {
-          new Notice("Cursor is not on a task line");
-          return;
-        }
-        editor.setLine(lineNo, this.toggleSomedayLine(raw, task.tags));
-      },
-    });
-    this.addCommand({
-      id: "toggle-important",
-      name: "Toggle important on task under cursor",
-      editorCallback: (editor) => {
-        const lineNo = editor.getCursor().line;
-        const raw = editor.getLine(lineNo);
-        const task = parseTaskLine(raw, lineNo);
-        if (!task) {
-          new Notice("Cursor is not on a task line");
-          return;
-        }
-        editor.setLine(lineNo, this.toggleTagLine(raw, task.tags, this.settings.importantTag));
-      },
-    });
-    this.addCommand({
-      id: "export-done-report",
-      name: "Export done report",
-      callback: () => new DoneReportModal(this.app, this).open(),
-    });
-    this.addCommand({
-      id: "insert-done-query",
-      name: "Insert done query block",
-      editorCallback: (editor) => {
-        editor.replaceSelection("```gtd-done\nrange: last-week\ngroup: project\n```\n");
-      },
-    });
-    this.addCommand({
-      id: "new-project",
-      name: "New project",
-      callback: () => new NewProjectModal(this.app, this).open(),
-    });
-    this.addCommand({
-      id: "convert-to-project",
-      name: "Convert current note to project",
-      checkCallback: (checking) => {
-        const file = this.app.workspace.getActiveFile();
-        if (!file || this.index.get(file.path)) return false;
-        if (!checking) void this.convertToProject(file);
-        return true;
-      },
-    });
-    this.registerEvent(
-      this.app.workspace.on("file-menu", (menu, file) => {
-        const folder = normalizePath(this.settings.projectsFolder);
-        if (file instanceof TFile && file.extension === "md" && !this.index.get(file.path)) {
-          menu.addItem((i) =>
-            i.setTitle("Convert to GTD project").setIcon("list-checks").onClick(() => this.convertToProject(file))
-          );
-        } else if (!(file instanceof TFile) && (file.path === folder || folder.startsWith(file.path + "/"))) {
-          menu.addItem((i) =>
-            i.setTitle("New GTD project").setIcon("list-checks").onClick(() => new NewProjectModal(this.app, this).open())
-          );
-        }
-      })
-    );
-    this.addCommand({
-      id: "edit-project-properties",
-      name: "Edit project properties",
-      checkCallback: (checking) => {
-        const file = this.app.workspace.getActiveFile();
-        const project = file ? this.index.get(file.path) : undefined;
-        if (!project) return false;
-        if (!checking) new ProjectPropertiesModal(this.app, this, project).open();
-        return true;
-      },
-    });
-    this.addCommand({
-      id: "toggle-project-hold",
-      name: "Toggle project on hold / active",
-      checkCallback: (checking) => {
-        const file = this.app.workspace.getActiveFile();
-        const project = file ? this.index.get(file.path) : undefined;
-        if (!file || !project) return false;
-        if (!checking) {
-          void this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
-            fm["status"] = fm["status"] === "on-hold" ? "active" : "on-hold";
-          });
-          new Notice(
-            `${project.name}: ${project.status === "on-hold" ? "active" : "on hold"}`
-          );
-        }
-        return true;
-      },
-    });
-    this.addCommand({
-      id: "archive-done-tasks",
-      name: "Archive done tasks in this note",
-      checkCallback: (checking) => {
-        const file = this.app.workspace.getActiveFile();
-        if (!file) return false;
-        if (!this.noteInScope(file.path)) return false;
-        if (!checking) void this.archiveNote(file).then((n) => new Notice(`Archived ${n} task(s)`));
-        return true;
-      },
-    });
-    this.addCommand({
-      id: "archive-done-tasks-all",
-      name: "Archive done tasks in all projects",
-      callback: async () => {
-        let total = 0;
-        for (const p of this.projectNotes()) {
-          const f = this.app.vault.getFileByPath(p.path);
-          if (f) total += await this.archiveNote(f);
-        }
-        new Notice(`Archived ${total} task(s) across all projects`);
-      },
-    });
-    this.addCommand({
-      id: "archive-project",
-      name: "Archive current project (complete + move)",
-      checkCallback: (checking) => {
-        const file = this.app.workspace.getActiveFile();
-        if (!file || !this.index.get(file.path)) return false;
-        if (!checking) void this.archiveProject(file);
-        return true;
-      },
-    });
-
-    // right-click / long-press menu on a task line in project notes and the inbox
-    this.registerEvent(
-      this.app.workspace.on("editor-menu", (menu, editor: Editor, view) => {
-        const file = view.file;
-        if (!file || !this.noteInScope(file.path)) return;
-        const lineNo = editor.getCursor().line;
-        const raw = editor.getLine(lineNo);
-        const task = parseTaskLine(raw, lineNo);
-        if (!task) return;
-        const path = file.path;
-        menu.addSeparator();
-        menu.addItem((i) =>
-          i.setTitle("Edit task").setIcon("pencil").onClick(() => new EditTaskModal(this.app, this, path, task).open())
-        );
-        if (!task.done) {
-          menu.addItem((i) =>
-            i.setTitle("Complete task").setIcon("check").onClick(() => void completeTask(this.app, path, task))
-          );
-          menu.addItem((i) =>
-            i.setTitle("Drop task…").setIcon("x-circle").onClick(() => this.dropTask(path, task))
-          );
-          const isImportant = task.tags.includes(this.settings.importantTag);
-          menu.addItem((i) =>
-            i
-              .setTitle(isImportant ? "Remove important" : "Mark important")
-              .setIcon("star")
-              .onClick(() =>
-                editor.setLine(lineNo, this.toggleTagLine(raw, task.tags, this.settings.importantTag))
-              )
-          );
-          const isSomeday = task.tags.includes(this.settings.somedayTag);
-          menu.addItem((i) =>
-            i
-              .setTitle(isSomeday ? "Remove someday" : "Mark someday")
-              .setIcon("clock")
-              .onClick(() => editor.setLine(lineNo, this.toggleSomedayLine(raw, task.tags)))
-          );
-        }
-      })
-    );
-
-    this.registerMarkdownCodeBlockProcessor("gtd-done", (source, el, ctx) => {
-      ctx.addChild(new DoneBlock(el, this, source));
-    });
-
-    this.registerEditorSuggest(new TaskSuggest(this.app, this));
-
-    // obsidian://gtd-capture?vault=...&text=...&due=YYYY-MM-DD&defer=YYYY-MM-DD
-    this.registerObsidianProtocolHandler("gtd-capture", async (params) => {
-      const text = (params.text ?? params.task ?? "").trim();
-      if (!text) {
-        new CaptureModal(this.app, this).open();
-        return;
-      }
-      let line = `- [ ] ${text}`;
-      if (params.defer) line += ` 🛫 ${params.defer}`;
-      if (params.due) line += ` 📅 ${params.due}`;
-      await this.appendTaskLine(await this.ensureInboxFile(), line);
-      new Notice("Captured to inbox: " + text);
-    });
-
-    // last + isolated: an editor-extension failure must not take down the plugin
-    try {
-      this.registerEditorExtension(gtdEditorDecorations(this));
-      this.registerEditorExtension(gtdCheckboxClicks(this));
-      this.index.on("changed", () => this.app.workspace.updateOptions());
-    } catch (e) {
-      console.error("GTD Flow: in-note Live Preview decorations disabled", e);
-    }
-    const statusBar = this.addStatusBarItem();
-    statusBar.addClass("gtd-statusbar");
-    statusBar.onclick = () => this.activateView(FORECAST_VIEW);
-    const updateBadge = () => {
-      const n = overdueCount(taskContainers(this.index.snapshot()), todayISO());
-      statusBar.setText(n > 0 ? `${n} overdue` : "");
-      statusBar.toggleClass("gtd-statusbar-alert", n > 0);
-    };
-    this.index.on("changed", updateBadge);
-
-    this.index.on("changed", () => this.applyProjectStyles());
-    this.registerEvent(this.app.workspace.on("layout-change", () => this.applyProjectStyles()));
-    this.registerEvent(this.app.workspace.on("active-leaf-change", () => this.applyProjectStyles()));
-    this.registerMarkdownPostProcessor((el, ctx) => {
-      const project = this.index.get(ctx.sourcePath);
-      if (!project) return;
-      const info = ctx.getSectionInfo(el);
-      if (!info) return;
-      const lines = info.text.split("\n");
-      const classes = buildLineClasses(project, lines, todayISO());
-      const taskLines: number[] = [];
-      for (let i = info.lineStart; i <= info.lineEnd; i++) {
-        if (classes.has(i) || /^\s*[-*] \[.\] /.test(lines[i] ?? "")) taskLines.push(i);
-      }
-      const scoped = this.noteInScope(ctx.sourcePath);
-      el.querySelectorAll("li.task-list-item").forEach((li, idx) => {
-        const srcLine = taskLines[idx];
-        const cls = classes.get(srcLine);
-        if (cls) li.classList.add(...cls.split(" "));
-        // reading-mode completion: route the checkbox through GTD Flow so ✅ +
-        // 🔁 recurrence happen, matching the editor/views behaviour
-        if (!scoped) return;
-        const box = li.querySelector<HTMLInputElement>("input.task-list-item-checkbox");
-        const raw = lines[srcLine];
-        if (!box || raw === undefined) return;
-        this.registerDomEvent(
-          box,
-          "click",
-          (evt) => {
-            if (!this.settings.handleEditorClicks) return;
-            if (this.routeCheckbox(ctx.sourcePath, srcLine, raw)) {
-              evt.preventDefault();
-              evt.stopPropagation();
-            }
-          },
-          { capture: true }
-        );
-      });
-    });
+    registerCommands(this);
+    registerMenus(this);
+    registerIntegrations(this);
   }
 
   // real project notes only (inbox excluded)
@@ -466,9 +104,9 @@ export default class GtdFlowPlugin extends Plugin {
   // decide and perform what a checkbox click does on a source line; returns true
   // when GTD Flow handled it (caller should suppress the default toggle)
   routeCheckbox(path: string, lineNo: number, rawLine: string): boolean {
-    const m = rawLine.match(/^\s*[-*] \[(.)\]/);
-    if (!m) return false;
-    const action = checkboxClickAction(m[1], this.settings.clickCycles);
+    const char = checkboxCharOf(rawLine);
+    if (char === null) return false;
+    const action = checkboxClickAction(char, this.settings.clickCycles);
     if (action === "none") return false;
     const task = parseTaskLine(rawLine, lineNo);
     if (!task) return false;
