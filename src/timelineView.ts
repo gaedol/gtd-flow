@@ -2,6 +2,7 @@ import { ItemView, WorkspaceLeaf, MarkdownRenderer } from "obsidian";
 import type GtdFlowPlugin from "./main";
 import { ganttSource, TimelineMode } from "./gantt";
 import { todayISO } from "./dates";
+import { projectNotes } from "./selectors";
 
 export const TIMELINE_VIEW = "gtd-timeline";
 
@@ -46,7 +47,7 @@ export class TimelineView extends ItemView {
       };
     }
 
-    const src = ganttSource(this.plugin.index.all(), this.mode, todayISO(), {
+    const src = ganttSource(projectNotes(this.plugin.index.snapshot(), this.plugin.index.inboxNotePath()), this.mode, todayISO(), {
       dayStart: this.plugin.settings.dayStart,
       dayEnd: this.plugin.settings.dayEnd,
       defaultDurationMin: this.plugin.settings.defaultDurationMin,

@@ -4,6 +4,7 @@ import { isDueForReview, availableTasks } from "./engine";
 import { ProjectPropertiesModal } from "./projectPropertiesModal";
 import { todayISO } from "./dates";
 import { Project } from "./types";
+import { projectNotes } from "./selectors";
 
 export const REVIEW_VIEW = "gtd-review";
 
@@ -35,8 +36,7 @@ export class ReviewView extends ItemView {
     root.addClass("gtd-review");
 
     const today = todayISO();
-    const due = this.plugin.index
-      .all()
+    const due = projectNotes(this.plugin.index.snapshot(), this.plugin.index.inboxNotePath())
       .filter((p) => isDueForReview(p, today))
       .sort((a, b) => (a.lastReviewed ?? "").localeCompare(b.lastReviewed ?? ""));
 

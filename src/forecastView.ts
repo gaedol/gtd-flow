@@ -5,6 +5,7 @@ import { todayISO } from "./dates";
 import { completeTask } from "./completeTask";
 import { renderTaskText } from "./linkText";
 import { defaultSort, applyManualOrder } from "./ordering";
+import { taskContainers } from "./selectors";
 import { makeReorderable } from "./dragReorder";
 import { ensureBlockId } from "./blockId";
 
@@ -38,7 +39,7 @@ export class ForecastView extends ItemView {
     root.addClass("gtd-forecast");
 
     const today = todayISO();
-    const items = forecast(this.plugin.index.allWithInbox(), today, this.plugin.settings.forecastDays);
+    const items = forecast(taskContainers(this.plugin.index.snapshot()), today, this.plugin.settings.forecastDays);
 
     if (items.length === 0) {
       root.createDiv({

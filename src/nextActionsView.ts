@@ -8,6 +8,7 @@ import { EditTaskModal } from "./editTaskModal";
 import { renderTaskText } from "./linkText";
 import { applySavedOrder } from "./ordering";
 import { makeReorderable } from "./dragReorder";
+import { projectNotes, inboxTasks } from "./selectors";
 import { Project, Task } from "./types";
 
 export const NEXT_ACTIONS_VIEW = "gtd-next-actions";
@@ -34,6 +35,10 @@ export class NextActionsView extends ItemView {
     this.render();
   }
 
+  private projectNotes() {
+    return projectNotes(this.plugin.index.snapshot(), this.plugin.index.inboxNotePath());
+  }
+
   private render() {
     const root = this.contentEl;
     root.empty();
@@ -41,8 +46,7 @@ export class NextActionsView extends ItemView {
 
     const today = todayISO();
     const mode = this.plugin.settings.projectSort;
-    let projects = this.plugin.index
-      .all()
+    let projects = this.projectNotes()
       .map((p) => ({ project: p, tasks: availableTasks(p, today) }))
       .filter((g) => g.tasks.length > 0)
       .sort((a, b) =>
@@ -84,13 +88,13 @@ export class NextActionsView extends ItemView {
 
   private async saveProjectOrder(paths: string[]) {
     // keep only real project paths; stale entries are dropped on each save
-    const known = new Set(this.plugin.index.all().map((p) => p.path));
+    const known = new Set(this.projectNotes().map((p) => p.path));
     this.plugin.settings.projectOrder = paths.filter((p) => known.has(p));
     await this.plugin.persistData();
   }
 
   private renderInbox(root: HTMLElement) {
-    const tasks = this.plugin.index.inboxTasks();
+    const tasks = inboxTasks(this.plugin.index.snapshot(), this.plugin.index.inboxNotePath());
     if (tasks.length === 0) return;
     const inboxPath = normalizePath(this.plugin.settings.inboxNote);
     const section = root.createDiv({ cls: "gtd-project gtd-inbox" });
@@ -111,7 +115,7 @@ export class NextActionsView extends ItemView {
       const btn = row.createEl("button", { cls: "gtd-move-btn", attr: { "aria-label": "Move to project" } });
       setIcon(btn, "folder-input");
       btn.onclick = () => {
-        new ProjectSuggestModal(this.app, this.plugin.index.all(), (p) => {
+        new ProjectSuggestModal(this.app, this.projectNotes(), (p) => {
           void moveTask(this.app, inboxPath, t, p.path, this.plugin.settings.insertPosition);
         }).open();
       };

@@ -6,7 +6,7 @@ import { parseProject, parseTaskLine } from "./parser";
 export class TaskIndex extends Events {
   // single source of truth: real project notes plus the inbox, held as a
   // synthesized "Inbox" project under its own path. get()/all() hide the inbox
-  // so project-note logic is unaffected; date/urgency views use allWithInbox().
+  // so project-note logic is unaffected; selectors decide per-surface inclusion.
   private projects = new Map<string, Project>();
 
   constructor(
@@ -17,20 +17,15 @@ export class TaskIndex extends Events {
     super();
   }
 
-  all(): Project[] {
-    const inbox = this.inboxPath();
-    return [...this.projects.values()].filter((p) => p.path !== inbox);
-  }
-
-  // real projects + the inbox pseudo-project — for Forecast, perspectives, and
-  // the overdue badge / notifications, so dated inbox tasks aren't invisible
-  allWithInbox(): Project[] {
+  // raw set of every indexed container (real projects + the inbox pseudo-
+  // project); use the selectors in selectors.ts to pick per surface
+  snapshot(): Project[] {
     return [...this.projects.values()];
   }
 
-  // open inbox tasks, for the Next Actions inbox section
-  inboxTasks(): Task[] {
-    return this.projects.get(this.inboxPath())?.tasks.filter((t) => !t.done) ?? [];
+  // the configured inbox note path, so selectors can identify the inbox entry
+  inboxNotePath(): string {
+    return this.inboxPath();
   }
 
   get(path: string): Project | undefined {

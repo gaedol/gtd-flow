@@ -1,5 +1,6 @@
 import { App, Modal, Notice, Setting, normalizePath } from "obsidian";
 import type GtdFlowPlugin from "./main";
+import { projectNotes } from "./selectors";
 
 export class CaptureModal extends Modal {
   private text = "";
@@ -40,7 +41,7 @@ export class CaptureModal extends Modal {
 
     new Setting(contentEl).setName("Add to").addDropdown((d) => {
       d.addOption(this.targetPath, "Inbox");
-      for (const p of this.plugin.index.all()) {
+      for (const p of projectNotes(this.plugin.index.snapshot(), this.plugin.index.inboxNotePath())) {
         if (p.status === "active") d.addOption(p.path, p.name);
       }
       d.setValue(this.targetPath).onChange((v) => (this.targetPath = v));

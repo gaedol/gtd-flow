@@ -22,6 +22,7 @@ import { parseTaskLine, parseProject } from "./parser";
 import type { Task, Project } from "./types";
 import { DoneBlock } from "./doneBlock";
 import { DoneReportModal } from "./doneReportModal";
+import { projectNotes, taskContainers } from "./selectors";
 import { completeTask, setTaskState } from "./completeTask";
 import { checkboxClickAction } from "./clickCycle";
 import { gtdCheckboxClicks } from "./checkboxClicks";
@@ -129,7 +130,7 @@ export default class GtdFlowPlugin extends Plugin {
           new Notice("Cursor is not on a task line");
           return;
         }
-        new ProjectSuggestModal(this.app, this.index.all(), (p) => {
+        new ProjectSuggestModal(this.app, this.projectNotes(), (p) => {
           if (p.path === file.path) return;
           void moveTask(this.app, file.path, task, p.path, this.settings.insertPosition);
         }).open();
@@ -296,7 +297,7 @@ export default class GtdFlowPlugin extends Plugin {
       name: "Archive done tasks in all projects",
       callback: async () => {
         let total = 0;
-        for (const p of this.index.all()) {
+        for (const p of this.projectNotes()) {
           const f = this.app.vault.getFileByPath(p.path);
           if (f) total += await this.archiveNote(f);
         }
@@ -387,7 +388,7 @@ export default class GtdFlowPlugin extends Plugin {
     statusBar.addClass("gtd-statusbar");
     statusBar.onclick = () => this.activateView(FORECAST_VIEW);
     const updateBadge = () => {
-      const n = overdueCount(this.index.allWithInbox(), todayISO());
+      const n = overdueCount(taskContainers(this.index.snapshot()), todayISO());
       statusBar.setText(n > 0 ? `${n} overdue` : "");
       statusBar.toggleClass("gtd-statusbar-alert", n > 0);
     };
@@ -434,10 +435,15 @@ export default class GtdFlowPlugin extends Plugin {
     });
   }
 
+  // real project notes only (inbox excluded)
+  projectNotes(): Project[] {
+    return projectNotes(this.index.snapshot(), this.index.inboxNotePath());
+  }
+
   // projects to search in a done query: the live index, plus archived project
   // notes read on demand (they live outside the indexed projects folder)
   async projectsForQuery(includeArchived: boolean): Promise<Project[]> {
-    const projects = this.index.all();
+    const projects = this.projectNotes();
     if (!includeArchived) return projects;
     const folder = normalizePath(this.settings.archiveFolder);
     const extra: Project[] = [];
@@ -598,7 +604,7 @@ export default class GtdFlowPlugin extends Plugin {
       this.notifyDay = today;
       this.notified.clear();
     }
-    const items = dueOrOverdue(this.index.allWithInbox(), today);
+    const items = dueOrOverdue(taskContainers(this.index.snapshot()), today);
     const fresh = items.filter((i) => !this.notified.has(i.project.path + "::" + i.task.text));
     if (fresh.length === 0) return;
     for (const i of items) this.notified.add(i.project.path + "::" + i.task.text);
