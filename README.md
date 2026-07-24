@@ -1,8 +1,8 @@
 # GTD Flow
 
-**Structured, GTD-style task management for [Obsidian](https://obsidian.md), built on plain Markdown.**
+**GTD-style project and task management for [Obsidian](https://obsidian.md), built on plain Markdown.**
 
-GTD Flow brings serious project structure — sequential and parallel projects, defer dates, next-action availability, forecast, and review — to your Obsidian vault, while keeping every task as a normal checklist line in your own notes. There is no hidden database: your Markdown is the source of truth, and the tasks stay readable (and editable) even with the plugin turned off.
+GTD Flow covers the whole loop — capture to the inbox, organise into sequential or parallel projects, see what's genuinely next, forecast the week, review on a cadence. There's no hidden database: every task stays an ordinary checklist line in your own notes, so it's greppable, portable, and still readable with the plugin turned off.
 
 It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so the two can share the same files.
 

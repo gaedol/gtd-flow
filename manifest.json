@@ -3,7 +3,7 @@
   "name": "GTD Flow",
   "version": "0.9.1",
   "minAppVersion": "1.7.2",
-  "description": "Structured GTD: sequential/parallel projects, defer dates, next actions, forecast and review.",
+  "description": "The full GTD loop in plain Markdown: capture, projects, next actions, forecast, review.",
   "author": "Marco Guidetti",
   "isDesktopOnly": false
 }
