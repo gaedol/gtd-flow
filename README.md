@@ -42,7 +42,7 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 | Contexts | hierarchical tags (`#home/plumbing`), filterable in perspectives |
 | Forecast | Forecast + Timeline views |
 | Review | per-project interval + a review queue |
-| Inbox | a capture note you triage into projects |
+| Inbox | a capture note you triage into projects (dated inbox items still show in Forecast) |
 
 ## Feature highlights
 

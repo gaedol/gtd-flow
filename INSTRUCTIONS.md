@@ -214,10 +214,16 @@ Moves append to the target before deleting from the source and verify the source
 
 ```
 src/
+  types.ts           the shared Task / Project shapes
   parser.ts          pure: markdown line / frontmatter → Task, Project
   engine.ts          pure: availability, next action, forecast, review-due, intervals
-  taskIndex.ts       in-memory index of project notes + inbox, refreshed on vault events
-  completeTask.ts    checkbox → file write via vault.process, with stale-line guard
+  taskIndex.ts       in-memory index of project notes + inbox (the inbox is held as a
+                     synthesized project), refreshed on vault events; exposes snapshot()
+  selectors.ts       pure: which containers each surface sees (taskContainers = incl.
+                     inbox, projectNotes = excl., inboxTasks)
+  taskWrite.ts       pure: the one place task-line surgery lives (set status char,
+                     complete + 🔁 next line, set state with ✅/❌/💬, toggle a tag)
+  completeTask.ts    task-line writes to disk via vault.process, with stale-line guard
   moveTask.ts        move between notes + fuzzy project picker modal
   nextActionsView.ts sidebar ItemView (next actions + inbox), re-renders on index "changed" events
   forecastView.ts    sidebar ItemView, day-grouped due / becoming-available items
@@ -229,6 +235,7 @@ src/
   timelineView.ts    ItemView rendering the mermaid chart with mode switcher
   captureModal.ts    quick-capture modal (text, defer/due, target picker)
   taskSuggest.ts     EditorSuggest popup: field markers, dates, repeat presets
+  repeatSuggest.ts   pure: hand off from 🔁 presets to field mode once a rule is complete
   archive.ts         pure: move aged done subtrees under a ## Archive heading
   insertLine.ts      pure: position-aware task insertion (archive-safe)
   serialize.ts       pure: task fields → line; duration parsing/formatting
@@ -247,13 +254,20 @@ src/
   doneReportModal.ts period/filter modal writing a static done-report note
   linkText.ts        renders [[wikilinks]] in task text as clickable links
   inNote.ts          pure: doc lines → per-line availability CSS classes
-  editorDecorations.ts CM6 line decorations for Live Preview (reading mode via post-processor in main)
-  settings.ts        settings tab
+  editorDecorations.ts CM6 line decorations for Live Preview (reading mode via post-processor)
+  checkboxClicks.ts  CM6 capture-phase click handler routing in-note checkbox clicks
+                     through GTD Flow (✅ + 🔁) instead of Obsidian's plain toggle
+  clickCycle.ts      pure: what a checkbox click does ([ ]→[/]→[x] when cycling is on)
+  commands.ts        all command registrations
+  menus.ts           file-explorer menu + editor task-line context menu
+  integrations.ts    ribbon, status bar, code block, suggester, protocol handler,
+                     editor extensions, reading-mode post-processor
+  settings.ts        settings tab (declarative getSettingDefinitions + display fallback)
   dates.ts           local-timezone today
-  main.ts            wiring: index lifecycle, view, ribbon, commands
+  main.ts            thin wiring: settings, index lifecycle, views + shared helpers
 ```
 
-`parser.ts` and `engine.ts` have no Obsidian imports and are unit-tested (`npm test`, vitest). Dates are compared as ISO strings throughout.
+Every module marked *pure* above (parser, engine, selectors, taskWrite, ordering, perspectives, repeat, repeatSuggest, clickCycle, doneQuery, archive, insertLine, serialize, gantt, statusBlock, dateParse, inNote, projectColors) has no Obsidian imports and is unit-tested (`npm test`, vitest — 155 tests). Views and modals stay thin wrappers over that core, so behavior is testable without a vault. Dates are compared as ISO strings throughout.
 
 ## Development
 
