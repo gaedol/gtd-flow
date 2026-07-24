@@ -2,11 +2,8 @@ import { App, Notice, TFile } from "obsidian";
 import { Task } from "./types";
 import { parseTaskLine } from "./parser";
 import { todayISO } from "./dates";
-import { nextOccurrenceLine } from "./repeat";
-import { TaskState, stateChar } from "./serialize";
-
-const CHECKBOX_RE = /^(\s*[-*] )\[.\]/;
-const STATUS_DATE_RE = / *[✅❌] *\d{4}-\d{2}-\d{2}/u;
+import { TaskState } from "./serialize";
+import { completeLine, setStateLine } from "./taskWrite";
 
 export async function completeTask(app: App, path: string, task: Task): Promise<boolean> {
   const file = app.vault.getFileByPath(path);
@@ -21,9 +18,8 @@ export async function completeTask(app: App, path: string, task: Task): Promise<
       new Notice("Task moved since last index — try again");
       return content;
     }
-    const today = todayISO();
-    lines[task.line] = line.replace(CHECKBOX_RE, "$1[x]") + ` ✅ ${today}`;
-    const next = nextOccurrenceLine(line, today);
+    const { line: done, next } = completeLine(line, todayISO());
+    lines[task.line] = done;
     if (next) lines.splice(task.line, 0, next);
     ok = true;
     return lines.join("\n");
@@ -45,11 +41,7 @@ export async function setTaskState(app: App, path: string, task: Task, state: Ta
       new Notice("Task moved since last index — try again");
       return content;
     }
-    let line = raw.replace(STATUS_DATE_RE, "").replace(CHECKBOX_RE, `$1[${stateChar(state)}]`);
-    if (reason?.trim()) line = line.trimEnd() + ` 💬 ${reason.trim()}`;
-    if (state === "done") line = line.trimEnd() + ` ✅ ${todayISO()}`;
-    if (state === "dropped") line = line.trimEnd() + ` ❌ ${todayISO()}`;
-    lines[task.line] = line;
+    lines[task.line] = setStateLine(raw, state, todayISO(), reason);
     ok = true;
     return lines.join("\n");
   });

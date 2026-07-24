@@ -23,6 +23,7 @@ import type { Task, Project } from "./types";
 import { DoneBlock } from "./doneBlock";
 import { DoneReportModal } from "./doneReportModal";
 import { projectNotes, taskContainers } from "./selectors";
+import { toggleTagLine } from "./taskWrite";
 import { completeTask, setTaskState } from "./completeTask";
 import { checkboxClickAction } from "./clickCycle";
 import { gtdCheckboxClicks } from "./checkboxClicks";
@@ -494,9 +495,7 @@ export default class GtdFlowPlugin extends Plugin {
 
   // add/remove a tag on a task source line, returning the rewritten line
   toggleTagLine(raw: string, tags: string[], tag: string): string {
-    return tags.includes(tag)
-      ? raw.replace(new RegExp(`\\s*#${tag}\\b`), "")
-      : raw.replace(/\s*$/, "") + ` #${tag}`;
+    return toggleTagLine(raw, tags, tag);
   }
 
   // star span in views for #important tasks
