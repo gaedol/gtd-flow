@@ -1,4 +1,4 @@
-import { MarkdownRenderChild, MarkdownView, setIcon } from "obsidian";
+import { MarkdownRenderChild, setIcon } from "obsidian";
 import type GtdFlowPlugin from "./main";
 import {
   DoneEntry,
@@ -10,6 +10,7 @@ import {
   resolveRange,
 } from "./doneQuery";
 import { renderTaskText } from "./linkText";
+import { openTaskLine } from "./taskRow";
 import { todayISO } from "./dates";
 
 // A ```gtd-done``` block: renders the closed items matching its query and
@@ -77,12 +78,7 @@ export class DoneBlock extends MarkdownRenderChild {
     }
   }
 
-  private async openEntry(e: DoneEntry): Promise<void> {
-    const file = this.plugin.app.vault.getFileByPath(e.project.path);
-    if (!file) return;
-    const leaf = this.plugin.app.workspace.getLeaf(false);
-    await leaf.openFile(file);
-    const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
-    view?.editor.setCursor({ line: e.task.line, ch: 0 });
+  private openEntry(e: DoneEntry): void {
+    void openTaskLine(this.plugin.app, e.project.path, e.task.line);
   }
 }

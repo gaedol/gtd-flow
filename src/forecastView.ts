@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, MarkdownView, setIcon } from "obsidian";
+import { ItemView, WorkspaceLeaf, setIcon } from "obsidian";
 import type GtdFlowPlugin from "./main";
 import { forecast, ForecastItem } from "./engine";
 import { todayISO } from "./dates";
@@ -6,6 +6,7 @@ import { completeTask } from "./completeTask";
 import { renderTaskText } from "./linkText";
 import { defaultSort, applyManualOrder } from "./ordering";
 import { taskContainers } from "./selectors";
+import { openTaskLine, renderMarkers } from "./taskRow";
 import { makeReorderable } from "./dragReorder";
 import { ensureBlockId } from "./blockId";
 
@@ -120,11 +121,7 @@ export class ForecastView extends ItemView {
       const icon = row.createSpan({ cls: "gtd-avail-icon", attr: { "aria-label": "Becomes available" } });
       setIcon(icon, "play");
     }
-    if (it.task.tags.includes(this.plugin.settings.flagTag)) {
-      const flag = row.createSpan({ cls: "gtd-flag", attr: { "aria-label": "Flagged" } });
-      setIcon(flag, "flag");
-    }
-    this.plugin.importantFor(row, it.task);
+    renderMarkers(this.plugin, row, it.task);
     const label = renderTaskText(row, it.task.text, this.app, it.project.path);
     if (it.task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${it.task.reason}` });
     label.onclick = () => this.openTask(it);
@@ -143,13 +140,8 @@ export class ForecastView extends ItemView {
     this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: it.project.name }), it.project.path);
   }
 
-  private async openTask(it: ForecastItem) {
-    const file = this.app.vault.getFileByPath(it.project.path);
-    if (!file) return;
-    const leaf = this.app.workspace.getLeaf(false);
-    await leaf.openFile(file);
-    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-    view?.editor.setCursor({ line: it.task.line, ch: 0 });
+  private openTask(it: ForecastItem) {
+    void openTaskLine(this.app, it.project.path, it.task.line);
   }
 }
 

@@ -5,6 +5,7 @@ import { ProjectPropertiesModal } from "./projectPropertiesModal";
 import { todayISO } from "./dates";
 import { Project } from "./types";
 import { projectNotes } from "./selectors";
+import { openTaskLine } from "./taskRow";
 
 export const REVIEW_VIEW = "gtd-review";
 
@@ -53,10 +54,7 @@ export class ReviewView extends ItemView {
     const card = root.createDiv({ cls: "gtd-review-card" });
     const name = card.createDiv({ cls: "gtd-project-name", text: p.name });
     this.plugin.pillFor(name, p.path);
-    name.onclick = () => {
-      const file = this.app.vault.getFileByPath(p.path);
-      if (file) void this.app.workspace.getLeaf(false).openFile(file);
-    };
+    name.onclick = () => void openTaskLine(this.app, p.path);
 
     const open = p.tasks.filter((t) => !t.done);
     const avail = availableTasks(p, today);

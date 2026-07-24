@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, MarkdownView, setIcon, normalizePath } from "obsidian";
+import { ItemView, WorkspaceLeaf, setIcon, normalizePath } from "obsidian";
 import type GtdFlowPlugin from "./main";
 import { availableTasks } from "./engine";
 import { todayISO } from "./dates";
@@ -9,6 +9,7 @@ import { renderTaskText } from "./linkText";
 import { applySavedOrder } from "./ordering";
 import { makeReorderable } from "./dragReorder";
 import { projectNotes, inboxTasks } from "./selectors";
+import { openTaskLine, renderMarkers, renderDueBadge } from "./taskRow";
 import { Project, Task } from "./types";
 
 export const NEXT_ACTIONS_VIEW = "gtd-next-actions";
@@ -78,7 +79,7 @@ export class NextActionsView extends ItemView {
       }
       const nameEl = header.createSpan({ text: project.name });
       this.plugin.pillFor(nameEl, project.path);
-      header.onclick = () => this.openTask(project, tasks[0], false);
+      header.onclick = () => void openTaskLine(this.app, project.path);
       for (const t of tasks) this.renderTask(section, project, t, today);
     }
     if (mode === "manual") {
@@ -157,24 +158,17 @@ export class NextActionsView extends ItemView {
       await completeTask(this.app, project.path, task);
       // index refresh re-renders via the changed event
     };
-    if (task.tags.includes(this.plugin.settings.flagTag)) {
-      const flag = row.createSpan({ cls: "gtd-flag", attr: { "aria-label": "Flagged" } });
-      setIcon(flag, "flag");
-    }
-    this.plugin.importantFor(row, task);
+    renderMarkers(this.plugin, row, task);
     const label = renderTaskText(row, task.text, this.app, project.path);
     if (task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${task.reason}` });
-    label.onclick = () => this.openTask(project, task, true);
+    label.onclick = () => void openTaskLine(this.app, project.path, task.line);
     this.editButton(row, project.path, task);
     if (showProject) this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: project.name }), project.path);
-    if (task.due) {
-      row.createSpan({
-        cls: "gtd-due" + (task.due < today ? " gtd-overdue" : task.due === today ? " gtd-due-today" : ""),
-        text: task.due,
-      });
-    }
+    renderDueBadge(row, task, today);
+    // flag/important already show as icons, so don't repeat them as tag chips
+    const iconTags = [this.plugin.settings.flagTag, this.plugin.settings.importantTag];
     for (const tag of task.tags) {
-      if (tag === this.plugin.settings.flagTag) continue;
+      if (iconTags.includes(tag)) continue;
       row.createSpan({ cls: "gtd-tag", text: "#" + tag });
     }
   }
@@ -185,14 +179,4 @@ export class NextActionsView extends ItemView {
     btn.onclick = () => new EditTaskModal(this.app, this.plugin, path, task).open();
   }
 
-  private async openTask(project: Project, task: Task | undefined, toLine: boolean) {
-    const file = this.app.vault.getFileByPath(project.path);
-    if (!file) return;
-    const leaf = this.app.workspace.getLeaf(false);
-    await leaf.openFile(file);
-    if (toLine && task) {
-      const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-      view?.editor.setCursor({ line: task.line, ch: 0 });
-    }
-  }
 }

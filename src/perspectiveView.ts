@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, MarkdownView, setIcon } from "obsidian";
+import { ItemView, WorkspaceLeaf, setIcon } from "obsidian";
 import type GtdFlowPlugin from "./main";
 import { runPerspective, PerspectiveItem } from "./perspectives";
 import { todayISO } from "./dates";
@@ -8,6 +8,7 @@ import { defaultSort, applyManualOrder } from "./ordering";
 import { makeReorderable } from "./dragReorder";
 import { ensureBlockId } from "./blockId";
 import { taskContainers } from "./selectors";
+import { openTaskLine, renderMarkers, renderDueBadge } from "./taskRow";
 
 export const PERSPECTIVE_VIEW = "gtd-perspectives";
 
@@ -122,25 +123,11 @@ export class PerspectiveView extends ItemView {
         await completeTask(this.app, it.project.path, it.task);
       };
     }
-    if (it.task.tags.includes(this.plugin.settings.flagTag)) {
-      const flag = row.createSpan({ cls: "gtd-flag" });
-      setIcon(flag, "flag");
-    }
-    this.plugin.importantFor(row, it.task);
+    renderMarkers(this.plugin, row, it.task);
     const label = renderTaskText(row, it.task.text, this.app, it.project.path);
     if (it.task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${it.task.reason}` });
-    label.onclick = async () => {
-      const file = this.app.vault.getFileByPath(it.project.path);
-      if (!file) return;
-      await this.app.workspace.getLeaf(false).openFile(file);
-      this.app.workspace.getActiveViewOfType(MarkdownView)?.editor.setCursor({ line: it.task.line, ch: 0 });
-    };
-    if (it.task.due) {
-      row.createSpan({
-        cls: "gtd-due" + (it.task.due < today ? " gtd-overdue" : it.task.due === today ? " gtd-due-today" : ""),
-        text: it.task.due,
-      });
-    }
+    label.onclick = () => void openTaskLine(this.app, it.project.path, it.task.line);
+    renderDueBadge(row, it.task, today);
     if (showProject) this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: it.project.name }), it.project.path);
   }
 }
