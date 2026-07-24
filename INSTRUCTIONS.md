@@ -200,9 +200,76 @@ Keys (all optional, one per line):
 | `group` | `project` (default), `day`, or `none` |
 | `limit` | max items |
 
-Completed tasks are matched on their ✅ date, dropped ones on ❌ (with the 💬 reason shown). Clicking a row jumps to the task's line. `include: archived` also scans the archive folder, so projects you've completed and moved out still count — without it they're invisible to the query, since archived notes leave the index.
-
 The command **Insert done query block** drops a starter block at the cursor.
+
+#### How items are matched
+
+- A task counts as **done** on its `✅ YYYY-MM-DD` date and as **dropped** on its `❌` date — not on when you edited the line. A task with no such date never appears, so if something is missing, check the line actually carries a date (completing from a GTD Flow view or an in-note checkbox always writes one; a hand-typed `[x]` may not).
+- The range is inclusive at both ends, and dates are compared as plain ISO strings — no timezone surprises.
+- Dropped items are excluded unless you ask for them, and are shown struck through with their 💬 reason.
+- Tasks in **any** project status count (active, on-hold, someday, completed) — finished work is finished regardless of where the project ended up. `include: archived` additionally scans the archive folder for projects moved out of the index by **Archive current project**; without it, those are invisible and a long-range total will under-report.
+- Sub-tasks count individually, exactly as they appear in the note.
+- Clicking a row opens the note at that task's line.
+
+#### Recipes
+
+Weekly review — what closed, project by project:
+
+````
+```gtd-done
+range: last-week
+group: project
+```
+````
+
+A daily log for a specific project, newest day first:
+
+````
+```gtd-done
+range: last-30-days
+project: Kitchen
+group: day
+```
+````
+
+Everything for a quarter, including work whose project you've since archived — the shape you want for a report:
+
+````
+```gtd-done
+from: 2026-04-01
+to: 2026-06-30
+include: archived
+group: project
+```
+````
+
+An audit of what you abandoned and why (💬 reasons appear beside each row):
+
+````
+```gtd-done
+range: this-year
+include: dropped
+group: none
+limit: 50
+```
+````
+
+A "recently finished" strip for a dashboard note:
+
+````
+```gtd-done
+range: last-7-days
+group: none
+limit: 10
+```
+````
+
+#### Notes
+
+- Blocks re-render on vault changes, so an open review note updates as you tick things off — no reopening required.
+- Unknown keys are ignored rather than erroring, so a typo silently widens the query. If a block returns more than you expect, check the spelling of your keys first.
+- `from`/`to` always beat `range`, so leaving a stale `range:` line above explicit dates is harmless.
+- The block is plain text in your note: it syncs, versions, and can be edited on mobile like anything else. With the plugin disabled it simply shows as a code block.
 
 **Export done report** — command opening a modal (period, project filter, grouping, dropped/archived toggles) that writes a static note next to your inbox, e.g. `Done 2026-07-06 to 2026-07-12.md`. It's plain markdown checklist lines, so it stays readable with the plugin disabled — good for sharing a "what I shipped" summary or keeping a frozen record after a review.
 
