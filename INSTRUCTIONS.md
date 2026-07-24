@@ -325,6 +325,10 @@ src/
   checkboxClicks.ts  CM6 capture-phase click handler routing in-note checkbox clicks
                      through GTD Flow (✅ + 🔁) instead of Obsidian's plain toggle
   clickCycle.ts      pure: what a checkbox click does ([ ]→[/]→[x] when cycling is on)
+  contextClick.ts    records the right-clicked line so the task menu doesn't depend
+                     on where the caret happens to be
+  taskRow.ts         shared row pieces for the listing surfaces: open-at-line,
+                     flag/important markers, due badge
   commands.ts        all command registrations
   menus.ts           file-explorer menu + editor task-line context menu
   integrations.ts    ribbon, status bar, code block, suggester, protocol handler,

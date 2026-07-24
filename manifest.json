@@ -1,7 +1,7 @@
 {
   "id": "gtd-flow",
   "name": "GTD Flow",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "minAppVersion": "1.7.2",
   "description": "The full GTD loop in plain Markdown: capture, projects, next actions, forecast, review.",
   "author": "Marco Guidetti",
