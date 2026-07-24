@@ -10,6 +10,7 @@ import { DoneBlock } from "./doneBlock";
 import { TaskSuggest } from "./taskSuggest";
 import { gtdEditorDecorations } from "./editorDecorations";
 import { gtdCheckboxClicks } from "./checkboxClicks";
+import { contextClickTracker } from "./contextClick";
 import { overdueCount } from "./engine";
 import { taskContainers } from "./selectors";
 import { buildLineClasses } from "./inNote";
@@ -62,6 +63,7 @@ export function registerIntegrations(plugin: GtdFlowPlugin): void {
   try {
     plugin.registerEditorExtension(gtdEditorDecorations(plugin));
     plugin.registerEditorExtension(gtdCheckboxClicks(plugin));
+    plugin.registerEditorExtension(contextClickTracker());
     plugin.index.on("changed", () => app.workspace.updateOptions());
   } catch (e) {
     console.error("GTD Flow: in-note Live Preview decorations disabled", e);

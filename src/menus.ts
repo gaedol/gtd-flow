@@ -4,6 +4,7 @@ import { parseTaskLine } from "./parser";
 import { completeTask } from "./completeTask";
 import { EditTaskModal } from "./editTaskModal";
 import { NewProjectModal } from "./newProjectModal";
+import { lastContextClick } from "./contextClick";
 
 // Context menus: the file-explorer menu (convert / new project) and the
 // editor task-line menu (edit / complete / drop / important / someday).
@@ -29,8 +30,11 @@ export function registerMenus(plugin: GtdFlowPlugin): void {
     app.workspace.on("editor-menu", (menu, editor: Editor, view) => {
       const file = view.file;
       if (!file || !plugin.noteInScope(file.path)) return;
-      const lineNo = editor.getCursor().line;
-      const raw = editor.getLine(lineNo);
+      // the right-clicked line, falling back to the caret when the click
+      // position isn't known (e.g. menu opened from the keyboard)
+      const clicked = lastContextClick(file.path);
+      const lineNo = clicked?.line ?? editor.getCursor().line;
+      const raw = clicked?.text ?? editor.getLine(lineNo);
       const task = parseTaskLine(raw, lineNo);
       if (!task) return;
       const path = file.path;
