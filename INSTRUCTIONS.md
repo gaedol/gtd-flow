@@ -158,6 +158,7 @@ The Tasks plugin is **optional**. GTD Flow works standalone; nothing in it depen
 - **Inbox section** (top of the sidebar when non-empty) — folder icon on each task opens a project picker and moves the task line, metadata intact, to the end of the chosen project note. Inbox tasks with a 📅 due date also appear in the Forecast, the overdue badge, notifications, and the Perspectives (so a due-but-unfiled task can't hide) — the inbox behaves like an always-active parallel project for date purposes, while still being triaged from its own section.
 - **Move task under cursor to project** — same picker for the task line under the cursor in any note; also works project → project. Captured/moved tasks land at the top or bottom of the list per the **Insert captured/moved tasks at** setting, always above `## Archive`.
 - **Edit task** — pencil icon on rows in Next Actions (incl. inbox), or command **Edit task under cursor**: modal for text, defer/due dates, ⏱ duration, 🔁 rule, and flag. Rewrites the line in place, preserving indent, other tags, and completion state.
+- **Reordering next actions** — Next Actions lists each project's tasks in the order they appear in the note, so you reorder them by reordering the lines. The commands **Move task up** / **Move task down** (also in the task context menu, and worth a hotkey) move the task *with its sub-tasks* past its sibling, and won't let it jump out of its action group or across a heading — unlike Obsidian's built-in move-line, which would separate a parent from its children.
 - **Right-click a task line** in a project note or the inbox (long-press on mobile) for a context menu: **Edit task**, **Complete task** (writes ✅ and the 🔁 next occurrence), **Drop task…** (prompts for a 💬 reason when that setting is on), **Mark/Remove important**, and **Mark/Remove someday**.
 - **Checkbox clicks in your notes** complete through GTD Flow, so ticking a task in a project note (Live Preview or Reading view) writes ✅ and inserts the 🔁 next occurrence — the same as completing from a view, no Tasks plugin required. Turn off via **Handle checkbox clicks in notes**. With **Click cycles to-do → in-progress → done** on, the first click marks the task in-progress `[/]` and the next completes it.
 - **New project** — command opening a name + flow modal; creates the note with the complete frontmatter (every key present, `last-reviewed` empty), so Obsidian's Properties panel shows all fields ready to fill, and opens it.
@@ -329,6 +330,7 @@ src/
                      on where the caret happens to be
   taskRow.ts         shared row pieces for the listing surfaces: open-at-line,
                      flag/important markers, due badge
+  moveTaskLine.ts    pure: move a task + its subtree past a sibling, within its group
   commands.ts        all command registrations
   menus.ts           file-explorer menu + editor task-line context menu
   integrations.ts    ribbon, status bar, code block, suggester, protocol handler,

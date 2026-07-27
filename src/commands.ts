@@ -14,6 +14,7 @@ import { ProjectPropertiesModal } from "./projectPropertiesModal";
 import { DoneReportModal } from "./doneReportModal";
 import { ProjectSuggestModal, moveTask } from "./moveTask";
 import { parseTaskLine } from "./parser";
+import { moveTaskBlock } from "./moveTaskLine";
 
 // All command registrations. Kept out of main.ts so onload stays thin wiring.
 export function registerCommands(plugin: GtdFlowPlugin): void {
@@ -89,6 +90,23 @@ export function registerCommands(plugin: GtdFlowPlugin): void {
       if (task) editor.setLine(lineNo, plugin.toggleTagLine(raw, task.tags, plugin.settings.importantTag));
     },
   });
+
+  // reordering happens in the note; Next Actions lists tasks in line order
+  for (const dir of ["up", "down"] as const) {
+    add({
+      id: `move-task-${dir}`,
+      name: `Move task ${dir}`,
+      editorCallback: (editor) => {
+        const lineNo = editor.getCursor().line;
+        const lines = editor.getValue().split("\n");
+        const move = moveTaskBlock(lines, lineNo, dir);
+        if (!move) return;
+        const endCh = lines[move.to].length;
+        editor.replaceRange(move.text, { line: move.from, ch: 0 }, { line: move.to, ch: endCh });
+        editor.setCursor({ line: move.cursorLine, ch: editor.getCursor().ch });
+      },
+    });
+  }
 
   add({
     id: "project-status-block",

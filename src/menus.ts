@@ -5,6 +5,7 @@ import { completeTask } from "./completeTask";
 import { EditTaskModal } from "./editTaskModal";
 import { NewProjectModal } from "./newProjectModal";
 import { lastContextClick } from "./contextClick";
+import { moveTaskBlock } from "./moveTaskLine";
 
 // Context menus: the file-explorer menu (convert / new project) and the
 // editor task-line menu (edit / complete / drop / important / someday).
@@ -42,6 +43,24 @@ export function registerMenus(plugin: GtdFlowPlugin): void {
       menu.addItem((i) =>
         i.setTitle("Edit task").setIcon("pencil").onClick(() => new EditTaskModal(app, plugin, path, task).open())
       );
+      for (const dir of ["up", "down"] as const) {
+        const lines = editor.getValue().split("\n");
+        const move = moveTaskBlock(lines, lineNo, dir);
+        if (!move) continue;
+        menu.addItem((i) =>
+          i
+            .setTitle(`Move task ${dir}`)
+            .setIcon(dir === "up" ? "arrow-up" : "arrow-down")
+            .onClick(() => {
+              editor.replaceRange(
+                move.text,
+                { line: move.from, ch: 0 },
+                { line: move.to, ch: lines[move.to].length }
+              );
+              editor.setCursor({ line: move.cursorLine, ch: 0 });
+            })
+        );
+      }
       if (task.done) return;
       menu.addItem((i) =>
         i.setTitle("Complete task").setIcon("check").onClick(() => void completeTask(app, path, task))
