@@ -165,6 +165,18 @@ The Tasks plugin is **optional**. GTD Flow works standalone; nothing in it depen
 - **Right-click the projects folder** in the file explorer → **New GTD project** (same modal). Right-click any non-project note → **Convert to GTD project**: adds the full frontmatter (keeping existing keys) and moves the note into the projects folder. Also available as the command **Convert current note to project**.
 - **Edit project properties** — command on a project note (also a "Properties" button on Review cards): modal with status and flow dropdowns, review-interval, a last-reviewed date picker, a **page color** picker, and a **banner image** (vault path or URL).
 
+### Stalled and stale projects
+
+A project is **stalled** when it's active but offers nothing you could do right now, and **stale** when nothing in it has been closed for a while. Both are what a weekly review is meant to catch, and both were previously invisible: Next Actions hides a project with no available task — exactly when it needs attention.
+
+- **Next Actions** now ends with a **Stalled** section naming each stuck project and why: *no tasks yet*, *every task closed — finish or drop the project?*, *every task parked as someday*, *nothing starts until 2026-08-14*, or *open tasks are all blocked*.
+- **Review** cards show the same reason instead of the old generic warning.
+- The command **Update stalled project markers** writes `#stalled` into each affected project's frontmatter (plus a `stalled-reason:` line) and removes it from projects that have recovered — so stuck work shows up in search, Dataview, the graph and the file explorer, not only inside GTD Flow. Only notes whose marker actually changes are touched.
+- **Staleness** is measured from the most recent ✅ or ❌ date in the project — real progress, not file edits. A project with nothing ever closed counts from the note's creation date, so a brand-new project isn't flagged on day one. Set the window with **Call a project stale after (days)** (default 30; `0` disables it, and stalled projects are still marked).
+- **Keep stalled tags up to date automatically** re-runs the marking as the vault changes (debounced). It's **off by default** because it writes to your project notes — leave it off if you'd rather mark deliberately, e.g. at the start of a review.
+
+Non-active projects are never marked: on-hold, someday, completed and dropped are deliberate states, not stalls.
+
 ### Explorer-matched project colors
 
 If the **Color Folders and Files** plugin is installed, GTD Flow renders project names in its views (Next Actions headers, Forecast/Perspectives project labels, Review cards) as pills using your explorer colors — exact file styles win, then folder styles per their apply-to-files/subfolders rules. Toggle via **Match file-explorer colors** (the setting only appears when that plugin is present).
@@ -331,6 +343,7 @@ src/
   taskRow.ts         shared row pieces for the listing surfaces: open-at-line,
                      flag/important markers, due badge
   moveTaskLine.ts    pure: move a task + its subtree past a sibling, within its group
+  stalled.ts         pure: why a project is stalled, and how long since real progress
   commands.ts        all command registrations
   menus.ts           file-explorer menu + editor task-line context menu
   integrations.ts    ribbon, status bar, code block, suggester, protocol handler,

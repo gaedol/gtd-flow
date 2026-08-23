@@ -109,6 +109,19 @@ export function registerCommands(plugin: GtdFlowPlugin): void {
   }
 
   add({
+    id: "mark-stalled-projects",
+    name: "Update stalled project markers",
+    callback: async () => {
+      const { marked, cleared } = await plugin.markStalledProjects();
+      new Notice(
+        marked || cleared
+          ? `Stalled: ${marked} marked, ${cleared} cleared`
+          : "No stalled projects — nothing to change"
+      );
+    },
+  });
+
+  add({
     id: "project-status-block",
     name: "Insert / update project status block",
     checkCallback: (checking) => {

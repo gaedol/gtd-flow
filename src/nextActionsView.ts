@@ -10,6 +10,7 @@ import { applySavedOrder } from "./ordering";
 import { makeReorderable } from "./dragReorder";
 import { projectNotes, inboxTasks } from "./selectors";
 import { openTaskLine, renderMarkers, renderDueBadge } from "./taskRow";
+import { stalledState } from "./stalled";
 import { Project, Task } from "./types";
 
 export const NEXT_ACTIONS_VIEW = "gtd-next-actions";
@@ -61,6 +62,7 @@ export class NextActionsView extends ItemView {
 
     this.renderInbox(root);
     this.renderFlagged(root, projects, today);
+    this.renderStalled(root, today);
 
     if (projects.length === 0) {
       root.createDiv({ text: "No available tasks.", cls: "gtd-empty" });
@@ -120,6 +122,26 @@ export class NextActionsView extends ItemView {
           void moveTask(this.app, inboxPath, t, p.path, this.plugin.settings.insertPosition);
         }).open();
       };
+    }
+  }
+
+  // projects with nothing available are filtered out of the list above, which is
+  // exactly when they need attention — so name them here
+  private renderStalled(root: HTMLElement, today: string) {
+    const stalled = this.projectNotes()
+      .map((p) => ({ project: p, state: stalledState(p, today) }))
+      .filter((s): s is { project: Project; state: NonNullable<ReturnType<typeof stalledState>> } => !!s.state);
+    if (stalled.length === 0) return;
+    const section = root.createDiv({ cls: "gtd-project gtd-stalled" });
+    section.createDiv({ cls: "gtd-project-name", text: `Stalled (${stalled.length})` });
+    for (const { project, state } of stalled) {
+      const row = section.createDiv({ cls: "gtd-task gtd-stalled-row" });
+      const icon = row.createSpan({ cls: "gtd-stalled-icon", attr: { "aria-label": "Stalled" } });
+      setIcon(icon, "alert-triangle");
+      const name = row.createSpan({ cls: "gtd-task-text", text: project.name });
+      this.plugin.pillFor(name, project.path);
+      name.onclick = () => void openTaskLine(this.app, project.path);
+      row.createSpan({ cls: "gtd-stalled-reason", text: state.reason });
     }
   }
 

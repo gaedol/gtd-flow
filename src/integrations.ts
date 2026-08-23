@@ -78,6 +78,15 @@ export function registerIntegrations(plugin: GtdFlowPlugin): void {
     statusBar.toggleClass("gtd-statusbar-alert", n > 0);
   });
 
+  // opt-in: keep the markers current as the vault changes. Debounced, because
+  // marking writes to project notes and the index fires on every edit.
+  let markTimer: number | undefined;
+  plugin.index.on("changed", () => {
+    if (!plugin.settings.autoMarkStalled) return;
+    window.clearTimeout(markTimer);
+    markTimer = window.setTimeout(() => void plugin.markStalledProjects(), 5000);
+  });
+
   plugin.index.on("changed", () => plugin.applyProjectStyles());
   plugin.registerEvent(app.workspace.on("layout-change", () => plugin.applyProjectStyles()));
   plugin.registerEvent(app.workspace.on("active-leaf-change", () => plugin.applyProjectStyles()));

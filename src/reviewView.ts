@@ -6,6 +6,7 @@ import { todayISO } from "./dates";
 import { Project } from "./types";
 import { projectNotes } from "./selectors";
 import { openTaskLine } from "./taskRow";
+import { stalledState } from "./stalled";
 
 export const REVIEW_VIEW = "gtd-review";
 
@@ -64,10 +65,11 @@ export class ReviewView extends ItemView {
       p.lastReviewed ? `last reviewed ${p.lastReviewed}` : "never reviewed",
     ];
     card.createDiv({ cls: "gtd-review-meta", text: info.join(" · ") });
-    if (open.length > 0) {
-      card.createDiv({ cls: "gtd-review-next", text: "Next: " + (avail[0]?.text ?? "(nothing available)") });
+    const stalled = stalledState(p, todayISO());
+    if (stalled) {
+      card.createDiv({ cls: "gtd-review-next gtd-review-stalled", text: `Stalled — ${stalled.reason}` });
     } else {
-      card.createDiv({ cls: "gtd-review-next gtd-review-stalled", text: "No open tasks — complete or drop?" });
+      card.createDiv({ cls: "gtd-review-next", text: "Next: " + (avail[0]?.text ?? "(nothing available)") });
     }
 
     const btn = card.createEl("button", { cls: "gtd-review-btn", text: "Mark reviewed" });

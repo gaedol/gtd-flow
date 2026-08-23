@@ -14,6 +14,7 @@ import { parseTaskLine, parseProject } from "./parser";
 import type { Task, Project } from "./types";
 import { projectNotes, taskContainers } from "./selectors";
 import { toggleTagLine, checkboxCharOf } from "./taskWrite";
+import { attentionReason } from "./stalled";
 import { completeTask, setTaskState } from "./completeTask";
 import { checkboxClickAction } from "./clickCycle";
 import { ReasonModal } from "./reasonModal";
@@ -72,6 +73,47 @@ export default class GtdFlowPlugin extends Plugin {
     registerCommands(this);
     registerMenus(this);
     registerIntegrations(this);
+  }
+
+  // Write (or clear) the stalled tag in each active project's frontmatter, so a
+  // stuck project is visible in search, the explorer and the graph — not just in
+  // GTD Flow's views. Only touches notes whose marker actually changes.
+  async markStalledProjects(): Promise<{ marked: number; cleared: number }> {
+    const tag = this.settings.stalledTag;
+    const today = todayISO();
+    let marked = 0;
+    let cleared = 0;
+    for (const p of this.projectNotes()) {
+      const file = this.app.vault.getFileByPath(p.path);
+      if (!file) continue;
+      // a project that has never closed anything counts from the note's creation
+      const since = new Date(file.stat.ctime).toISOString().slice(0, 10);
+      const reason = attentionReason(p, today, this.settings.staleAfterDays, since);
+      let changed = false;
+      await this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
+        const raw = fm["tags"];
+        const tags = Array.isArray(raw)
+          ? raw.map(String)
+          : typeof raw === "string"
+            ? raw.split(/[,\s]+/).filter(Boolean)
+            : [];
+        const has = tags.includes(tag);
+        if (reason && !has) {
+          fm["tags"] = [...tags, tag];
+          changed = true;
+        } else if (!reason && has) {
+          const rest = tags.filter((t) => t !== tag);
+          if (rest.length) fm["tags"] = rest;
+          else delete fm["tags"];
+          changed = true;
+        }
+        // keep the human-readable why alongside the tag
+        if (reason) fm["stalled-reason"] = reason;
+        else if (fm["stalled-reason"] !== undefined) delete fm["stalled-reason"];
+      });
+      if (changed) reason ? marked++ : cleared++;
+    }
+    return { marked, cleared };
   }
 
   // real project notes only (inbox excluded)

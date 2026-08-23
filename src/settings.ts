@@ -11,6 +11,9 @@ export interface GtdSettings {
   flagTag: string;
   importantTag: string;
   somedayTag: string;
+  stalledTag: string;
+  staleAfterDays: number;
+  autoMarkStalled: boolean;
   archiveAfterDays: number;
   archiveFolder: string;
   perspectives: Perspective[];
@@ -38,6 +41,9 @@ export const DEFAULT_SETTINGS: GtdSettings = {
   flagTag: "flag",
   importantTag: "important",
   somedayTag: "someday",
+  stalledTag: "stalled",
+  staleAfterDays: 30,
+  autoMarkStalled: false,
   archiveAfterDays: 7,
   archiveFolder: "GTD/Archive",
   perspectives: DEFAULT_PERSPECTIVES,
@@ -73,6 +79,9 @@ export class GtdSettingTab extends PluginSettingTab {
       { name: "Inbox note", desc: "Note where quick-captured tasks are appended.", control: { type: "file", key: "inboxNote" } },
       { name: "Flag tag", desc: "Tag (without #) marking a task as flagged.", control: { type: "text", key: "flagTag" } },
       { name: "Important tag", desc: "Tag (without #) marking a task as important (star).", control: { type: "text", key: "importantTag" } },
+      { name: "Stalled tag", desc: "Tag (without #) written into a project's frontmatter when it stalls, so it shows up in search, the explorer and the graph.", control: { type: "text", key: "stalledTag" } },
+      { name: "Call a project stale after (days)", desc: "Days with nothing completed or dropped before a project counts as stale. 0 disables the staleness check (stalled projects are still marked).", control: { type: "number", key: "staleAfterDays", min: 0 } },
+      { name: "Keep stalled tags up to date automatically", desc: "Re-mark projects whenever the index changes. Off by default — it writes to your project notes; leave it off to only mark when you run the command.", control: { type: "toggle", key: "autoMarkStalled" } },
       { name: "Someday tag", desc: "Tag (without #) that parks a single task as someday/maybe.", control: { type: "text", key: "somedayTag" } },
       {
         name: "Match file-explorer colors",
@@ -130,9 +139,14 @@ export class GtdSettingTab extends PluginSettingTab {
   // (someday-tag refresh, index rebuild) still run; normalize tag inputs
   async setControlValue(key: string, value: unknown): Promise<void> {
     const s = this.plugin.settings as unknown as Record<string, unknown>;
-    if ((key === "flagTag" || key === "importantTag" || key === "somedayTag") && typeof value === "string") {
-      const fallback = key === "somedayTag" ? "someday" : key === "importantTag" ? "important" : "flag";
-      value = value.replace(/^#/, "") || fallback;
+    const tagKeys: Record<string, string> = {
+      flagTag: "flag",
+      importantTag: "important",
+      somedayTag: "someday",
+      stalledTag: "stalled",
+    };
+    if (key in tagKeys && typeof value === "string") {
+      value = value.replace(/^#/, "") || tagKeys[key];
     }
     if ((key === "dayStart" || key === "dayEnd") && typeof value === "string" && !/^\d{2}:\d{2}$/.test(value)) {
       return; // ignore invalid times, keep previous value
@@ -188,6 +202,39 @@ export class GtdSettingTab extends PluginSettingTab {
       .addText((t) =>
         t.setValue(this.plugin.settings.importantTag).onChange(async (v) => {
           this.plugin.settings.importantTag = v.replace(/^#/, "") || "important";
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Stalled tag")
+      .setDesc("Tag (without #) written into a project's frontmatter when it stalls, so it shows up in search, the explorer and the graph.")
+      .addText((t) =>
+        t.setValue(this.plugin.settings.stalledTag).onChange(async (v) => {
+          this.plugin.settings.stalledTag = v.replace(/^#/, "") || "stalled";
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Call a project stale after (days)")
+      .setDesc("Days with nothing completed or dropped before a project counts as stale. 0 disables the staleness check.")
+      .addText((t) =>
+        t.setValue(String(this.plugin.settings.staleAfterDays)).onChange(async (v) => {
+          const n = parseInt(v, 10);
+          if (!isNaN(n) && n >= 0) {
+            this.plugin.settings.staleAfterDays = n;
+            await this.plugin.saveSettings();
+          }
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Keep stalled tags up to date automatically")
+      .setDesc("Re-mark projects whenever the index changes. Off by default — it writes to your project notes.")
+      .addToggle((t) =>
+        t.setValue(this.plugin.settings.autoMarkStalled).onChange(async (v) => {
+          this.plugin.settings.autoMarkStalled = v;
           await this.plugin.saveSettings();
         })
       );
