@@ -9,9 +9,9 @@ Structured GTD for Obsidian: sequential/parallel projects, defer dates, next-act
 | Project | One note in the projects folder with `type: project` frontmatter |
 | Sequential / parallel | `flow:` frontmatter key |
 | Defer date | 🛫 start date (Tasks-plugin syntax) |
-| Due date | 📅 |
+| Due date | 📅, or a `#YYYY-MM-DD` tag |
 | Repeat | 🔁 — completing from a GTD Flow view writes the next occurrence |
-| Inbox | A single inbox note collecting quick captures |
+| Inbox | Open tasks without a due date in any non-project note (or, in single-note mode, one inbox note) |
 | Next action | First *available* task of each active project |
 | Review | `review-interval` / `last-reviewed` frontmatter + Review view |
 
@@ -22,7 +22,8 @@ A task is **available** when its project is `active`, its defer date (if any) ha
 1. Build (`npm install && npm run build`) and link/copy the folder into `<vault>/.obsidian/plugins/gtd-flow/` (needs `manifest.json`, `main.js`, `styles.css`).
 2. Enable **GTD Flow** in Settings → Community plugins.
 3. In the plugin settings, set at minimum:
-   - **Projects folder** (default `GTD/Projects`) and **Inbox note** (default `GTD/Inbox.md`)
+   - **Projects folder** (default `GTD/Projects`)
+   - **Inbox**: *Every note* (default) or *Single note*, plus **Ignored folders** (every-note mode) or **Inbox note** (single-note mode, default `GTD/Inbox.md`). See [Inbox](#inbox).
    - **Forecast horizon** in days (default 7)
    - **Flag tag** (default `flag`) and **Someday tag** (default `someday`)
    - **Archive tasks done for (days)** (default 7) and **Archive folder** (default `GTD/Archive`)
@@ -45,6 +46,8 @@ last-reviewed: 2026-06-10
 ```
 
 Task lines use [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so both plugins can read the same files: 🛫 defer/start, 📅 due, ✅ completion date, 🔁 repeat rule, `#tags`. GTD Flow adds ⏱ for estimated duration (`⏱ 30m`, `⏱ 2h`, `⏱ 1h30m`) and ⏰ for a time of day (`⏰ 14:30`) — its own markers, ignored by Tasks. A ⏳ scheduled date counts as the defer date when no 🛫 is present; ➕ created dates and priority emojis are recognized and ignored.
+
+A tag shaped like a date — `#2026-10-15` — is read as the due date, so you can date a task just by typing it. An explicit 📅 wins when both are present. The date tag isn't listed among the task's tags, 🔁 repeats advance it like a 📅 date, and saving the task from the **Edit task** modal rewrites it as `📅 2026-10-15`. The Tasks plugin doesn't understand date tags, so its queries won't see that due date.
 
 ### Action groups (nesting)
 
@@ -106,9 +109,22 @@ Tags are your contexts, and they nest with `/`: `#home/plumbing`, `#office/sales
 
 Tag a task with `#flag` (configurable in settings) to flag it: it gets an orange flag icon in all views and appears in a **Flagged** section at the top of Next Actions (flagged *and available* tasks across projects). The flag tag is hidden from the tag list in rows.
 
+## Inbox
+
+GTD Flow has two inbox modes, chosen with the **Inbox** setting.
+
+**Every note** (default). Any note that isn't a project is part of your inbox: its open tasks *without a due date* show in the Next Actions inbox section, grouped by note, until you file them. Tasks that already have a 📅 date (or a `#YYYY-MM-DD` tag) skip the inbox. Like every other task, they appear in the Forecast, the overdue badge, notifications and the Perspectives. Expect those surfaces to be busier than with a single inbox: every dated checkbox in the vault counts.
+
+- **Capture** goes to **today's daily note**, using the folder, date format and template from the core Daily Notes plugin (or `YYYY-MM-DD.md` at the vault root when those aren't set). The note is created when it doesn't exist yet.
+- **Filing a task** into a project moves it there with a `^block-id` and replaces the original line with a plain bullet linking to it, e.g. `- Call Sam → [[Hiring#^gtdab12cd|Hiring]]`. Your daily or meeting note keeps a record of the item and where it went, and the bullet is no longer a task, so it leaves the inbox.
+- **Checkboxes in inbox notes stay plain Obsidian checkboxes**: GTD Flow's click handling (✅ dates, 🔁 next occurrences, in-progress cycling) and the right-click task menu only apply in project notes. Completing from the inbox section in Next Actions still records ✅.
+- **Ignored folders** are never indexed. The archive folder and the core Templates folder are always ignored, so archived projects and template checklists don't show up.
+
+**Single note.** The classic setup: only the **Inbox note** is the inbox, captures land there, filing a task cuts it out of the inbox note, and inbox tasks show in the inbox section whether or not they have a due date. As in every-note mode, GTD Flow's checkbox handling and right-click menu apply only in project notes, not in the inbox note.
+
 ## Task auto-suggest
 
-On task lines in project notes and the inbox, typing at the end of the line opens an inline menu (Tasks-style):
+On task lines in any note GTD Flow indexes (projects and inbox notes), typing at the end of the line opens an inline menu (Tasks-style):
 
 - type a word start → insert **🛫 defer / 📅 due / 🔁 repeat / ⏳ scheduled / ⏱ duration**. Each accepts aliases: defer = `start`/`hide`/`available`, due = `deadline`/`by`, repeat = `recur`/`every`, scheduled = `plan`/`planned`, duration = `time`/`estimate`/`est`
 - after 🛫/📅/⏳ → date choices with the resolved date shown: `today`, `tomorrow`, weekday names (`Thursday`, `Monday`, …, next occurrence), `end of week` (Sunday), `next week` (Monday), `in 2 weeks`, `end of month`, `in a month`; type to filter (e.g. "thu"), or just type `YYYY-MM-DD`. The stored value is always a plain ISO date.
@@ -154,12 +170,12 @@ The Tasks plugin is **optional**. GTD Flow works standalone; nothing in it depen
 ## Usage
 
 - **Ribbon icon (list-checks)** or command **Open next actions** — sidebar view of available tasks grouped by project. Checking a box writes `[x]` + ✅ date into the note; in sequential projects the next task appears automatically. Click a task to jump to its line; due badges turn orange (today) or red (overdue). Project sections sort per the **Sort projects in Next Actions** setting: alphabetical, by folder (explorer-like path order), or manual — manual shows a drag grip on each project header, and new projects slot into their default position within your arrangement.
-- **Ribbon icon (plus-circle)** or command **Capture task** — modal with task text (Enter submits), optional defer/due dates, and a target dropdown (Inbox or any active project). Appends the formatted task line without leaving your current note; the inbox note is created on demand.
-- **Inbox section** (top of the sidebar when non-empty) — folder icon on each task opens a project picker and moves the task line, metadata intact, to the end of the chosen project note. Inbox tasks with a 📅 due date also appear in the Forecast, the overdue badge, notifications, and the Perspectives (so a due-but-unfiled task can't hide) — the inbox behaves like an always-active parallel project for date purposes, while still being triaged from its own section.
-- **Move task under cursor to project** — same picker for the task line under the cursor in any note; also works project → project. Captured/moved tasks land at the top or bottom of the list per the **Insert captured/moved tasks at** setting, always above `## Archive`.
+- **Ribbon icon (plus-circle)** or command **Capture task** — modal with task text (Enter submits), optional defer/due dates, and a target dropdown (today's daily note — or the inbox note in single-note mode — or any active project). Appends the formatted task line without leaving your current note; the daily note or inbox note is created on demand.
+- **Inbox section** (top of the sidebar when non-empty) — inbox tasks grouped by note; click a note's name to open it, its chevron to fold it, or a task to jump to it in context. The folder icon on each task opens a project picker and moves the task, metadata intact, into the chosen project note (see [Inbox](#inbox) for the link it leaves behind).
+- **Move task under cursor to project** — same picker for the task line under the cursor in any note; also works project → project (only moves out of a non-project note leave a link). Captured/moved tasks land at the top or bottom of the list per the **Insert captured/moved tasks at** setting, always above `## Archive`.
 - **Edit task** — pencil icon on rows in Next Actions (incl. inbox), or command **Edit task under cursor**: modal for text, defer/due dates, ⏱ duration, 🔁 rule, and flag. Rewrites the line in place, preserving indent, other tags, and completion state.
 - **Reordering next actions** — Next Actions lists each project's tasks in the order they appear in the note, so you reorder them by reordering the lines. The commands **Move task up** / **Move task down** (also in the task context menu, and worth a hotkey) move the task *with its sub-tasks* past its sibling, and won't let it jump out of its action group or across a heading — unlike Obsidian's built-in move-line, which would separate a parent from its children.
-- **Right-click a task line** in a project note or the inbox (long-press on mobile) for a context menu: **Edit task**, **Complete task** (writes ✅ and the 🔁 next occurrence), **Drop task…** (prompts for a 💬 reason when that setting is on), **Mark/Remove important**, and **Mark/Remove someday**.
+- **Right-click a task line** in a project note (long-press on mobile) for a context menu: **Edit task**, **Complete task** (writes ✅ and the 🔁 next occurrence), **Drop task…** (prompts for a 💬 reason when that setting is on), **Mark/Remove important**, and **Mark/Remove someday**.
 - **Checkbox clicks in your notes** complete through GTD Flow, so ticking a task in a project note (Live Preview or Reading view) writes ✅ and inserts the 🔁 next occurrence — the same as completing from a view, no Tasks plugin required. Turn off via **Handle checkbox clicks in notes**. With **Click cycles to-do → in-progress → done** on, the first click marks the task in-progress `[/]` and the next completes it.
 - **New project** — command opening a name + flow modal; creates the note with the complete frontmatter (every key present, `last-reviewed` empty), so Obsidian's Properties panel shows all fields ready to fill, and opens it.
 - **Right-click the projects folder** in the file explorer → **New GTD project** (same modal). Right-click any non-project note → **Convert to GTD project**: adds the full frontmatter (keeping existing keys) and moves the note into the projects folder. Also available as the command **Convert current note to project**.
@@ -188,7 +204,7 @@ If the **Color Folders and Files** plugin is installed, GTD Flow renders project
 - **Ribbon icon (calendar-clock)** or command **Open forecast** — day-by-day view over the configured horizon: due tasks (checkbox, red when overdue and surfaced under Today) and deferred tasks becoming available (play icon). Within each day, items default to **overdue → flagged → the rest**, and you can **drag the grip handle** to reorder them however you like (mouse or touch). The arrangement is saved per-day; reordering tags the moved tasks with an invisible `^id` so their place survives edits, and new tasks drop into their default slot. (To move a task to a different day, change its due date.) Fixed-schedule 🔁 tasks also show a dimmed, non-actionable **next-occurrence hint** on the upcoming day when it falls inside the horizon, so you can see the rhythm ahead; click it to jump to the task.
 - **Ribbon icon (telescope)** or command **Open perspectives** — saved filtered views. Each perspective combines filters (available-only, flagged, important, tag, project-name substring, due within N days) with a grouping (by project, tag, or due date); a dropdown switches between them. Define perspectives in settings (each has a "someday" toggle to draw from someday projects, and the tag filter is hierarchy-aware); each also has a "done" toggle (list completed/dropped tasks instead of open ones). Defaults are "Due soon", "Flagged", "Important", "Someday", and "Done". Within each group, items default to overdue → flagged → the rest and can be **drag-reordered** with the grip handle (saved per perspective+group), same as the Forecast.
 - **Completing a 🔁 repeating task from any GTD Flow view** inserts the next occurrence above the completed line: all dates advance by the interval (`every day/week/month/year`, optional count: `every 2 weeks`); with `when done` the next due date is completion + interval and other dates keep their relative offsets. Recurrence requires at least one date on the task.
-- **Capture from outside Obsidian** via URI: `obsidian://gtd-capture?vault=<name>&text=Buy+milk&due=2026-06-20&defer=2026-06-15` appends to the inbox; without `text` it opens the capture modal.
+- **Capture from outside Obsidian** via URI: `obsidian://gtd-capture?vault=<name>&text=Buy+milk&due=2026-06-20&defer=2026-06-15` appends to today's daily note (the inbox note in single-note mode); without `text` it opens the capture modal.
 - **Ribbon icon (gantt-chart)** or command **Open timeline** — Mermaid Gantt charts with a Day/Week/Month switcher. Week/month: one bar per open task spanning defer → due (single date = 1-day bar; overdue bars surface red on today; available tasks highlighted), one section per project. Day: only the tasks that actually belong to today — overdue, due today, or deferred-until-today — stacked from **Day starts at** (default 09:00) in that order, each sized by its ⏱ duration (or the **Default task duration** setting, 30 min), with the project in parentheses. Available-but-undated backlog tasks are *not* shown (that's what Next Actions is for). All three charts always span their full window (day = **Day starts/ends at**, 09:00–22:00 by default), with ticks every 3 h / day / week respectively. Wikilinks in task text are shown as their display text and long labels are truncated.
 ### Done queries (what got closed)
 
@@ -284,7 +300,7 @@ limit: 10
 - `from`/`to` always beat `range`, so leaving a stale `range:` line above explicit dates is harmless.
 - The block is plain text in your note: it syncs, versions, and can be edited on mobile like anything else. With the plugin disabled it simply shows as a code block.
 
-**Export done report** — command opening a modal (period, project filter, grouping, dropped/archived toggles) that writes a static note next to your inbox, e.g. `Done 2026-07-06 to 2026-07-12.md`. It's plain markdown checklist lines, so it stays readable with the plugin disabled — good for sharing a "what I shipped" summary or keeping a frozen record after a review.
+**Export done report** — command opening a modal (period, project filter, grouping, dropped/archived toggles) that writes a static note next to the configured inbox note (in the same folder, even in every-note mode), e.g. `Done 2026-07-06 to 2026-07-12.md`. It's plain markdown checklist lines, so it stays readable with the plugin disabled — good for sharing a "what I shipped" summary or keeping a frozen record after a review.
 
 - **Ribbon icon (eye)** or command **Open review** — queue of active projects whose `last-reviewed + review-interval` has passed (never-reviewed projects with an interval are always due). Each card shows open/available counts, the next action, a stalled warning when no tasks remain, and a **Mark reviewed** button that writes today's date into `last-reviewed`.
 
@@ -297,15 +313,18 @@ src/
   types.ts           the shared Task / Project shapes
   parser.ts          pure: markdown line / frontmatter → Task, Project
   engine.ts          pure: availability, next action, forecast, review-due, intervals
-  taskIndex.ts       in-memory index of project notes + inbox (the inbox is held as a
-                     synthesized project), refreshed on vault events; exposes snapshot()
+  taskIndex.ts       in-memory index of project notes + inbox notes (each held as a
+                     synthesized project of kind "inbox"), refreshed on vault events;
+                     exposes snapshot(); every-note or single-note scope
   selectors.ts       pure: which containers each surface sees (taskContainers = incl.
-                     inbox, projectNotes = excl., inboxTasks)
+                     inbox notes, projectNotes = excl., inboxGroups)
+  dailyNoteFormat.ts pure: daily-note path + template expansion
+  dailyNote.ts       reads core Daily Notes settings, creates today's note for capture
   taskWrite.ts       pure: the one place task-line surgery lives (set status char,
                      complete + 🔁 next line, set state with ✅/❌/💬, toggle a tag)
   completeTask.ts    task-line writes to disk via vault.process, with stale-line guard
   moveTask.ts        move between notes + fuzzy project picker modal
-  nextActionsView.ts sidebar ItemView (next actions + inbox), re-renders on index "changed" events
+  nextActionsView.ts sidebar ItemView (next actions + inbox by note), re-renders on index "changed" events
   forecastView.ts    sidebar ItemView, day-grouped due / becoming-available items
   reviewView.ts      sidebar ItemView, projects due for review + mark-reviewed
   perspectives.ts    pure: perspective filters + grouping

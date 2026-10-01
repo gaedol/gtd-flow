@@ -2,7 +2,7 @@
 
 **GTD-style project and task management for [Obsidian](https://obsidian.md), built on plain Markdown.**
 
-GTD Flow covers the whole loop — capture to the inbox, organise into sequential or parallel projects, see what's genuinely next, forecast the week, review on a cadence. There's no hidden database: every task stays an ordinary checklist line in your own notes, so it's greppable, portable, and still readable with the plugin turned off.
+GTD Flow covers the whole loop — capture to today's daily note, triage the open tasks scattered across your notes, organise into sequential or parallel projects, see what's genuinely next, forecast the week, review on a cadence. There's no hidden database: every task stays an ordinary checklist line in your own notes, so it's greppable, portable, and still readable with the plugin turned off.
 
 It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so the two can share the same files.
 
@@ -42,7 +42,7 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 | Contexts | hierarchical tags (`#home/plumbing`), filterable in perspectives |
 | Forecast | Forecast + Timeline views |
 | Review | per-project interval + a review queue |
-| Inbox | a capture note you triage into projects (dated inbox items still show in Forecast) |
+| Inbox | every note that isn't a project: its undated open tasks wait in the inbox until you file them (or, optionally, one dedicated inbox note) |
 
 ## Feature highlights
 
@@ -51,7 +51,8 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 - **Task statuses** — to-do, in-progress `[/]`, done, dropped `[-]` — with **💬 closure reasons**
 - **Edit right in the note** — right-click menu on task lines and checkbox clicks that record ✅ and the 🔁 next occurrence, no Tasks plugin needed
 - **Next Actions**, **Forecast**, **Timeline** (Gantt), **Review**, and **Perspectives** views, with **drag-to-reorder** in Forecast/Perspectives
-- **Quick capture** (modal, command, and URL handler) and **inbox triage** into projects
+- **Quick capture** (modal, command, and URL handler) to today's daily note, and **inbox triage** from any note into projects, leaving a link behind
+- **`#YYYY-MM-DD` date tags** as a quick way to give a task a due date
 - **Repeat-on-complete**, **flags**, **someday/maybe**, **archiving**, an **overdue badge**, and due-task **notifications**
 - **Done queries** — a `gtd-done` block that lists what you closed in any period (presets, project/folder filters), plus an exportable report note
 - **In-note highlighting** of next/available/blocked/deferred/overdue tasks, plus an opt-in per-project **status block**
@@ -65,7 +66,7 @@ Manual install: download `main.js`, `manifest.json`, and `styles.css` from a [re
 
 ## Quick start
 
-1. Set your projects folder and inbox note in the plugin settings (defaults: `GTD/Projects`, `GTD/Inbox.md`).
+1. Set your projects folder in the plugin settings (default `GTD/Projects`). By default every other note is part of your inbox; list folders to leave out under **Ignored folders**, or switch **Inbox** to a single note.
 2. Run **GTD Flow: New project**, or right-click the projects folder → **New GTD project**.
 3. Add tasks as `- [ ]` lines; type at the end of a line for the date/duration/repeat suggester.
 4. Open **Next actions** from the ribbon and start working.
