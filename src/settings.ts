@@ -80,7 +80,23 @@ export class GtdSettingTab extends PluginSettingTab {
     const p = this.plugin;
     return [
       { name: "Projects folder", desc: "Folder containing project notes (one note per project).", control: { type: "folder", key: "projectsFolder" } },
-      { name: "Inbox note", desc: "Note where quick-captured tasks are appended.", control: { type: "file", key: "inboxNote" } },
+      {
+        name: "Inbox",
+        desc: "Every note: tasks in any non-project note are your inbox, and captures go to today's daily note. Single note: only the inbox note below.",
+        control: { type: "dropdown", key: "inboxScope", options: { vault: "Every note", single: "Single note" } },
+      },
+      {
+        name: "Inbox note",
+        desc: "Note where quick-captured tasks are appended.",
+        visible: () => p.settings.inboxScope === "single",
+        control: { type: "file", key: "inboxNote" },
+      },
+      {
+        name: "Ignored folders",
+        desc: "One folder per line. Tasks in these notes never show up in GTD Flow. The archive folder is always ignored.",
+        visible: () => p.settings.inboxScope === "vault",
+        control: { type: "textarea", key: "ignoredFolders", placeholder: "Templates", rows: 3 },
+      },
       { name: "Flag tag", desc: "Tag (without #) marking a task as flagged.", control: { type: "text", key: "flagTag" } },
       { name: "Important tag", desc: "Tag (without #) marking a task as important (star).", control: { type: "text", key: "importantTag" } },
       { name: "Stalled tag", desc: "Tag (without #) written into a project's frontmatter when it stalls, so it shows up in search, the explorer and the graph.", control: { type: "text", key: "stalledTag" } },
@@ -139,6 +155,12 @@ export class GtdSettingTab extends PluginSettingTab {
     ];
   }
 
+  // ignoredFolders is stored as a list but edited as lines of text
+  getControlValue(key: string): unknown {
+    if (key === "ignoredFolders") return this.plugin.settings.ignoredFolders.join("\n");
+    return super.getControlValue(key);
+  }
+
   // route declarative control writes through saveSettings so side effects
   // (someday-tag refresh, index rebuild) still run; normalize tag inputs
   async setControlValue(key: string, value: unknown): Promise<void> {
@@ -155,8 +177,10 @@ export class GtdSettingTab extends PluginSettingTab {
     if ((key === "dayStart" || key === "dayEnd") && typeof value === "string" && !/^\d{2}:\d{2}$/.test(value)) {
       return; // ignore invalid times, keep previous value
     }
+    if (key === "ignoredFolders" && typeof value === "string") value = parseFolderList(value);
     s[key] = value;
     await this.plugin.saveSettings();
+    if (key === "inboxScope") this.refresh(); // show/hide the mode's own settings
   }
 
   // re-render whichever settings surface is active (1.13 definitions or display)
@@ -181,14 +205,40 @@ export class GtdSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Inbox note")
-      .setDesc("Note where quick-captured tasks are appended.")
-      .addText((t) =>
-        t.setValue(this.plugin.settings.inboxNote).onChange(async (v) => {
-          this.plugin.settings.inboxNote = v;
-          await this.plugin.saveSettings();
-        })
+      .setName("Inbox")
+      .setDesc("Every note: tasks in any non-project note are your inbox, and captures go to today's daily note. Single note: only the inbox note below.")
+      .addDropdown((d) =>
+        d.addOption("vault", "Every note")
+          .addOption("single", "Single note")
+          .setValue(this.plugin.settings.inboxScope)
+          .onChange(async (v) => {
+            this.plugin.settings.inboxScope = v as GtdSettings["inboxScope"];
+            await this.plugin.saveSettings();
+            this.refresh();
+          })
       );
+
+    if (this.plugin.settings.inboxScope === "single") {
+      new Setting(containerEl)
+        .setName("Inbox note")
+        .setDesc("Note where quick-captured tasks are appended.")
+        .addText((t) =>
+          t.setValue(this.plugin.settings.inboxNote).onChange(async (v) => {
+            this.plugin.settings.inboxNote = v;
+            await this.plugin.saveSettings();
+          })
+        );
+    } else {
+      new Setting(containerEl)
+        .setName("Ignored folders")
+        .setDesc("One folder per line. Tasks in these notes never show up in GTD Flow. The archive folder is always ignored.")
+        .addTextArea((t) =>
+          t.setPlaceholder("Templates").setValue(this.plugin.settings.ignoredFolders.join("\n")).onChange(async (v) => {
+            this.plugin.settings.ignoredFolders = parseFolderList(v);
+            await this.plugin.saveSettings();
+          })
+        );
+    }
 
     new Setting(containerEl)
       .setName("Flag tag")
@@ -486,4 +536,12 @@ export class GtdSettingTab extends PluginSettingTab {
       })
     );
   }
+}
+
+// one folder per line (commas also accepted); trailing slashes dropped
+export function parseFolderList(text: string): string[] {
+  return text
+    .split(/[\n,]/)
+    .map((f) => f.trim().replace(/\/+$/, ""))
+    .filter(Boolean);
 }
