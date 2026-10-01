@@ -6,7 +6,7 @@ Structured GTD for Obsidian: sequential/parallel projects, defer dates, next-act
 
 | Concept | GTD Flow |
 |---|---|
-| Project | One note in the projects folder with `type: project` frontmatter |
+| Project | A hub note in the projects folder with `type: project` frontmatter, plus any member notes that link to it from `project:` |
 | Sequential / parallel | `flow:` frontmatter key |
 | Defer date | 🛫 start date (Tasks-plugin syntax) |
 | Due date | 📅, or a `#YYYY-MM-DD` tag |
@@ -48,6 +48,25 @@ last-reviewed: 2026-06-10
 Task lines use [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so both plugins can read the same files: 🛫 defer/start, 📅 due, ✅ completion date, 🔁 repeat rule, `#tags`. GTD Flow adds ⏱ for estimated duration (`⏱ 30m`, `⏱ 2h`, `⏱ 1h30m`) and ⏰ for a time of day (`⏰ 14:30`) — its own markers, ignored by Tasks. A ⏳ scheduled date counts as the defer date when no 🛫 is present; ➕ created dates and priority emojis are recognized and ignored.
 
 A tag shaped like a date — `#2026-10-15` — is read as the due date, so you can date a task just by typing it. An explicit 📅 wins when both are present. The date tag isn't listed among the task's tags, 🔁 repeats advance it like a 📅 date, and saving the task from the **Edit task** modal rewrites it as `📅 2026-10-15`. The Tasks plugin doesn't understand date tags, so its queries won't see that due date.
+
+### Projects across several notes
+
+A project can span more than one note. The note with `type: project` is the project's **hub**: it holds the metadata (status, flow, review, color). Any other note joins the project as a **member** by linking to the hub in its frontmatter:
+
+```markdown
+---
+project: "[[Kitchen remodel]]"
+---
+- [ ] Send the contractor the floor plan
+```
+
+Or run **Add current note to a project** and pick the project. Members can live anywhere in the vault, so a meeting note can belong to a project without being moved.
+
+- **Order.** The project's tasks are the hub's, then each member's, with members sorted by note name. In a sequential project that is the order tasks become available, so a member's first task waits for everything open in the hub. Indentation nests tasks only within a note.
+- **Members are project notes.** Checkbox clicks, the right-click task menu, in-note highlighting, the status block and the hub's page color and banner all work in member notes. Their tasks don't appear in the inbox.
+- **New tasks go to the hub.** Capture and **Move task to project** add tasks to the hub note. A task that's already in a member note stays where it is.
+- **Project commands follow the hub.** **Edit project properties** and **Toggle project on hold / active** change the hub's frontmatter even when run from a member. **Archive current project** moves the hub *and every member note* to the archive folder. If a note with the same name is already archived, that note isn't moved and you get a notice. **Archive done tasks in all projects** covers member notes too.
+- **Broken links are flagged.** A member whose `project:` link points at a missing note, or at a note that isn't a project, is listed under **Broken project links** in Next Actions. In every-note mode its tasks also stay in the inbox. A plain-text `project:` value (not a link) only joins a project when it names one exactly, and is otherwise ignored, so an existing `project:` field you use for something else won't raise warnings.
 
 ### Action groups (nesting)
 
@@ -151,7 +170,7 @@ Decorations follow your edits live (they re-parse the buffer, not the saved file
 ## Archiving
 
 - **Archive done tasks in this note / in all projects** — moves fully-done root subtrees (groups move whole, never partially) under a `## Archive` heading at the bottom of the same note, preserving ✅ dates. Only items completed at least *N* days ago move (**Archive tasks done for (days)** setting, default 7; 0 = everything; tasks without a ✅ date always qualify). Done children inside still-open groups stay put. Keep `## Archive` as the last section of the note.
-- **Archive current project (complete + move)** — sets `status: completed` (dropped projects keep `dropped`) and moves the note to the **Archive folder** (default `GTD/Archive`), which removes it from the index and all pickers.
+- **Archive current project (complete + move)** — sets `status: completed` (dropped projects keep `dropped`) and moves the hub and its member notes to the **Archive folder** (default `GTD/Archive`), which removes it from the index and all pickers.
 
 ## Using with the Tasks plugin
 
@@ -316,6 +335,8 @@ src/
   taskIndex.ts       in-memory index of project notes + inbox notes (each held as a
                      synthesized project of kind "inbox"), refreshed on vault events;
                      exposes snapshot(); every-note or single-note scope
+  projectAssembly.ts pure: joins per-note records into projects (hub + members),
+                     finds broken `project:` links
   selectors.ts       pure: which containers each surface sees (taskContainers = incl.
                      inbox notes, projectNotes = excl., inboxGroups)
   dailyNoteFormat.ts pure: daily-note path + template expansion

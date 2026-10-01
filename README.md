@@ -33,7 +33,7 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 
 | Concept | GTD Flow |
 |---|---|
-| Project | A note with `type: project` frontmatter |
+| Project | A note with `type: project` frontmatter, optionally joined by member notes that link to it from `project:` |
 | Sequential / parallel | `flow:` key (overridable per action group) |
 | Defer / Due | 🛫 / 📅 on the task line |
 | Flag | a tag (default `#flag`) |
@@ -46,7 +46,7 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 
 ## Feature highlights
 
-- Sequential/parallel **projects** with nested **action groups**
+- Sequential/parallel **projects** with nested **action groups**, optionally spread across several notes
 - **Defer, due, time of day (⏰), duration (⏱), repeat (🔁)** on tasks, with inline auto-suggest (natural-language dates: "Thursday", "end of week"…)
 - **Task statuses** — to-do, in-progress `[/]`, done, dropped `[-]` — with **💬 closure reasons**
 - **Edit right in the note** — right-click menu on task lines and checkbox clicks that record ✅ and the 🔁 next occurrence, no Tasks plugin needed
