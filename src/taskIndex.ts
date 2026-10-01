@@ -67,12 +67,21 @@ export class TaskIndex extends Events {
     if (this.projects.delete(path)) this.trigger("changed");
   }
 
+  // whether a note at this path falls inside the index's scope, whether or
+  // not it holds tasks yet
+  covers(path: string): boolean {
+    return this.pathInScope(path, this.scope());
+  }
+
   private inScope(file: TFile, scope: IndexScope): boolean {
-    if (file.extension !== "md") return false;
+    return file.extension === "md" && this.pathInScope(file.path, scope);
+  }
+
+  private pathInScope(path: string, scope: IndexScope): boolean {
     if (scope.mode === "single") {
-      return inFolder(file.path, scope.projectsFolder) || file.path === scope.inboxNote;
+      return inFolder(path, scope.projectsFolder) || path === scope.inboxNote;
     }
-    return !scope.ignoredFolders.some((f) => inFolder(file.path, f));
+    return !scope.ignoredFolders.some((f) => inFolder(path, f));
   }
 
   // (re)index one note; returns whether the index changed

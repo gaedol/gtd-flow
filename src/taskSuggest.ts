@@ -6,7 +6,6 @@ import {
   EditorSuggestContext,
   EditorSuggestTriggerInfo,
   TFile,
-  normalizePath,
 } from "obsidian";
 import type GtdFlowPlugin from "./main";
 import { todayISO } from "./dates";
@@ -36,13 +35,9 @@ export class TaskSuggest extends EditorSuggest<Suggestion> {
     super(app);
   }
 
+  // every note GTD Flow indexes, inbox notes included (unlike checkbox handling)
   private inScope(file: TFile | null): boolean {
-    if (!file) return false;
-    const s = this.plugin.settings;
-    return (
-      file.path.startsWith(s.projectsFolder + "/") ||
-      file.path === normalizePath(s.inboxNote)
-    );
+    return !!file && file.extension === "md" && this.plugin.index.covers(file.path);
   }
 
   onTrigger(cursor: EditorPosition, editor: Editor, file: TFile | null): EditorSuggestTriggerInfo | null {

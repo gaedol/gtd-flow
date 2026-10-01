@@ -149,9 +149,10 @@ export default class GtdFlowPlugin extends Plugin {
     return [...projects, ...extra];
   }
 
-  // a note whose tasks GTD Flow manages: a project note or the configured inbox
+  // a note whose checkboxes and task menu GTD Flow manages: project notes only.
+  // Inbox notes keep plain Obsidian checkboxes until their tasks are triaged.
   noteInScope(path: string): boolean {
-    return !!this.index.get(path) || path === normalizePath(this.settings.inboxNote);
+    return !!this.index.get(path);
   }
 
   // decide and perform what a checkbox click does on a source line; returns true
