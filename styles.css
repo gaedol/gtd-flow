@@ -50,6 +50,38 @@
   color: var(--color-cyan);
 }
 
+.gtd-next-actions .gtd-inbox-note-name {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-1);
+  margin-top: var(--size-4-1);
+  font-size: var(--font-ui-small);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.gtd-next-actions .gtd-inbox-note-name:hover {
+  color: var(--text-normal);
+}
+
+.gtd-next-actions .gtd-inbox-chevron {
+  display: inline-flex;
+}
+
+.gtd-next-actions .gtd-inbox-chevron svg {
+  width: var(--icon-xs);
+  height: var(--icon-xs);
+}
+
+.gtd-next-actions .gtd-inbox-note-count {
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller);
+}
+
+.gtd-next-actions .gtd-inbox-note .gtd-task {
+  padding-left: var(--size-4-4);
+}
+
 .gtd-next-actions .gtd-move-btn {
   background: none;
   border: none;

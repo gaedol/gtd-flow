@@ -16,6 +16,8 @@ import { Project, Task } from "./types";
 export const NEXT_ACTIONS_VIEW = "gtd-next-actions";
 
 export class NextActionsView extends ItemView {
+  private collapsedInbox = new Set<string>(); // inbox note paths folded this session
+
   constructor(leaf: WorkspaceLeaf, private plugin: GtdFlowPlugin) {
     super(leaf);
   }
@@ -97,13 +99,36 @@ export class NextActionsView extends ItemView {
   }
 
   private renderInbox(root: HTMLElement) {
-    const groups = inboxGroups(this.plugin.index.snapshot(), this.plugin.settings.inboxScope === "vault");
+    const vault = this.plugin.settings.inboxScope === "vault";
+    const groups = inboxGroups(this.plugin.index.snapshot(), vault);
     const count = groups.reduce((n, g) => n + g.tasks.length, 0);
     if (count === 0) return;
     const section = root.createDiv({ cls: "gtd-project gtd-inbox" });
-    section.createDiv({ cls: "gtd-project-name", text: `Inbox (${count})` });
+    if (!vault) {
+      // a single inbox note: one flat list, as before
+      section.createDiv({ cls: "gtd-project-name", text: `Inbox (${count})` });
+      for (const t of groups[0].tasks) this.renderInboxTask(section, groups[0].note.path, t);
+      return;
+    }
+    const notes = groups.length === 1 ? "1 note" : `${groups.length} notes`;
+    section.createDiv({ cls: "gtd-project-name", text: `Inbox (${count} in ${notes})` });
     for (const { note, tasks } of groups) {
-      for (const t of tasks) this.renderInboxTask(section, note.path, t);
+      const group = section.createDiv({ cls: "gtd-inbox-note" });
+      const collapsed = this.collapsedInbox.has(note.path);
+      const header = group.createDiv({ cls: "gtd-inbox-note-name" });
+      const chevron = header.createSpan({ cls: "gtd-inbox-chevron", attr: { "aria-label": collapsed ? "Expand" : "Collapse" } });
+      setIcon(chevron, collapsed ? "chevron-right" : "chevron-down");
+      chevron.onclick = (e) => {
+        e.stopPropagation(); // fold without opening the note
+        if (collapsed) this.collapsedInbox.delete(note.path);
+        else this.collapsedInbox.add(note.path);
+        this.render();
+      };
+      header.createSpan({ text: note.name });
+      header.createSpan({ cls: "gtd-inbox-note-count", text: String(tasks.length) });
+      header.onclick = () => void openTaskLine(this.app, note.path);
+      if (collapsed) continue;
+      for (const t of tasks) this.renderInboxTask(group, note.path, t);
     }
   }
 
@@ -118,7 +143,8 @@ export class NextActionsView extends ItemView {
       cb.disabled = true;
       await completeTask(this.app, path, t);
     };
-    renderTaskText(row, t.text, this.app, path);
+    const label = renderTaskText(row, t.text, this.app, path);
+    label.onclick = () => void openTaskLine(this.app, path, t.line); // jump to it in context
     this.editButton(row, path, t);
     const btn = row.createEl("button", { cls: "gtd-move-btn", attr: { "aria-label": "Move to project" } });
     setIcon(btn, "folder-input");
