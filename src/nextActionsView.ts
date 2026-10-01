@@ -101,7 +101,7 @@ export class NextActionsView extends ItemView {
 
   private renderInbox(root: HTMLElement) {
     const vault = this.plugin.settings.inboxScope === "vault";
-    const groups = inboxGroups(this.plugin.index.snapshot(), vault);
+    const groups = inboxGroups(this.plugin.index.snapshot(), vault, this.plugin.settings.hideSomedayInNextActions);
     const count = groups.reduce((n, g) => n + g.tasks.length, 0);
     if (count === 0) return;
     const section = root.createDiv({ cls: "gtd-project gtd-inbox" });

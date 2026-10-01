@@ -37,6 +37,18 @@ describe("selectors", () => {
     expect(groups[0].tasks.map((t) => t.text)).toEqual(["call mum"]);
   });
 
+  it("inboxGroups can leave out someday tasks and their subtasks", () => {
+    const notes = [
+      project("N", "Notes/N.md", [
+        task("someday idea", { tags: ["someday"] }),
+        task("idea detail", { indent: 2 }),
+        task("do now"),
+      ], "inbox"),
+    ];
+    expect(inboxGroups(notes, true, true)[0].tasks.map((t) => t.text)).toEqual(["do now"]);
+    expect(inboxGroups(notes, true, false)[0].tasks.length).toBe(3);
+  });
+
   it("inboxGroups is empty when there are no inbox notes", () => {
     expect(inboxGroups([snapshot[0]], true)).toEqual([]);
   });

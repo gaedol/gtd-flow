@@ -9,6 +9,7 @@ export interface GtdSettings {
   inboxScope: "vault" | "single"; // every note is an inbox, or one inbox note
   inboxNote: string; // the inbox in "single" mode
   ignoredFolders: string[]; // never indexed in "vault" mode
+  hideSomedayInNextActions: boolean; // keep #someday tasks out of the Next Actions inbox
   forecastDays: number;
   flagTag: string;
   importantTag: string;
@@ -41,6 +42,7 @@ export const DEFAULT_SETTINGS: GtdSettings = {
   inboxScope: "vault",
   inboxNote: "GTD/Inbox.md",
   ignoredFolders: [],
+  hideSomedayInNextActions: true,
   forecastDays: 7,
   flagTag: "flag",
   importantTag: "important",
@@ -103,6 +105,7 @@ export class GtdSettingTab extends PluginSettingTab {
       { name: "Call a project stale after (days)", desc: "Days with nothing completed or dropped before a project counts as stale. 0 disables the staleness check (stalled projects are still marked).", control: { type: "number", key: "staleAfterDays", min: 0 } },
       { name: "Keep stalled tags up to date automatically", desc: "Re-mark projects whenever the index changes. Off by default — it writes to your project notes; leave it off to only mark when you run the command.", control: { type: "toggle", key: "autoMarkStalled" } },
       { name: "Someday tag", desc: "Tag (without #) that parks a single task as someday/maybe.", control: { type: "text", key: "somedayTag" } },
+      { name: "Hide someday tasks in Next Actions", desc: "Keep tasks tagged with the someday tag (and their subtasks) out of the Next Actions inbox. Project lists never show them.", control: { type: "toggle", key: "hideSomedayInNextActions" } },
       {
         name: "Match file-explorer colors",
         desc: "Color project names in GTD views using your 'Color Folders and Files' styles.",
@@ -299,6 +302,16 @@ export class GtdSettingTab extends PluginSettingTab {
       .addText((t) =>
         t.setValue(this.plugin.settings.somedayTag).onChange(async (v) => {
           this.plugin.settings.somedayTag = v.replace(/^#/, "") || "someday";
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Hide someday tasks in Next Actions")
+      .setDesc("Keep tasks tagged with the someday tag (and their subtasks) out of the Next Actions inbox. Project lists never show them.")
+      .addToggle((t) =>
+        t.setValue(this.plugin.settings.hideSomedayInNextActions).onChange(async (v) => {
+          this.plugin.settings.hideSomedayInNextActions = v;
           await this.plugin.saveSettings();
         })
       );
