@@ -16,6 +16,11 @@ describe("parseRepeat", () => {
 });
 
 describe("nextOccurrenceLine", () => {
+  it("advances a #YYYY-MM-DD due tag, keeping it a tag", () => {
+    const next = nextOccurrenceLine("- [ ] Water plants 🔁 every week #2026-06-12", TODAY);
+    expect(next).toBe("- [ ] Water plants 🔁 every week #2026-06-19");
+  });
+
   it("advances all dates by the interval", () => {
     const next = nextOccurrenceLine("- [ ] Water plants 🔁 every week 🛫 2026-06-10 📅 2026-06-12", TODAY);
     expect(next).toBe("- [ ] Water plants 🔁 every week 🛫 2026-06-17 📅 2026-06-19");

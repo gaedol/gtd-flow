@@ -29,7 +29,8 @@ export function nextDueFromRule(repeat: string, due: string): string | undefined
   return addInterval(due, `${rule.n}${rule.unit}`);
 }
 
-const DATE_FIELD_RE = /([🛫📅⏳]) *(\d{4}-\d{2}-\d{2})/gu;
+// emoji date fields, plus #YYYY-MM-DD due-date tags
+const DATE_FIELD_RE = /([🛫📅⏳] *|#)(\d{4}-\d{2}-\d{2})(?![\w/-])/gu;
 
 function shiftDays(iso: string, days: number): string {
   const d = new Date(iso + "T00:00:00Z");
@@ -63,5 +64,7 @@ export function nextOccurrenceLine(rawLine: string, today: string): string | nul
   } else {
     map = (d) => addInterval(d, interval)!;
   }
-  return rawLine.replace(DATE_FIELD_RE, (_: string, emoji: string, d: string) => `${emoji} ${map(d)}`);
+  return rawLine.replace(DATE_FIELD_RE, (_: string, marker: string, d: string) =>
+    marker === "#" ? `#${map(d)}` : `${marker.trim()} ${map(d)}`
+  );
 }

@@ -22,6 +22,24 @@ describe("parseTaskLine", () => {
     expect(t.line).toBe(3);
   });
 
+  it("reads a #YYYY-MM-DD tag as the due date and keeps it out of tags", () => {
+    const t = parseTaskLine("- [ ] Renew passport #2026-10-15 #errand", 0)!;
+    expect(t.due).toBe("2026-10-15");
+    expect(t.tags).toEqual(["errand"]);
+    expect(t.text).toBe("Renew passport");
+  });
+
+  it("lets an explicit 📅 win over a date tag", () => {
+    const t = parseTaskLine("- [ ] Renew passport #2026-10-15 📅 2026-10-20", 0)!;
+    expect(t.due).toBe("2026-10-20");
+  });
+
+  it("treats tags that merely start with a date as ordinary tags", () => {
+    const t = parseTaskLine("- [ ] Plan #2026-10-15/offsite", 0)!;
+    expect(t.due).toBeUndefined();
+    expect(t.tags).toEqual(["2026-10-15/offsite"]);
+  });
+
   it("parses dropped and in-progress statuses", () => {
     const dropped = parseTaskLine("- [-] Abandon idea ❌ 2026-06-10", 0)!;
     expect(dropped).toMatchObject({ done: true, dropped: true, cancelledOn: "2026-06-10", text: "Abandon idea" });

@@ -12,6 +12,9 @@ const REASON_RE = /💬 *([^🛫📅✅❌⏳➕🔁⏱⏰^]*)/u;
 const DURATION_RE = /⏱ *(?:(\d+)h)? *(?:(\d+)m)?/u;
 const TIME_RE = /⏰ *(\d{1,2}:\d{2})/u;
 const TAG_RE = /#([\w/-]+)/gu;
+// #YYYY-MM-DD: a due date written as a tag; an explicit 📅 wins
+const DATE_TAG_RE = /#(\d{4}-\d{2}-\d{2})(?![\w/-])/u;
+const DATE_TAG_NAME_RE = /^\d{4}-\d{2}-\d{2}$/;
 const BLOCK_ID_RE = /\s\^([A-Za-z0-9-]+)\s*$/;
 
 export function parseTaskLine(line: string, lineNo: number): Task | null {
@@ -25,13 +28,13 @@ export function parseTaskLine(line: string, lineNo: number): Task | null {
     done: ch === "x" || ch === "X" || ch === "-",
     line: lineNo,
     indent: m[1].length,
-    tags: [...body.matchAll(TAG_RE)].map((t) => t[1]),
+    tags: [...body.matchAll(TAG_RE)].map((t) => t[1]).filter((t) => !DATE_TAG_NAME_RE.test(t)),
   };
   if (ch === "-") task.dropped = true;
   if (ch === "/") task.inProgress = true;
   // Tasks-plugin ⏳ scheduled acts as defer when there is no explicit 🛫 start
   task.defer = body.match(DEFER_RE)?.[1] ?? body.match(SCHEDULED_RE)?.[1];
-  task.due = body.match(DUE_RE)?.[1];
+  task.due = body.match(DUE_RE)?.[1] ?? body.match(DATE_TAG_RE)?.[1];
   task.completedOn = body.match(DONE_RE)?.[1];
   task.cancelledOn = body.match(CANCELLED_RE)?.[1];
   const rep = body.match(REPEAT_RE)?.[1].trim();
