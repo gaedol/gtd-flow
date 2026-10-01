@@ -142,6 +142,28 @@ export function registerCommands(plugin: GtdFlowPlugin): void {
     },
   });
   add({
+    id: "add-note-to-project",
+    name: "Add current note to a project",
+    checkCallback: (checking) => {
+      const file = app.workspace.getActiveFile();
+      // not for hubs; a member can be re-pointed at another project
+      if (!file || file.extension !== "md" || plugin.index.get(file.path)?.path === file.path) return false;
+      if (!checking) {
+        new ProjectSuggestModal(app, plugin.projectNotes(), (p) => {
+          const hub = app.vault.getFileByPath(p.path);
+          if (!hub) return;
+          const link = `[[${app.metadataCache.fileToLinktext(hub, file.path, true)}]]`;
+          void app.fileManager
+            .processFrontMatter(file, (fm: Record<string, unknown>) => {
+              fm["project"] = link;
+            })
+            .then(() => new Notice(`${file.basename} is now part of ${p.name}`));
+        }, "Add note to project…").open();
+      }
+      return true;
+    },
+  });
+  add({
     id: "edit-project-properties",
     name: "Edit project properties",
     checkCallback: (checking) => {
@@ -158,9 +180,11 @@ export function registerCommands(plugin: GtdFlowPlugin): void {
     checkCallback: (checking) => {
       const file = app.workspace.getActiveFile();
       const project = file ? plugin.index.get(file.path) : undefined;
-      if (!file || !project) return false;
+      // the hub holds the status, also when toggled from a member note
+      const hub = project ? app.vault.getFileByPath(project.path) : null;
+      if (!hub || !project) return false;
       if (!checking) {
-        void app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
+        void app.fileManager.processFrontMatter(hub, (fm: Record<string, unknown>) => {
           fm["status"] = fm["status"] === "on-hold" ? "active" : "on-hold";
         });
         new Notice(`${project.name}: ${project.status === "on-hold" ? "active" : "on hold"}`);
@@ -184,8 +208,10 @@ export function registerCommands(plugin: GtdFlowPlugin): void {
     callback: async () => {
       let total = 0;
       for (const p of plugin.projectNotes()) {
-        const f = app.vault.getFileByPath(p.path);
-        if (f) total += await plugin.archiveNote(f);
+        for (const path of [p.path, ...(p.members ?? [])]) {
+          const f = app.vault.getFileByPath(path);
+          if (f) total += await plugin.archiveNote(f);
+        }
       }
       new Notice(`Archived ${total} task(s) across all projects`);
     },

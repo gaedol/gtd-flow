@@ -50,9 +50,14 @@ export async function moveTask(
 }
 
 export class ProjectSuggestModal extends FuzzySuggestModal<Project> {
-  constructor(app: App, private projects: Project[], private onChoose: (p: Project) => void) {
+  constructor(
+    app: App,
+    private projects: Project[],
+    private onChoose: (p: Project) => void,
+    placeholder = "Move task to project…"
+  ) {
     super(app);
-    this.setPlaceholder("Move task to project…");
+    this.setPlaceholder(placeholder);
   }
 
   getItems(): Project[] {

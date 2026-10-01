@@ -97,7 +97,7 @@ export function registerIntegrations(plugin: GtdFlowPlugin): void {
     const info = ctx.getSectionInfo(el);
     if (!info) return;
     const lines = info.text.split("\n");
-    const classes = buildLineClasses(project, lines, todayISO());
+    const classes = buildLineClasses(project, lines, todayISO(), ctx.sourcePath);
     const taskLines: number[] = [];
     for (let i = info.lineStart; i <= info.lineEnd; i++) {
       if (classes.has(i) || TASK_LINE_RE.test(lines[i] ?? "")) taskLines.push(i);

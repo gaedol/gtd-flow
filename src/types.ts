@@ -31,5 +31,6 @@ export interface Project {
   lastReviewed?: string; // ISO date
   color?: string; // page tint, hex
   banner?: string; // background image: vault path or URL
+  members?: string[]; // member note paths (their `project:` links here), in task order
   tasks: Task[];
 }

@@ -2,20 +2,27 @@ import { Project, Task } from "./types";
 import { parseTaskLine } from "./parser";
 import { availableTasks, isSomedayTask } from "./engine";
 
-// Re-parses doc lines so decorations track unsaved edits, not the (possibly stale) index
+// Re-parses doc lines so decorations track unsaved edits, not the (possibly stale)
+// index. `path` is the note being shown; when the project spans several notes,
+// its live lines replace that note's indexed tasks, so sequential blocking from
+// the hub or earlier members still applies.
 export function buildLineClasses(
   project: Project,
   lines: string[],
-  today: string
+  today: string,
+  path: string = project.path
 ): Map<number, string> {
   const tasks: Task[] = [];
   lines.forEach((l, i) => {
     const t = parseTaskLine(l, i);
-    if (t) tasks.push(t);
+    if (t) tasks.push({ ...t, path });
   });
-  const live: Project = { ...project, tasks };
-  const avail = new Set(availableTasks(live, today));
-  const next = availableTasks(live, today)[0];
+  const order = [project.path, ...(project.members ?? [])];
+  const all = order.flatMap((p) => (p === path ? tasks : project.tasks.filter((t) => (t.path ?? project.path) === p)));
+  const live: Project = { ...project, tasks: all };
+  const availList = availableTasks(live, today);
+  const avail = new Set(availList);
+  const next = availList[0];
 
   const map = new Map<number, string>();
   tasks.forEach((t, i) => {

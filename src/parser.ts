@@ -65,6 +65,16 @@ function stripMetadata(body: string): string {
     .trim();
 }
 
+// every task line in a note, tagged with the note's path
+export function parseNoteTasks(path: string, content: string): Task[] {
+  const tasks: Task[] = [];
+  content.split("\n").forEach((line, i) => {
+    const t = parseTaskLine(line, i);
+    if (t) tasks.push({ ...t, path });
+  });
+  return tasks;
+}
+
 interface Frontmatter {
   [key: string]: unknown;
 }
@@ -75,11 +85,7 @@ export function parseProject(
   frontmatter: Frontmatter | undefined
 ): Project | null {
   if (frontmatter?.["type"] !== "project") return null;
-  const tasks: Task[] = [];
-  content.split("\n").forEach((line, i) => {
-    const t = parseTaskLine(line, i);
-    if (t) tasks.push({ ...t, path });
-  });
+  const tasks = parseNoteTasks(path, content);
   return {
     path,
     name: path.replace(/.*\//, "").replace(/\.md$/, ""),

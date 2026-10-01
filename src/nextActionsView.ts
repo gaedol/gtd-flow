@@ -65,6 +65,7 @@ export class NextActionsView extends ItemView {
     this.renderInbox(root);
     this.renderFlagged(root, projects, today);
     this.renderStalled(root, today);
+    this.renderBrokenLinks(root);
 
     if (projects.length === 0) {
       root.createDiv({ text: "No available tasks.", cls: "gtd-empty" });
@@ -172,6 +173,23 @@ export class NextActionsView extends ItemView {
       this.plugin.pillFor(name, project.path);
       name.onclick = () => void openTaskLine(this.app, project.path);
       row.createSpan({ cls: "gtd-stalled-reason", text: state.reason });
+    }
+  }
+
+  // member notes whose `project:` link leads nowhere: their tasks would
+  // otherwise silently fall out of the project
+  private renderBrokenLinks(root: HTMLElement) {
+    const broken = this.plugin.index.brokenLinks();
+    if (broken.length === 0) return;
+    const section = root.createDiv({ cls: "gtd-project gtd-stalled" });
+    section.createDiv({ cls: "gtd-project-name", text: `Broken project links (${broken.length})` });
+    for (const b of broken) {
+      const row = section.createDiv({ cls: "gtd-task gtd-stalled-row" });
+      const icon = row.createSpan({ cls: "gtd-stalled-icon", attr: { "aria-label": "Broken project link" } });
+      setIcon(icon, "unlink");
+      const name = row.createSpan({ cls: "gtd-task-text", text: b.name });
+      name.onclick = () => void openTaskLine(this.app, b.path);
+      row.createSpan({ cls: "gtd-stalled-reason", text: b.reason });
     }
   }
 

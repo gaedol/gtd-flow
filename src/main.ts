@@ -1,6 +1,7 @@
 import { MarkdownView, Plugin, TFile, normalizePath, Notice, WorkspaceLeaf, setIcon } from "obsidian";
 import { GtdSettings, DEFAULT_SETTINGS, GtdSettingTab } from "./settings";
-import { TaskIndex } from "./taskIndex";
+import { TaskIndex, memberLink } from "./taskIndex";
+import { assemble, NoteRecord } from "./projectAssembly";
 import { NextActionsView, NEXT_ACTIONS_VIEW } from "./nextActionsView";
 import { ForecastView, FORECAST_VIEW } from "./forecastView";
 import { ReviewView, REVIEW_VIEW } from "./reviewView";
@@ -11,7 +12,7 @@ import { dueOrOverdue, setSomedayTag } from "./engine";
 import { insertTaskLine } from "./insertLine";
 import { moveTask } from "./moveTask";
 import { todayISO } from "./dates";
-import { parseTaskLine, parseProject } from "./parser";
+import { parseTaskLine, parseProject, parseNoteTasks } from "./parser";
 import type { Task, Project } from "./types";
 import { projectNotes, taskContainers } from "./selectors";
 import { ensureTodayNote, templatesFolder } from "./dailyNote";
@@ -133,21 +134,27 @@ export default class GtdFlowPlugin extends Plugin {
       .map((f) => normalizePath(f));
   }
 
-  // projects to search in a done query: the live index, plus archived project
-  // notes read on demand (they live outside the indexed projects folder)
+  // projects to search in a done query: the live index, plus archived projects
+  // read on demand (they live outside the index), joined with their archived members
   async projectsForQuery(includeArchived: boolean): Promise<Project[]> {
     const projects = this.projectNotes();
     if (!includeArchived) return projects;
     const folder = normalizePath(this.settings.archiveFolder);
-    const extra: Project[] = [];
+    const notes = new Map<string, NoteRecord>();
     for (const f of this.app.vault.getMarkdownFiles()) {
       if (!f.path.startsWith(folder + "/")) continue;
-      if (this.index.get(f.path)) continue; // already indexed
-      const fm = this.app.metadataCache.getFileCache(f)?.frontmatter;
-      const p = parseProject(f.path, await this.app.vault.cachedRead(f), fm);
-      if (p) extra.push(p);
+      if (this.index.has(f.path)) continue; // already indexed
+      const cache = this.app.metadataCache.getFileCache(f);
+      const content = await this.app.vault.cachedRead(f);
+      const p = parseProject(f.path, content, cache?.frontmatter);
+      const member = memberLink(cache);
+      if (p) notes.set(f.path, { kind: "project", project: p });
+      else if (member) {
+        notes.set(f.path, { kind: "member", name: f.basename, ...member, fallbackInbox: false, tasks: parseNoteTasks(f.path, content) });
+      }
     }
-    return [...projects, ...extra];
+    const archived = assemble(notes, (link, from) => this.app.metadataCache.getFirstLinkpathDest(link, from)?.path ?? null);
+    return [...projects, ...archived.projects.values()];
   }
 
   // a note whose checkboxes and task menu GTD Flow manages: project notes only.
@@ -292,14 +299,35 @@ export default class GtdFlowPlugin extends Plugin {
     return moved;
   }
 
+  // complete the project and move its hub and every member note to the archive;
+  // `file` may be the hub or any member
   async archiveProject(file: TFile) {
-    await this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
+    const project = this.index.get(file.path);
+    const hub = project ? this.app.vault.getFileByPath(project.path) : file;
+    if (!hub) return;
+    const members = (project?.members ?? [])
+      .map((p) => this.app.vault.getFileByPath(p))
+      .filter((f): f is TFile => !!f);
+    await this.app.fileManager.processFrontMatter(hub, (fm: Record<string, unknown>) => {
       if (fm["status"] !== "dropped") fm["status"] = "completed";
     });
     const folder = normalizePath(this.settings.archiveFolder);
     if (!this.app.vault.getFolderByPath(folder)) await this.app.vault.createFolder(folder);
-    await this.app.fileManager.renameFile(file, `${folder}/${file.name}`);
-    new Notice(`Archived project: ${file.basename}`);
+    const skipped: string[] = [];
+    let movedMembers = 0;
+    for (const f of [hub, ...members]) {
+      const target = `${folder}/${f.name}`;
+      // members come from anywhere in the vault, so names can collide
+      if (this.app.vault.getAbstractFileByPath(target)) {
+        skipped.push(f.path);
+        continue;
+      }
+      await this.app.fileManager.renameFile(f, target);
+      if (f !== hub) movedMembers++;
+    }
+    const extra = movedMembers ? ` and ${movedMembers} member note(s)` : "";
+    new Notice(`Archived project: ${hub.basename}${extra}`);
+    if (skipped.length) new Notice(`Not moved, a note with the same name is already archived: ${skipped.join(", ")}`);
   }
 
   // native notification for due/overdue tasks; only fires for items not yet

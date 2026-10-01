@@ -9,6 +9,14 @@ function project(extra: Partial<Project> = {}): Project {
 }
 
 describe("buildLineClasses", () => {
+  it("blocks a member note's tasks behind the hub's open task in a sequential project", () => {
+    const hubTask = { text: "hub first", path: "p.md", done: false, line: 0, indent: 0, tags: [] };
+    const p = project({ flow: "sequential", members: ["m.md"], tasks: [hubTask] });
+    const m = buildLineClasses(p, ["- [ ] member a", "- [ ] member b"], TODAY, "m.md");
+    expect(m.get(0)).toBe("gtd-ln-blocked");
+    expect(m.get(1)).toBe("gtd-ln-blocked");
+  });
+
   it("marks next action, available, blocked in a sequential project", () => {
     const lines = ["# H", "- [x] a ✅ 2026-06-01", "- [ ] b", "- [ ] c"];
     const m = buildLineClasses(project({ flow: "sequential" }), lines, TODAY);

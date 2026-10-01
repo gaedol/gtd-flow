@@ -9,12 +9,12 @@ export function gtdEditorDecorations(plugin: GtdFlowPlugin) {
   function build(view: EditorView): DecorationSet {
     const file = view.state.field(editorInfoField).file;
     const project = file ? plugin.index.get(file.path) : undefined;
-    if (!project) return Decoration.none;
+    if (!file || !project) return Decoration.none;
 
     const doc = view.state.doc;
     const lines: string[] = [];
     for (let i = 1; i <= doc.lines; i++) lines.push(doc.line(i).text);
-    const classes = buildLineClasses(project, lines, todayISO());
+    const classes = buildLineClasses(project, lines, todayISO(), file.path);
 
     const b = new RangeSetBuilder<Decoration>();
     for (let i = 1; i <= doc.lines; i++) {
