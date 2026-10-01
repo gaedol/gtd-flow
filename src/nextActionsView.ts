@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, setIcon, normalizePath } from "obsidian";
+import { ItemView, WorkspaceLeaf, setIcon } from "obsidian";
 import type GtdFlowPlugin from "./main";
 import { availableTasks } from "./engine";
 import { todayISO } from "./dates";
@@ -8,7 +8,7 @@ import { EditTaskModal } from "./editTaskModal";
 import { renderTaskText } from "./linkText";
 import { applySavedOrder } from "./ordering";
 import { makeReorderable } from "./dragReorder";
-import { projectNotes, inboxTasks } from "./selectors";
+import { projectNotes, inboxGroups } from "./selectors";
 import { openTaskLine, renderMarkers, renderDueBadge } from "./taskRow";
 import { stalledState } from "./stalled";
 import { Project, Task } from "./types";
@@ -38,7 +38,7 @@ export class NextActionsView extends ItemView {
   }
 
   private projectNotes() {
-    return projectNotes(this.plugin.index.snapshot(), this.plugin.index.inboxNotePath());
+    return projectNotes(this.plugin.index.snapshot());
   }
 
   private render() {
@@ -97,32 +97,36 @@ export class NextActionsView extends ItemView {
   }
 
   private renderInbox(root: HTMLElement) {
-    const tasks = inboxTasks(this.plugin.index.snapshot(), this.plugin.index.inboxNotePath());
-    if (tasks.length === 0) return;
-    const inboxPath = normalizePath(this.plugin.settings.inboxNote);
+    const groups = inboxGroups(this.plugin.index.snapshot(), this.plugin.settings.inboxScope === "vault");
+    const count = groups.reduce((n, g) => n + g.tasks.length, 0);
+    if (count === 0) return;
     const section = root.createDiv({ cls: "gtd-project gtd-inbox" });
-    section.createDiv({ cls: "gtd-project-name", text: `Inbox (${tasks.length})` });
-    for (const t of tasks) {
-      const row = section.createDiv({ cls: "gtd-task" });
-      const cb = row.createEl("input", { type: "checkbox" });
-      if (t.inProgress) {
-        cb.indeterminate = true;
-        row.addClass("gtd-inprogress");
-      }
-      cb.onclick = async () => {
-        cb.disabled = true;
-        await completeTask(this.app, inboxPath, t);
-      };
-      renderTaskText(row, t.text, this.app, inboxPath);
-      this.editButton(row, inboxPath, t);
-      const btn = row.createEl("button", { cls: "gtd-move-btn", attr: { "aria-label": "Move to project" } });
-      setIcon(btn, "folder-input");
-      btn.onclick = () => {
-        new ProjectSuggestModal(this.app, this.projectNotes(), (p) => {
-          void moveTask(this.app, inboxPath, t, p.path, this.plugin.settings.insertPosition);
-        }).open();
-      };
+    section.createDiv({ cls: "gtd-project-name", text: `Inbox (${count})` });
+    for (const { note, tasks } of groups) {
+      for (const t of tasks) this.renderInboxTask(section, note.path, t);
     }
+  }
+
+  private renderInboxTask(parent: HTMLElement, path: string, t: Task) {
+    const row = parent.createDiv({ cls: "gtd-task" });
+    const cb = row.createEl("input", { type: "checkbox" });
+    if (t.inProgress) {
+      cb.indeterminate = true;
+      row.addClass("gtd-inprogress");
+    }
+    cb.onclick = async () => {
+      cb.disabled = true;
+      await completeTask(this.app, path, t);
+    };
+    renderTaskText(row, t.text, this.app, path);
+    this.editButton(row, path, t);
+    const btn = row.createEl("button", { cls: "gtd-move-btn", attr: { "aria-label": "Move to project" } });
+    setIcon(btn, "folder-input");
+    btn.onclick = () => {
+      new ProjectSuggestModal(this.app, this.projectNotes(), (p) => {
+        void moveTask(this.app, path, t, p.path, this.plugin.settings.insertPosition);
+      }).open();
+    };
   }
 
   // projects with nothing available are filtered out of the list above, which is

@@ -38,7 +38,7 @@ export class ReviewView extends ItemView {
     root.addClass("gtd-review");
 
     const today = todayISO();
-    const due = projectNotes(this.plugin.index.snapshot(), this.plugin.index.inboxNotePath())
+    const due = projectNotes(this.plugin.index.snapshot())
       .filter((p) => isDueForReview(p, today))
       .sort((a, b) => (a.lastReviewed ?? "").localeCompare(b.lastReviewed ?? ""));
 

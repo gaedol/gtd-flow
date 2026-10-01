@@ -41,7 +41,7 @@ export class CaptureModal extends Modal {
 
     new Setting(contentEl).setName("Add to").addDropdown((d) => {
       d.addOption(this.targetPath, "Inbox");
-      for (const p of projectNotes(this.plugin.index.snapshot(), this.plugin.index.inboxNotePath())) {
+      for (const p of projectNotes(this.plugin.index.snapshot())) {
         if (p.status === "active") d.addOption(p.path, p.name);
       }
       d.setValue(this.targetPath).onChange((v) => (this.targetPath = v));

@@ -37,11 +37,12 @@ export default class GtdFlowPlugin extends Plugin {
     this.pruneStaleOrders();
     this.addSettingTab(new GtdSettingTab(this.app, this));
 
-    this.index = new TaskIndex(
-      this.app,
-      () => this.settings.projectsFolder,
-      () => normalizePath(this.settings.inboxNote)
-    );
+    this.index = new TaskIndex(this.app, () => ({
+      mode: this.settings.inboxScope,
+      projectsFolder: normalizePath(this.settings.projectsFolder),
+      inboxNote: normalizePath(this.settings.inboxNote),
+      ignoredFolders: this.ignoredFolders(),
+    }));
 
     if (typeof Notification !== "undefined" && Notification.permission === "default") {
       void Notification.requestPermission();
@@ -116,9 +117,18 @@ export default class GtdFlowPlugin extends Plugin {
     return { marked, cleared };
   }
 
-  // real project notes only (inbox excluded)
+  // real project notes only (inbox notes excluded)
   projectNotes(): Project[] {
-    return projectNotes(this.index.snapshot(), this.index.inboxNotePath());
+    return projectNotes(this.index.snapshot());
+  }
+
+  // folders never indexed in vault mode: the user's list plus the archive
+  // (archived projects would otherwise come back as inbox notes)
+  ignoredFolders(): string[] {
+    return [...this.settings.ignoredFolders, this.settings.archiveFolder]
+      .map((f) => f.trim())
+      .filter(Boolean)
+      .map((f) => normalizePath(f));
   }
 
   // projects to search in a done query: the live index, plus archived project

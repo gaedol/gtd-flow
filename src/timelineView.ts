@@ -47,7 +47,7 @@ export class TimelineView extends ItemView {
       };
     }
 
-    const src = ganttSource(projectNotes(this.plugin.index.snapshot(), this.plugin.index.inboxNotePath()), this.mode, todayISO(), {
+    const src = ganttSource(projectNotes(this.plugin.index.snapshot()), this.mode, todayISO(), {
       dayStart: this.plugin.settings.dayStart,
       dayEnd: this.plugin.settings.dayEnd,
       defaultDurationMin: this.plugin.settings.defaultDurationMin,

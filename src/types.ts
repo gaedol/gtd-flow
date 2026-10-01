@@ -23,6 +23,7 @@ export interface Task {
 export interface Project {
   path: string;
   name: string;
+  kind?: "project" | "inbox"; // absent = project; "inbox" = untriaged tasks in a non-project note
   status: ProjectStatus;
   flow: ProjectFlow;
   reviewInterval?: string; // e.g. "1w", "3d", "2m"

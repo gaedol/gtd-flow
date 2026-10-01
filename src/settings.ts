@@ -6,7 +6,9 @@ import { explorerStyles } from "./projectColors";
 
 export interface GtdSettings {
   projectsFolder: string;
-  inboxNote: string;
+  inboxScope: "vault" | "single"; // every note is an inbox, or one inbox note
+  inboxNote: string; // the inbox in "single" mode
+  ignoredFolders: string[]; // never indexed in "vault" mode
   forecastDays: number;
   flagTag: string;
   importantTag: string;
@@ -36,7 +38,9 @@ export interface GtdSettings {
 
 export const DEFAULT_SETTINGS: GtdSettings = {
   projectsFolder: "GTD/Projects",
+  inboxScope: "vault",
   inboxNote: "GTD/Inbox.md",
+  ignoredFolders: [],
   forecastDays: 7,
   flagTag: "flag",
   importantTag: "important",
