@@ -2,6 +2,7 @@ export type ProjectStatus = "active" | "on-hold" | "someday" | "completed" | "dr
 export type ProjectFlow = "sequential" | "parallel";
 
 export interface Task {
+  path?: string; // note the line lives in (set by the index); a project can span notes
   text: string;
   done: boolean;
   line: number;

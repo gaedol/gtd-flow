@@ -11,6 +11,7 @@ import {
 } from "./doneQuery";
 import { renderTaskText } from "./linkText";
 import { openTaskLine } from "./taskRow";
+import { noteOf } from "./selectors";
 import { todayISO } from "./dates";
 
 // A ```gtd-done``` block: renders the closed items matching its query and
@@ -66,7 +67,7 @@ export class DoneBlock extends MarkdownRenderChild {
     const icon = row.createSpan({ cls: "gtd-done-icon" });
     setIcon(icon, e.state === "dropped" ? "x" : "check");
     row.createSpan({ cls: "gtd-done-date", text: e.date });
-    const label = renderTaskText(row, e.task.text, this.plugin.app, e.project.path);
+    const label = renderTaskText(row, e.task.text, this.plugin.app, noteOf(e.project, e.task));
     label.onclick = () => void this.openEntry(e);
     if (e.task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${e.task.reason}` });
     // when grouped by project the heading already says where it came from
@@ -79,6 +80,6 @@ export class DoneBlock extends MarkdownRenderChild {
   }
 
   private openEntry(e: DoneEntry): void {
-    void openTaskLine(this.plugin.app, e.project.path, e.task.line);
+    void openTaskLine(this.plugin.app, noteOf(e.project, e.task), e.task.line);
   }
 }

@@ -7,7 +7,7 @@ import { renderTaskText } from "./linkText";
 import { defaultSort, applyManualOrder } from "./ordering";
 import { makeReorderable } from "./dragReorder";
 import { ensureBlockId } from "./blockId";
-import { taskContainers } from "./selectors";
+import { taskContainers, noteOf } from "./selectors";
 import { openTaskLine, renderMarkers, renderDueBadge } from "./taskRow";
 
 export const PERSPECTIVE_VIEW = "gtd-perspectives";
@@ -96,7 +96,7 @@ export class PerspectiveView extends ItemView {
   private async saveGroupOrder(orderKey: string, items: PerspectiveItem[]) {
     const ids: string[] = [];
     for (const it of items) {
-      const id = await ensureBlockId(this.app, it.project.path, it.task);
+      const id = await ensureBlockId(this.app, noteOf(it.project, it.task), it.task);
       if (id) ids.push(id);
     }
     this.plugin.settings.perspectiveOrder[orderKey] = ids;
@@ -120,13 +120,13 @@ export class PerspectiveView extends ItemView {
       }
       cb.onclick = async () => {
         cb.disabled = true;
-        await completeTask(this.app, it.project.path, it.task);
+        await completeTask(this.app, noteOf(it.project, it.task), it.task);
       };
     }
     renderMarkers(this.plugin, row, it.task);
-    const label = renderTaskText(row, it.task.text, this.app, it.project.path);
+    const label = renderTaskText(row, it.task.text, this.app, noteOf(it.project, it.task));
     if (it.task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${it.task.reason}` });
-    label.onclick = () => void openTaskLine(this.app, it.project.path, it.task.line);
+    label.onclick = () => void openTaskLine(this.app, noteOf(it.project, it.task), it.task.line);
     renderDueBadge(row, it.task, today);
     if (showProject) this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: it.project.name }), it.project.path);
   }

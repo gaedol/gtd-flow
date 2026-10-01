@@ -11,7 +11,10 @@ export function buildTree(tasks: Task[]): TaskNode[] {
   const stack: TaskNode[] = [];
   for (const t of tasks) {
     const node: TaskNode = { task: t, children: [] };
-    while (stack.length && stack[stack.length - 1].task.indent >= t.indent) stack.pop();
+    // nesting never crosses into another note of the same project
+    while (stack.length && (stack[stack.length - 1].task.indent >= t.indent || stack[stack.length - 1].task.path !== t.path)) {
+      stack.pop();
+    }
     if (stack.length === 0) roots.push(node);
     else stack[stack.length - 1].children.push(node);
     stack.push(node);
@@ -64,7 +67,7 @@ export function isAvailable(task: Task, project: Project, today: string): boolea
 // a parent with any open descendant is a container, not an action itself
 export function hasOpenSubtasks(tasks: Task[], i: number): boolean {
   const indent = tasks[i].indent;
-  for (let j = i + 1; j < tasks.length && tasks[j].indent > indent; j++) {
+  for (let j = i + 1; j < tasks.length && tasks[j].indent > indent && tasks[j].path === tasks[i].path; j++) {
     if (!tasks[j].done) return true;
   }
   return false;

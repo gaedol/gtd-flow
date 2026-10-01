@@ -20,6 +20,17 @@ function project(extra: Partial<Project> = {}): Project {
 }
 
 describe("availability", () => {
+  it("doesn't nest a member note's indented task under the previous note's last task", () => {
+    const p = project({
+      tasks: [
+        task("hub task", { path: "Hub.md" }),
+        task("member task", { path: "Member.md", indent: 2 }),
+      ],
+    });
+    // nested, "hub task" would be a container with an open child and drop out
+    expect(availableTasks(p, TODAY).map((t) => t.text)).toEqual(["hub task", "member task"]);
+  });
+
   it("all open undeferred tasks available in parallel projects", () => {
     const p = project({ tasks: [task("a"), task("b"), task("c", { done: true })] });
     expect(availableTasks(p, TODAY).map((t) => t.text)).toEqual(["a", "b"]);

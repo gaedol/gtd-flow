@@ -9,6 +9,12 @@ export interface InboxGroup {
   tasks: Task[];
 }
 
+// The note a task's line lives in. A project can span several notes, so writes
+// and navigation go through this rather than the project's (hub) path.
+export function noteOf(project: Project, task: Task): string {
+  return task.path ?? project.path;
+}
+
 // Everything that holds tasks, including inbox notes: date/urgency surfaces
 // (Forecast, overdue badge, notifications) and Perspectives use this, so a
 // dated or tagged inbox task is never invisible.

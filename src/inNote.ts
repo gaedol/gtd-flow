@@ -42,7 +42,7 @@ export function buildLineClasses(
 
 // an active group: not actionable itself but contains an available action
 function subtreeHasAvailable(tasks: Task[], i: number, avail: Set<Task>): boolean {
-  for (let j = i + 1; j < tasks.length && tasks[j].indent > tasks[i].indent; j++) {
+  for (let j = i + 1; j < tasks.length && tasks[j].indent > tasks[i].indent && tasks[j].path === tasks[i].path; j++) {
     if (avail.has(tasks[j])) return true;
   }
   return false;

@@ -105,7 +105,7 @@ export class TaskIndex extends Events {
     const tasks: Task[] = [];
     content.split("\n").forEach((line, i) => {
       const t = parseTaskLine(line, i);
-      if (t) tasks.push(t);
+      if (t) tasks.push({ ...t, path: file.path });
     });
     if (tasks.length === 0) return this.projects.delete(file.path);
     this.projects.set(file.path, {

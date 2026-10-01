@@ -78,7 +78,7 @@ export function parseProject(
   const tasks: Task[] = [];
   content.split("\n").forEach((line, i) => {
     const t = parseTaskLine(line, i);
-    if (t) tasks.push(t);
+    if (t) tasks.push({ ...t, path });
   });
   return {
     path,

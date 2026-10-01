@@ -5,7 +5,7 @@ import { todayISO } from "./dates";
 import { completeTask } from "./completeTask";
 import { renderTaskText } from "./linkText";
 import { defaultSort, applyManualOrder } from "./ordering";
-import { taskContainers } from "./selectors";
+import { taskContainers, noteOf } from "./selectors";
 import { openTaskLine, renderMarkers } from "./taskRow";
 import { makeReorderable } from "./dragReorder";
 import { ensureBlockId } from "./blockId";
@@ -85,7 +85,7 @@ export class ForecastView extends ItemView {
   private async saveDayOrder(date: string, items: ForecastItem[]) {
     const ids: string[] = [];
     for (const it of items) {
-      const id = await ensureBlockId(this.app, it.project.path, it.task);
+      const id = await ensureBlockId(this.app, noteOf(it.project, it.task), it.task);
       if (id) ids.push(id);
     }
     const today = todayISO();
@@ -113,7 +113,7 @@ export class ForecastView extends ItemView {
         }
         cb.onclick = async () => {
           cb.disabled = true;
-          await completeTask(this.app, it.project.path, it.task);
+          await completeTask(this.app, noteOf(it.project, it.task), it.task);
         };
       }
       if (it.task.due! < today) row.addClass("gtd-overdue-row");
@@ -122,7 +122,7 @@ export class ForecastView extends ItemView {
       setIcon(icon, "play");
     }
     renderMarkers(this.plugin, row, it.task);
-    const label = renderTaskText(row, it.task.text, this.app, it.project.path);
+    const label = renderTaskText(row, it.task.text, this.app, noteOf(it.project, it.task));
     if (it.task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${it.task.reason}` });
     label.onclick = () => this.openTask(it);
     this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: it.project.name }), it.project.path);
@@ -135,13 +135,13 @@ export class ForecastView extends ItemView {
     const row = parent.createDiv({ cls: "gtd-preview-row" });
     const icon = row.createSpan({ cls: "gtd-repeat-icon", attr: { "aria-label": "Repeats" } });
     setIcon(icon, "rotate-cw");
-    const label = renderTaskText(row, it.task.text, this.app, it.project.path);
+    const label = renderTaskText(row, it.task.text, this.app, noteOf(it.project, it.task));
     label.onclick = () => this.openTask(it);
     this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: it.project.name }), it.project.path);
   }
 
   private openTask(it: ForecastItem) {
-    void openTaskLine(this.app, it.project.path, it.task.line);
+    void openTaskLine(this.app, noteOf(it.project, it.task), it.task.line);
   }
 }
 

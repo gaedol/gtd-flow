@@ -8,7 +8,7 @@ import { EditTaskModal } from "./editTaskModal";
 import { renderTaskText } from "./linkText";
 import { applySavedOrder } from "./ordering";
 import { makeReorderable } from "./dragReorder";
-import { projectNotes, inboxGroups } from "./selectors";
+import { projectNotes, inboxGroups, noteOf } from "./selectors";
 import { openTaskLine, renderMarkers, renderDueBadge } from "./taskRow";
 import { stalledState } from "./stalled";
 import { Project, Task } from "./types";
@@ -205,16 +205,17 @@ export class NextActionsView extends ItemView {
       cb.indeterminate = true;
       row.addClass("gtd-inprogress");
     }
+    const note = noteOf(project, task);
     cb.onclick = async () => {
       cb.disabled = true;
-      await completeTask(this.app, project.path, task);
+      await completeTask(this.app, note, task);
       // index refresh re-renders via the changed event
     };
     renderMarkers(this.plugin, row, task);
-    const label = renderTaskText(row, task.text, this.app, project.path);
+    const label = renderTaskText(row, task.text, this.app, note);
     if (task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${task.reason}` });
-    label.onclick = () => void openTaskLine(this.app, project.path, task.line);
-    this.editButton(row, project.path, task);
+    label.onclick = () => void openTaskLine(this.app, note, task.line);
+    this.editButton(row, note, task);
     if (showProject) this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: project.name }), project.path);
     renderDueBadge(row, task, today);
     // flag/important already show as icons, so don't repeat them as tag chips
