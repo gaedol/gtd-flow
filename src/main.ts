@@ -9,6 +9,7 @@ import { TimelineView, TIMELINE_VIEW } from "./timelineView";
 import { archiveDoneTasks } from "./archive";
 import { dueOrOverdue, setSomedayTag } from "./engine";
 import { insertTaskLine } from "./insertLine";
+import { moveTask } from "./moveTask";
 import { todayISO } from "./dates";
 import { parseTaskLine, parseProject } from "./parser";
 import type { Task, Project } from "./types";
@@ -153,6 +154,13 @@ export default class GtdFlowPlugin extends Plugin {
   // Inbox notes keep plain Obsidian checkboxes until their tasks are triaged.
   noteInScope(path: string): boolean {
     return !!this.index.get(path);
+  }
+
+  // move a task into a project. Triaging out of an inbox note in every-note
+  // mode leaves a link behind, so meeting/daily notes keep their context.
+  moveTaskTo(fromPath: string, task: Task, toPath: string): Promise<boolean> {
+    const leaveLink = this.settings.inboxScope === "vault" && !this.index.get(fromPath);
+    return moveTask(this.app, fromPath, task, toPath, this.settings.insertPosition, leaveLink);
   }
 
   // decide and perform what a checkbox click does on a source line; returns true

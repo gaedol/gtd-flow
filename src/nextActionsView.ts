@@ -3,7 +3,7 @@ import type GtdFlowPlugin from "./main";
 import { availableTasks } from "./engine";
 import { todayISO } from "./dates";
 import { completeTask } from "./completeTask";
-import { moveTask, ProjectSuggestModal } from "./moveTask";
+import { ProjectSuggestModal } from "./moveTask";
 import { EditTaskModal } from "./editTaskModal";
 import { renderTaskText } from "./linkText";
 import { applySavedOrder } from "./ordering";
@@ -124,7 +124,7 @@ export class NextActionsView extends ItemView {
     setIcon(btn, "folder-input");
     btn.onclick = () => {
       new ProjectSuggestModal(this.app, this.projectNotes(), (p) => {
-        void moveTask(this.app, path, t, p.path, this.plugin.settings.insertPosition);
+        void this.plugin.moveTaskTo(path, t, p.path);
       }).open();
     };
   }

@@ -43,3 +43,16 @@ export function toggleTagLine(raw: string, tags: string[], tag: string): string 
     ? raw.replace(new RegExp(`\\s*#${tag}\\b`), "")
     : raw.replace(/\s*$/, "") + ` #${tag}`;
 }
+
+// give a task line a trailing ^block-id unless it already has one
+export function withBlockId(raw: string, id: string): string {
+  return /\s\^[A-Za-z0-9-]+\s*$/.test(raw) ? raw : raw.trimEnd() + ` ^${id}`;
+}
+
+// what a triaged task leaves behind in its source note: a plain bullet (no
+// checkbox, so it isn't a task any more) with the task text and a link to
+// where it went
+export function triagedLine(raw: string, text: string, link: string): string {
+  const indent = raw.match(/^\s*/)?.[0] ?? "";
+  return `${indent}- ${text} → ${link}`;
+}

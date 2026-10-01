@@ -12,7 +12,7 @@ import { EditTaskModal } from "./editTaskModal";
 import { NewProjectModal } from "./newProjectModal";
 import { ProjectPropertiesModal } from "./projectPropertiesModal";
 import { DoneReportModal } from "./doneReportModal";
-import { ProjectSuggestModal, moveTask } from "./moveTask";
+import { ProjectSuggestModal } from "./moveTask";
 import { parseTaskLine } from "./parser";
 import { moveTaskBlock } from "./moveTaskLine";
 
@@ -50,7 +50,7 @@ export function registerCommands(plugin: GtdFlowPlugin): void {
       const file = view.file;
       new ProjectSuggestModal(app, plugin.projectNotes(), (p) => {
         if (p.path === file.path) return;
-        void moveTask(app, file.path, task, p.path, plugin.settings.insertPosition);
+        void plugin.moveTaskTo(file.path, task, p.path);
       }).open();
     },
   });

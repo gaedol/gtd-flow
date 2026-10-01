@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { setCheckboxChar, completeLine, setStateLine, toggleTagLine } from "../src/taskWrite";
+import { setCheckboxChar, completeLine, setStateLine, toggleTagLine, withBlockId, triagedLine } from "../src/taskWrite";
 
 const TODAY = "2026-07-24";
 
@@ -46,5 +46,20 @@ describe("toggleTagLine", () => {
   it("adds a tag when absent and removes it when present", () => {
     expect(toggleTagLine("- [ ] task", [], "important")).toBe("- [ ] task #important");
     expect(toggleTagLine("- [ ] task #important", ["important"], "important")).toBe("- [ ] task");
+  });
+});
+
+describe("withBlockId", () => {
+  it("appends an id once", () => {
+    expect(withBlockId("- [ ] call Sam 📅 2026-10-02  ", "gtdab12cd")).toBe("- [ ] call Sam 📅 2026-10-02 ^gtdab12cd");
+    expect(withBlockId("- [ ] call Sam ^mine", "gtdab12cd")).toBe("- [ ] call Sam ^mine");
+  });
+});
+
+describe("triagedLine", () => {
+  it("leaves a plain bullet with the text and link, keeping indent", () => {
+    expect(triagedLine("    - [ ] call Sam #work", "call Sam", "[[Hiring#^gtdab12cd|Hiring]]")).toBe(
+      "    - call Sam → [[Hiring#^gtdab12cd|Hiring]]"
+    );
   });
 });
