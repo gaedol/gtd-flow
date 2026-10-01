@@ -1,16 +1,19 @@
-import { App, Modal, Notice, Setting, normalizePath } from "obsidian";
+import { App, Modal, Notice, Setting } from "obsidian";
 import type GtdFlowPlugin from "./main";
 import { projectNotes } from "./selectors";
+
+// target value for the default capture note (daily note or inbox); its path
+// is only resolved on submit, since the daily note may not exist yet
+const CAPTURE_TARGET = "";
 
 export class CaptureModal extends Modal {
   private text = "";
   private defer = "";
   private due = "";
-  private targetPath: string;
+  private targetPath = CAPTURE_TARGET;
 
   constructor(app: App, private plugin: GtdFlowPlugin) {
     super(app);
-    this.targetPath = normalizePath(plugin.settings.inboxNote);
   }
 
   onOpen() {
@@ -40,7 +43,7 @@ export class CaptureModal extends Modal {
     });
 
     new Setting(contentEl).setName("Add to").addDropdown((d) => {
-      d.addOption(this.targetPath, "Inbox");
+      d.addOption(CAPTURE_TARGET, this.plugin.captureLabel());
       for (const p of projectNotes(this.plugin.index.snapshot())) {
         if (p.status === "active") d.addOption(p.path, p.name);
       }
@@ -62,10 +65,10 @@ export class CaptureModal extends Modal {
     if (this.defer) line += ` 🛫 ${this.defer}`;
     if (this.due) line += ` 📅 ${this.due}`;
 
-    // only the inbox is auto-created; projects must already exist
+    // only the capture note is auto-created; projects must already exist
     const file =
-      this.targetPath === normalizePath(this.plugin.settings.inboxNote)
-        ? await this.plugin.ensureInboxFile()
+      this.targetPath === CAPTURE_TARGET
+        ? await this.plugin.ensureCaptureFile()
         : this.app.vault.getFileByPath(this.targetPath);
     if (!file) {
       new Notice("Could not open target note");

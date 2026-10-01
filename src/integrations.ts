@@ -55,8 +55,8 @@ export function registerIntegrations(plugin: GtdFlowPlugin): void {
     let line = `- [ ] ${text}`;
     if (params.defer) line += ` 🛫 ${params.defer}`;
     if (params.due) line += ` 📅 ${params.due}`;
-    await plugin.appendTaskLine(await plugin.ensureInboxFile(), line);
-    new Notice("Captured to inbox: " + text);
+    await plugin.appendTaskLine(await plugin.ensureCaptureFile(), line);
+    new Notice(`Captured to ${plugin.captureLabel().toLowerCase()}: ` + text);
   });
 
   // last + isolated: an editor-extension failure must not take down the plugin

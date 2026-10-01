@@ -13,6 +13,7 @@ import { todayISO } from "./dates";
 import { parseTaskLine, parseProject } from "./parser";
 import type { Task, Project } from "./types";
 import { projectNotes, taskContainers } from "./selectors";
+import { ensureTodayNote, templatesFolder } from "./dailyNote";
 import { toggleTagLine, checkboxCharOf } from "./taskWrite";
 import { attentionReason } from "./stalled";
 import { completeTask, setTaskState } from "./completeTask";
@@ -122,10 +123,10 @@ export default class GtdFlowPlugin extends Plugin {
     return projectNotes(this.index.snapshot());
   }
 
-  // folders never indexed in vault mode: the user's list plus the archive
-  // (archived projects would otherwise come back as inbox notes)
+  // folders never indexed in vault mode: the user's list, the archive (archived
+  // projects would otherwise come back as inbox notes) and the core templates folder
   ignoredFolders(): string[] {
-    return [...this.settings.ignoredFolders, this.settings.archiveFolder]
+    return [...this.settings.ignoredFolders, this.settings.archiveFolder, templatesFolder(this.app)]
       .map((f) => f.trim())
       .filter(Boolean)
       .map((f) => normalizePath(f));
@@ -244,6 +245,15 @@ export default class GtdFlowPlugin extends Plugin {
       await this.app.fileManager.renameFile(file, `${folder}/${file.name}`);
     }
     new Notice(`${file.basename} is now a project`);
+  }
+
+  // where quick captures land: today's daily note, or the single inbox note
+  async ensureCaptureFile(): Promise<TFile> {
+    return this.settings.inboxScope === "vault" ? ensureTodayNote(this.app) : this.ensureInboxFile();
+  }
+
+  captureLabel(): string {
+    return this.settings.inboxScope === "vault" ? "Today's daily note" : "Inbox";
   }
 
   async ensureInboxFile(): Promise<TFile> {
