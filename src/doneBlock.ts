@@ -67,7 +67,7 @@ export class DoneBlock extends MarkdownRenderChild {
     const icon = row.createSpan({ cls: "gtd-done-icon" });
     setIcon(icon, e.state === "dropped" ? "x" : "check");
     row.createSpan({ cls: "gtd-done-date", text: e.date });
-    const label = renderTaskText(row, e.task.text, this.plugin.app, noteOf(e.project, e.task));
+    const label = renderTaskText(row, this.plugin.taskLabel(e.task), this.plugin.app, noteOf(e.project, e.task));
     label.onclick = () => void this.openEntry(e);
     if (e.task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${e.task.reason}` });
     // when grouped by project the heading already says where it came from

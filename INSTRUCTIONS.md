@@ -132,6 +132,17 @@ Either way, the built-in **Someday** perspective gathers them all — open tasks
 
 Tags are your contexts, and they nest with `/`: `#home/plumbing`, `#office/sales`. A tag filter in a perspective is hierarchy-aware — filtering on `home` matches `home`, `home/plumbing`, and `home/garden`; filtering on `home/plumbing` matches only that. Grouping a perspective "by tag" lists each full context as its own group.
 
+### Tags in task text
+
+Tags are often part of the sentence, as in `- [ ] Ask #alice about the #q3 budget`. With **Keep tags in task text** on (the default), every GTD Flow view shows your tags as plain text where you wrote them. That covers Next Actions (including the inbox), Forecast, Perspectives, Review, `gtd-done` blocks and Timeline bars. Timeline shows them without the `#`, which Mermaid can't display. The same applies to generated text written into notes: the status block's **Next action** and exported done reports. Those tags then count as real tag uses in your vault.
+
+GTD Flow's own metadata tags are still hidden from the text:
+- the flag, important and someday tags, which show as icons or filters instead
+- `#sequential` and `#parallel`
+- date tags (`#2026-10-15`), which show as the due date
+
+With the setting off, all tags are removed from task text, and Next Actions project rows list them as chips after the text.
+
 ### Flags
 
 Tag a task with `#flag` (configurable in settings) to flag it: it gets an orange flag icon in all views and appears in a **Flagged** section at the top of Next Actions (flagged *and available* tasks across projects). The flag tag is hidden from the tag list in rows.
@@ -143,7 +154,7 @@ GTD Flow has two inbox modes, chosen with the **Inbox** setting.
 **Every note** (default). Any note that isn't a project is part of your inbox: its open tasks *without a due date* show in the Next Actions inbox section, grouped by note, until you file them. Tasks that already have a 📅 date (or a `#YYYY-MM-DD` tag) skip the inbox. A due date inferred from the note's name doesn't: those tasks stay in the inbox until you file them. Like every other task, they appear in the Forecast, the overdue badge, notifications and the Perspectives. Expect those surfaces to be busier than with a single inbox: every dated checkbox in the vault counts.
 
 - **Capture** goes to **today's daily note**, using the folder, date format and template from the core Daily Notes plugin (or `YYYY-MM-DD.md` at the vault root when those aren't set). The note is created when it doesn't exist yet.
-- **Filing a task** into a project moves it there with a `^block-id` and replaces the original line with a plain bullet linking to it, e.g. `- Call Sam → [[Hiring#^gtdab12cd|Hiring]]`. Your daily or meeting note keeps a record of the item and where it went, and the bullet is no longer a task, so it leaves the inbox.
+- **Filing a task** into a project moves it there with a `^block-id` and replaces the original line with a plain bullet linking to it, e.g. `- Call #sam about the offer → [[Hiring#^gtdab12cd|Hiring]]`. Your own tags stay in the text. Your daily or meeting note keeps a record of the item and where it went, and the bullet is no longer a task, so it leaves the inbox.
 - **Checkboxes in inbox notes stay plain Obsidian checkboxes**: GTD Flow's click handling (✅ dates, 🔁 next occurrences, in-progress cycling) and the right-click task menu only apply in project notes. Completing from the inbox section in Next Actions still records ✅.
 - **Someday tasks** (tagged with the someday tag, or nested under a tagged parent) are kept out of the inbox section while **Hide someday tasks in Next Actions** is on (the default), as they already are from project lists. They still appear in the Someday perspective.
 - **Ignored folders** are never indexed. The archive folder and the core Templates folder are always ignored, so archived projects and template checklists don't show up.
@@ -201,7 +212,7 @@ The Tasks plugin is **optional**. GTD Flow works standalone; nothing in it depen
 - **Ribbon icon (plus-circle)** or command **Capture task** — modal with task text (Enter submits), optional defer/due dates, and a target dropdown (today's daily note — or the inbox note in single-note mode — or any active project). Appends the formatted task line without leaving your current note; the daily note or inbox note is created on demand.
 - **Inbox section** (top of the sidebar when non-empty) — inbox tasks grouped by note; click a note's name to open it, its chevron to fold it, or a task to jump to it in context. The folder icon on each task opens a project picker and moves the task, metadata intact, into the chosen project note (see [Inbox](#inbox) for the link it leaves behind).
 - **Move task under cursor to project** — same picker for the task line under the cursor in any note; also works project → project (only moves out of a non-project note leave a link). Captured/moved tasks land at the top or bottom of the list per the **Insert captured/moved tasks at** setting, always above `## Archive`.
-- **Edit task** — pencil icon on rows in Next Actions (incl. inbox), or command **Edit task under cursor**: modal for text, defer/due dates, ⏱ duration, 🔁 rule, and flag. Rewrites the line in place, preserving indent, other tags, and completion state.
+- **Edit task** — pencil icon on rows in Next Actions (incl. inbox), or command **Edit task under cursor**: modal for text, defer/due dates, ⏱ duration, 🔁 rule, and flag. Rewrites the line in place, preserving indent, other tags, and completion state. The text field includes your own `#tags` where they sit in the sentence, and saving keeps them there. Delete one from the text to remove it. Only the flag, important, someday and sequential/parallel tags are re-added at the end of the line.
 - **Reordering next actions** — Next Actions lists each project's tasks in the order they appear in the note, so you reorder them by reordering the lines. The commands **Move task up** / **Move task down** (also in the task context menu, and worth a hotkey) move the task *with its sub-tasks* past its sibling, and won't let it jump out of its action group or across a heading — unlike Obsidian's built-in move-line, which would separate a parent from its children.
 - **Right-click a task line** in a project note (long-press on mobile) for a context menu: **Edit task**, **Complete task** (writes ✅ and the 🔁 next occurrence), **Drop task…** (prompts for a 💬 reason when that setting is on), **Mark/Remove important**, and **Mark/Remove someday**.
 - **Checkbox clicks in your notes** complete through GTD Flow, so ticking a task in a project note (Live Preview or Reading view) writes ✅ and inserts the 🔁 next occurrence — the same as completing from a view, no Tasks plugin required. Turn off via **Handle checkbox clicks in notes**. With **Click cycles to-do → in-progress → done** on, the first click marks the task in-progress `[/]` and the next completes it.

@@ -1,5 +1,6 @@
 import { TaskState, stateChar } from "./serialize";
 import { nextOccurrenceLine } from "./repeat";
+import { isSystemTag } from "./parser";
 
 // Surgical edits to a single task line. These preserve the user's own text and
 // marker order (unlike a serialize round-trip, which rebuilds from fields and
@@ -55,4 +56,18 @@ export function withBlockId(raw: string, id: string): string {
 export function triagedLine(raw: string, text: string, link: string): string {
   const indent = raw.match(/^\s*/)?.[0] ?? "";
   return `${indent}- ${text} → ${link}`;
+}
+
+// the tags the edit modal appends after the text: the user's own tags travel
+// inside the (inline) text, so only system tags are re-appended, with flag and
+// someday set by their toggles
+export function editedSystemTags(
+  tags: string[],
+  flag: { tag: string; on: boolean },
+  someday: { tag: string; on: boolean }
+): string[] {
+  const out = tags.filter((t) => isSystemTag(t) && t !== flag.tag && t !== someday.tag);
+  if (flag.on) out.push(flag.tag);
+  if (someday.on) out.push(someday.tag);
+  return out;
 }

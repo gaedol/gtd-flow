@@ -12,7 +12,7 @@ import { dueOrOverdue, setSomedayTag } from "./engine";
 import { insertTaskLine } from "./insertLine";
 import { moveTask } from "./moveTask";
 import { todayISO } from "./dates";
-import { parseTaskLine, parseProject, parseNoteTasks, applyFileDate } from "./parser";
+import { parseTaskLine, parseProject, parseNoteTasks, applyFileDate, setSystemTags, labelOf } from "./parser";
 import type { Task, Project } from "./types";
 import { projectNotes, taskContainers } from "./selectors";
 import { ensureTodayNote, templatesFolder } from "./dailyNote";
@@ -37,6 +37,7 @@ export default class GtdFlowPlugin extends Plugin {
   async onload() {
     await this.loadSettings();
     setSomedayTag(this.settings.somedayTag);
+    setSystemTags([this.settings.flagTag, this.settings.importantTag, this.settings.somedayTag]);
     this.pruneStaleOrders();
     this.addSettingTab(new GtdSettingTab(this.app, this));
 
@@ -171,6 +172,11 @@ export default class GtdFlowPlugin extends Plugin {
     return moveTask(this.app, fromPath, task, toPath, this.settings.insertPosition, leaveLink);
   }
 
+  // the text views show for a task, per the "Keep tags in task text" setting
+  taskLabel(task: Task): string {
+    return labelOf(task, this.settings.inlineTags);
+  }
+
   // a task parsed from a line in a note, with the due date the index would
   // infer from the note's name, so in-note actions match the views
   taskFromLine(path: string, raw: string, lineNo: number): Task | null {
@@ -245,9 +251,9 @@ export default class GtdFlowPlugin extends Plugin {
     const project = this.index.get(file.path);
     if (!project) return;
     const today = todayISO();
-    let inner = statusBlockText(project, today);
+    let inner = statusBlockText(project, today, this.settings.inlineTags);
     if (this.settings.statusBlockChart) {
-      const chart = projectGanttSource(project, today);
+      const chart = projectGanttSource(project, today, this.settings.inlineTags);
       if (chart) inner += "\n\n```mermaid\n" + chart + "\n```";
     }
     await this.app.vault.process(file, (content) => {
@@ -379,6 +385,7 @@ export default class GtdFlowPlugin extends Plugin {
   async saveSettings() {
     await this.saveData(this.settings);
     setSomedayTag(this.settings.somedayTag);
+    setSystemTags([this.settings.flagTag, this.settings.importantTag, this.settings.somedayTag]);
     await this.index.rebuild();
   }
 

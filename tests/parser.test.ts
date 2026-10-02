@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseTaskLine, parseProject, fileNameDate, applyFileDate } from "../src/parser";
+import { parseTaskLine, parseProject, fileNameDate, applyFileDate, setSystemTags, labelOf } from "../src/parser";
 
 describe("parseTaskLine", () => {
   it("parses a plain open task", () => {
@@ -165,5 +165,30 @@ describe("applyFileDate", () => {
     expect(applyFileDate(parseTaskLine("- [ ] send notes 📅 2026-10-05", 0)!, PATH).due).toBe("2026-10-05");
     expect(applyFileDate(parseTaskLine("- [ ] send notes #2026-10-06", 0)!, PATH).due).toBe("2026-10-06");
     expect(applyFileDate(parseTaskLine("- [x] sent", 0)!, PATH).due).toBeUndefined();
+  });
+});
+
+describe("inline text", () => {
+  it("keeps the user's tags in place, dropping metadata, date and system tags", () => {
+    const t = parseTaskLine("- [ ] Ask #alice about the #q3 budget #flag #2026-10-15 📅 2026-10-20 ⏱ 30m ^gtdab12cd", 0)!;
+    expect(t.inlineText).toBe("Ask #alice about the #q3 budget");
+    expect(t.text).toBe("Ask about the budget"); // the identity text is unchanged
+    expect(t.tags).toEqual(["alice", "q3", "flag"]);
+  });
+
+  it("drops the group-flow tags and the configured system tags", () => {
+    setSystemTags(["star", "important", "later"]);
+    try {
+      const t = parseTaskLine("- [ ] Plan #sequential the #star offsite #later with #team", 0)!;
+      expect(t.inlineText).toBe("Plan the offsite with #team");
+    } finally {
+      setSystemTags(["flag", "important", "someday"]);
+    }
+  });
+
+  it("labelOf picks the inline or stripped text", () => {
+    const t = parseTaskLine("- [ ] Call #bob", 0)!;
+    expect(labelOf(t, true)).toBe("Call #bob");
+    expect(labelOf(t, false)).toBe("Call");
   });
 });

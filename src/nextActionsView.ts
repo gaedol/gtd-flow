@@ -9,6 +9,7 @@ import { renderTaskText } from "./linkText";
 import { applySavedOrder } from "./ordering";
 import { makeReorderable } from "./dragReorder";
 import { projectNotes, inboxGroups, noteOf } from "./selectors";
+import { isSystemTag } from "./parser";
 import { openTaskLine, renderMarkers, renderDueBadge } from "./taskRow";
 import { stalledState } from "./stalled";
 import { Project, Task } from "./types";
@@ -144,7 +145,7 @@ export class NextActionsView extends ItemView {
       cb.disabled = true;
       await completeTask(this.app, path, t);
     };
-    const label = renderTaskText(row, t.text, this.app, path);
+    const label = renderTaskText(row, this.plugin.taskLabel(t), this.app, path);
     label.onclick = () => void openTaskLine(this.app, path, t.line); // jump to it in context
     renderDueBadge(row, t, todayISO()); // e.g. a date inferred from the note's name
     this.editButton(row, path, t);
@@ -231,16 +232,18 @@ export class NextActionsView extends ItemView {
       // index refresh re-renders via the changed event
     };
     renderMarkers(this.plugin, row, task);
-    const label = renderTaskText(row, task.text, this.app, note);
+    const label = renderTaskText(row, this.plugin.taskLabel(task), this.app, note);
     if (task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${task.reason}` });
     label.onclick = () => void openTaskLine(this.app, note, task.line);
     this.editButton(row, note, task);
     if (showProject) this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: project.name }), project.path);
     renderDueBadge(row, task, today);
-    // flag/important already show as icons, so don't repeat them as tag chips
+    // flag/important already show as icons, so don't repeat them as tag chips;
+    // with inline tags the user's own tags are already in the text
     const iconTags = [this.plugin.settings.flagTag, this.plugin.settings.importantTag];
+    const inline = this.plugin.settings.inlineTags;
     for (const tag of task.tags) {
-      if (iconTags.includes(tag)) continue;
+      if (iconTags.includes(tag) || (inline && !isSystemTag(tag))) continue;
       row.createSpan({ cls: "gtd-tag", text: "#" + tag });
     }
   }

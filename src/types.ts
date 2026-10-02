@@ -3,7 +3,8 @@ export type ProjectFlow = "sequential" | "parallel";
 
 export interface Task {
   path?: string; // note the line lives in (set by the index); a project can span notes
-  text: string;
+  text: string; // all metadata and tags stripped; also the line's identity check before writes
+  inlineText?: string; // as text, but keeping the user's own #tags where they were written
   done: boolean;
   line: number;
   indent: number; // leading whitespace chars; defines action-group nesting

@@ -17,6 +17,22 @@ const DATE_TAG_RE = /#(\d{4}-\d{2}-\d{2})(?![\w/-])/u;
 const DATE_TAG_NAME_RE = /^\d{4}-\d{2}-\d{2}$/;
 const BLOCK_ID_RE = /\s\^([A-Za-z0-9-]+)\s*$/;
 
+// tags that are GTD Flow's own metadata rather than part of the sentence:
+// flag, important and someday (configurable) plus the group-flow overrides
+const FLOW_TAGS = ["sequential", "parallel"];
+let systemTags = new Set(["flag", "important", "someday", ...FLOW_TAGS]);
+export function setSystemTags(tags: string[]): void {
+  systemTags = new Set([...tags.filter(Boolean), ...FLOW_TAGS]);
+}
+export function isSystemTag(tag: string): boolean {
+  return systemTags.has(tag);
+}
+
+// the text a view shows for a task: with or without the user's inline #tags
+export function labelOf(task: Task, inlineTags: boolean): string {
+  return inlineTags ? task.inlineText ?? task.text : task.text;
+}
+
 export function parseTaskLine(line: string, lineNo: number): Task | null {
   const m = line.match(TASK_RE);
   if (!m) return null;
@@ -24,7 +40,8 @@ export function parseTaskLine(line: string, lineNo: number): Task | null {
   const ch = m[2];
   const task: Task = {
     // "-" dropped and "x"/"X" done are both resolved (out of the active flow)
-    text: stripMetadata(body),
+    text: stripMetadata(body, false),
+    inlineText: stripMetadata(body, true),
     done: ch === "x" || ch === "X" || ch === "-",
     line: lineNo,
     indent: m[1].length,
@@ -51,7 +68,8 @@ export function parseTaskLine(line: string, lineNo: number): Task | null {
   return task;
 }
 
-function stripMetadata(body: string): string {
+// keepTags: leave the user's own #tags in place (date and system tags still go)
+function stripMetadata(body: string, keepTags: boolean): string {
   return body
     .replace(REASON_RE, "")
     .replace(/[🛫📅✅❌⏳➕] *\d{4}-\d{2}-\d{2}/gu, "")
@@ -60,7 +78,7 @@ function stripMetadata(body: string): string {
     .replace(/⏱ *(?:\d+h)? *(?:\d+m)?/gu, "")
     .replace(/⏰ *\d{1,2}:\d{2}/gu, "")
     .replace(BLOCK_ID_RE, "")
-    .replace(TAG_RE, "")
+    .replace(TAG_RE, (m: string, tag: string) => (keepTags && !isSystemTag(tag) && !DATE_TAG_NAME_RE.test(tag) ? m : ""))
     .replace(/\s+/g, " ")
     .trim();
 }

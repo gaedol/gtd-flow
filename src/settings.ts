@@ -11,6 +11,7 @@ export interface GtdSettings {
   ignoredFolders: string[]; // never indexed in "vault" mode
   hideSomedayInNextActions: boolean; // keep #someday tasks out of the Next Actions inbox
   inferDueFromFileName: boolean; // undated tasks in a dated note are due that day
+  inlineTags: boolean; // show the user's #tags in place in task text, not stripped
   forecastDays: number;
   flagTag: string;
   importantTag: string;
@@ -45,6 +46,7 @@ export const DEFAULT_SETTINGS: GtdSettings = {
   ignoredFolders: [],
   hideSomedayInNextActions: true,
   inferDueFromFileName: true,
+  inlineTags: true,
   forecastDays: 7,
   flagTag: "flag",
   importantTag: "important",
@@ -108,6 +110,7 @@ export class GtdSettingTab extends PluginSettingTab {
       { name: "Keep stalled tags up to date automatically", desc: "Re-mark projects whenever the index changes. Off by default — it writes to your project notes; leave it off to only mark when you run the command.", control: { type: "toggle", key: "autoMarkStalled" } },
       { name: "Someday tag", desc: "Tag (without #) that parks a single task as someday/maybe.", control: { type: "text", key: "somedayTag" } },
       { name: "Due date from note name", desc: "Open tasks without a 📅 date in a note whose file name contains a YYYY-MM-DD date are due that day. They still stay in the inbox until filed.", control: { type: "toggle", key: "inferDueFromFileName" } },
+      { name: "Keep tags in task text", desc: "Show your #tags where you wrote them in a task's text, in every view and in generated status blocks, timelines and done reports. Flag, important, someday, sequential/parallel and date tags stay hidden.", control: { type: "toggle", key: "inlineTags" } },
       { name: "Hide someday tasks in Next Actions", desc: "Keep tasks tagged with the someday tag (and their subtasks) out of the Next Actions inbox. Project lists never show them.", control: { type: "toggle", key: "hideSomedayInNextActions" } },
       {
         name: "Match file-explorer colors",
@@ -315,6 +318,16 @@ export class GtdSettingTab extends PluginSettingTab {
       .addToggle((t) =>
         t.setValue(this.plugin.settings.inferDueFromFileName).onChange(async (v) => {
           this.plugin.settings.inferDueFromFileName = v;
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Keep tags in task text")
+      .setDesc("Show your #tags where you wrote them in a task's text, in every view and in generated status blocks, timelines and done reports. Flag, important, someday, sequential/parallel and date tags stay hidden.")
+      .addToggle((t) =>
+        t.setValue(this.plugin.settings.inlineTags).onChange(async (v) => {
+          this.plugin.settings.inlineTags = v;
           await this.plugin.saveSettings();
         })
       );

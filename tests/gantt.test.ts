@@ -14,6 +14,12 @@ function project(name: string, extra: Partial<Project> = {}): Project {
 }
 
 describe("ganttSource week/month", () => {
+  it("labels bars with inline tags (as words, since mermaid can't show #) when asked", () => {
+    const p = project("Home", { tasks: [task("Call", { inlineText: "Call #bob", due: "2026-06-13" })] });
+    expect(ganttSource([p], "week", TODAY, { ...OPTS, inlineTags: true })).toContain("Call bob :");
+    expect(ganttSource([p], "week", TODAY, OPTS)).toContain("Call :");
+  });
+
   it("spans defer→due, marks overdue crit on today, available active", () => {
     const p = project("Home", {
       tasks: [

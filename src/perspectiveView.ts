@@ -124,7 +124,7 @@ export class PerspectiveView extends ItemView {
       };
     }
     renderMarkers(this.plugin, row, it.task);
-    const label = renderTaskText(row, it.task.text, this.app, noteOf(it.project, it.task));
+    const label = renderTaskText(row, this.plugin.taskLabel(it.task), this.app, noteOf(it.project, it.task));
     if (it.task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${it.task.reason}` });
     label.onclick = () => void openTaskLine(this.app, noteOf(it.project, it.task), it.task.line);
     renderDueBadge(row, it.task, today);

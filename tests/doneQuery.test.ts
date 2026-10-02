@@ -146,6 +146,12 @@ describe("groupDone and markdown output", () => {
     expect(md).toContain("- [x] b ✅ 2026-07-14");
   });
 
+  it("can keep inline tags in report lines", () => {
+    const tagged = [{ project: p, task: task("Call", { inlineText: "Call #bob" }), date: "2026-07-14", state: "done" as const }];
+    const md = renderDoneMarkdown(tagged, { from: "2026-07-09", to: "2026-07-15" }, parseDoneQuery(""), true);
+    expect(md).toContain("- [x] Call #bob ✅ 2026-07-14");
+  });
+
   it("says so when nothing closed", () => {
     const md = renderDoneMarkdown([], { from: "2026-07-09", to: "2026-07-15" }, parseDoneQuery(""));
     expect(md).toContain("Nothing closed");

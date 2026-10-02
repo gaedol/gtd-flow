@@ -113,7 +113,7 @@ export class DoneReportModal extends Modal {
       "",
       `_Generated ${todayISO()}${this.project ? ` · project filter: ${this.project}` : ""}_`,
       "",
-      renderDoneMarkdown(entries, range, q),
+      renderDoneMarkdown(entries, range, q, this.plugin.settings.inlineTags),
       "",
     ].join("\n");
 

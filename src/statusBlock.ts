@@ -1,5 +1,6 @@
 import { Project } from "./types";
 import { availableTasks, isDueForReview } from "./engine";
+import { labelOf } from "./parser";
 
 const OPEN = "%% gtd:status %%";
 const CLOSE = "%% /gtd:status %%";
@@ -16,7 +17,7 @@ function daysBetween(from: string, to: string): number {
 }
 
 // the inner markdown of the status block (between the comment markers)
-export function statusBlockText(p: Project, today: string): string {
+export function statusBlockText(p: Project, today: string, inlineTags = false): string {
   const open = p.tasks.filter((t) => !t.done);
   const total = p.tasks.length;
   const resolved = total - open.length;
@@ -25,7 +26,7 @@ export function statusBlockText(p: Project, today: string): string {
   let next: string;
   if (open.length === 0) next = "_(no open tasks)_";
   else if (avail.length === 0) next = p.status === "active" ? "_(stalled — nothing available)_" : `_(${p.status})_`;
-  else next = avail[0].text;
+  else next = labelOf(avail[0], inlineTags);
 
   const lines = [
     `**Next action:** ${next}`,

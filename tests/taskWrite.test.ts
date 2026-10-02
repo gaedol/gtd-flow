@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { setCheckboxChar, completeLine, setStateLine, toggleTagLine, withBlockId, triagedLine } from "../src/taskWrite";
+import { setCheckboxChar, completeLine, setStateLine, toggleTagLine, withBlockId, triagedLine, editedSystemTags } from "../src/taskWrite";
+import { parseTaskLine } from "../src/parser";
+import { serializeTask } from "../src/serialize";
 
 const TODAY = "2026-07-24";
 
@@ -61,5 +63,29 @@ describe("triagedLine", () => {
     expect(triagedLine("    - [ ] call Sam #work", "call Sam", "[[Hiring#^gtdab12cd|Hiring]]")).toBe(
       "    - call Sam → [[Hiring#^gtdab12cd|Hiring]]"
     );
+  });
+});
+
+describe("edit modal round trip", () => {
+  it("keeps inline tags where they were and re-appends only system tags", () => {
+    const raw = "- [ ] Ask #alice about the #q3 budget #important #flag 📅 2026-10-20";
+    const t = parseTaskLine(raw, 0)!;
+    const tags = editedSystemTags(t.tags, { tag: "flag", on: false }, { tag: "someday", on: true });
+    expect(tags).toEqual(["important", "someday"]);
+    const line = serializeTask({ indent: 0, done: false, text: t.inlineText!, tags, due: t.due });
+    expect(line).toBe("- [ ] Ask #alice about the #q3 budget #important #someday 📅 2026-10-20");
+  });
+
+  it("removes a tag the user deleted from the text", () => {
+    const t = parseTaskLine("- [ ] Ask #alice about it", 0)!;
+    const tags = editedSystemTags(t.tags, { tag: "flag", on: false }, { tag: "someday", on: false });
+    expect(serializeTask({ indent: 0, done: false, text: "Ask about it", tags })).toBe("- [ ] Ask about it");
+  });
+});
+
+describe("triagedLine with inline tags", () => {
+  it("leaves the user's tags in the back-link bullet", () => {
+    const t = parseTaskLine("- [ ] Ask #alice about the budget #flag", 0)!;
+    expect(triagedLine("- [ ] x", t.inlineText!, "[[Hiring#^id|Hiring]]")).toBe("- Ask #alice about the budget → [[Hiring#^id|Hiring]]");
   });
 });

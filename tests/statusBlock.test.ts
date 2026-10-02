@@ -13,6 +13,12 @@ function project(extra: Partial<Project> = {}): Project {
 }
 
 describe("statusBlockText", () => {
+  it("shows the next action with inline tags when asked", () => {
+    const p = project({ tasks: [task("Call", { inlineText: "Call #bob" })] });
+    expect(statusBlockText(p, TODAY, true)).toContain("**Next action:** Call #bob");
+    expect(statusBlockText(p, TODAY)).toContain("**Next action:** Call\n");
+  });
+
   it("shows next action, progress and review", () => {
     const p = project({
       flow: "sequential",

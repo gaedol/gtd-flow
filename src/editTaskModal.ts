@@ -2,6 +2,7 @@ import { App, Modal, Notice, Setting, TFile } from "obsidian";
 import type GtdFlowPlugin from "./main";
 import { Task } from "./types";
 import { parseTaskLine } from "./parser";
+import { editedSystemTags } from "./taskWrite";
 import { serializeTask, formatDuration, parseDuration, stateOf, TaskState } from "./serialize";
 import { todayISO } from "./dates";
 
@@ -25,7 +26,7 @@ export class EditTaskModal extends Modal {
   ) {
     super(app);
     const flagTag = plugin.settings.flagTag;
-    this.text = task.text;
+    this.text = task.inlineText ?? task.text; // the user's own #tags stay where they were written
     this.defer = task.defer ?? "";
     this.due = task.dueFromFile ? "" : task.due ?? ""; // an inferred date stays unwritten
     this.duration = task.durationMin ? formatDuration(task.durationMin) : "";
@@ -99,9 +100,7 @@ export class EditTaskModal extends Modal {
     }
     const flagTag = this.plugin.settings.flagTag;
     const somedayTag = this.plugin.settings.somedayTag;
-    const tags = this.task.tags.filter((t) => t !== flagTag && t !== somedayTag);
-    if (this.flagged) tags.push(flagTag);
-    if (this.someday) tags.push(somedayTag);
+    const tags = editedSystemTags(this.task.tags, { tag: flagTag, on: this.flagged }, { tag: somedayTag, on: this.someday });
 
     const newLine = serializeTask({
       indent: this.task.indent,

@@ -69,7 +69,7 @@ export class ReviewView extends ItemView {
     if (stalled) {
       card.createDiv({ cls: "gtd-review-next gtd-review-stalled", text: `Stalled — ${stalled.reason}` });
     } else {
-      card.createDiv({ cls: "gtd-review-next", text: "Next: " + (avail[0]?.text ?? "(nothing available)") });
+      card.createDiv({ cls: "gtd-review-next", text: "Next: " + (avail[0] ? this.plugin.taskLabel(avail[0]) : "(nothing available)") });
     }
 
     const btn = card.createEl("button", { cls: "gtd-review-btn", text: "Mark reviewed" });

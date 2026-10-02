@@ -1,5 +1,6 @@
 import { Project, Task } from "./types";
 import { availableTasks, addInterval, datedVisible } from "./engine";
+import { labelOf } from "./parser";
 
 export type TimelineMode = "day" | "week" | "month";
 
@@ -8,6 +9,7 @@ export interface GanttOptions {
   dayEnd: string; // "22:00"
   defaultDurationMin: number;
   flagTag: string;
+  inlineTags?: boolean; // label bars with the user's inline #tags kept
 }
 
 // invisible milestones (hidden via CSS) pin the axis to the full window
@@ -47,10 +49,10 @@ export function ganttSource(
   today: string,
   opts: GanttOptions
 ): string {
-  return mode === "day" ? dayChart(projects, today, opts) : rangeChart(projects, mode, today);
+  return mode === "day" ? dayChart(projects, today, opts) : rangeChart(projects, mode, today, !!opts.inlineTags);
 }
 
-function rangeChart(projects: Project[], mode: "week" | "month", today: string): string {
+function rangeChart(projects: Project[], mode: "week" | "month", today: string, inlineTags: boolean): string {
   const end = addInterval(today, mode === "week" ? "6d" : "1m")!;
   const lines = [
     INIT,
@@ -82,8 +84,8 @@ function rangeChart(projects: Project[], mode: "week" | "month", today: string):
       if (to > end) to = end;
       rows.push(
         to === from
-          ? `    ${label(t.text)} :${tags(t, avail, today)}${from}, 1d`
-          : `    ${label(t.text)} :${tags(t, avail, today)}${from}, ${to}`
+          ? `    ${label(labelOf(t, inlineTags))} :${tags(t, avail, today)}${from}, 1d`
+          : `    ${label(labelOf(t, inlineTags))} :${tags(t, avail, today)}${from}, ${to}`
       );
     });
     if (rows.length > 0) {
@@ -146,7 +148,7 @@ function dayChart(projects: Project[], today: string, opts: GanttOptions): strin
   const placed: Placed[] = [];
   const occupied: [number, number][] = [];
   const meta = items.map(({ task: t, project: p, avail }) => ({
-    label: (multi ? `${label(t.text, 28)} (${clean(p.name)})` : label(t.text)) + ` :${tags(t, avail, today)}`,
+    label: (multi ? `${label(labelOf(t, !!opts.inlineTags), 28)} (${clean(p.name)})` : label(labelOf(t, !!opts.inlineTags))) + ` :${tags(t, avail, today)}`,
     dur: t.durationMin ?? opts.defaultDurationMin,
     startMin: t.startTime ? toMin(t.startTime) : undefined,
   }));
@@ -194,7 +196,7 @@ function stamp(today: string, min: number): string {
 }
 
 // compact gantt of one project's open dated tasks, for the in-note status block
-export function projectGanttSource(p: Project, today: string): string {
+export function projectGanttSource(p: Project, today: string, inlineTags = false): string {
   const avail = new Set(availableTasks(p, today));
   const rows: string[] = [];
   p.tasks.forEach((t) => {
@@ -206,8 +208,8 @@ export function projectGanttSource(p: Project, today: string): string {
     const to = due < from ? from : due;
     rows.push(
       to === from
-        ? `    ${label(t.text)} :${tags(t, avail, today)}${from}, 1d`
-        : `    ${label(t.text)} :${tags(t, avail, today)}${from}, ${to}`
+        ? `    ${label(labelOf(t, inlineTags))} :${tags(t, avail, today)}${from}, 1d`
+        : `    ${label(labelOf(t, inlineTags))} :${tags(t, avail, today)}${from}, ${to}`
     );
   });
   if (rows.length === 0) return "";

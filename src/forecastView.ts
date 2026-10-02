@@ -122,7 +122,7 @@ export class ForecastView extends ItemView {
       setIcon(icon, "play");
     }
     renderMarkers(this.plugin, row, it.task);
-    const label = renderTaskText(row, it.task.text, this.app, noteOf(it.project, it.task));
+    const label = renderTaskText(row, this.plugin.taskLabel(it.task), this.app, noteOf(it.project, it.task));
     if (it.task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${it.task.reason}` });
     label.onclick = () => this.openTask(it);
     this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: it.project.name }), it.project.path);
@@ -135,7 +135,7 @@ export class ForecastView extends ItemView {
     const row = parent.createDiv({ cls: "gtd-preview-row" });
     const icon = row.createSpan({ cls: "gtd-repeat-icon", attr: { "aria-label": "Repeats" } });
     setIcon(icon, "rotate-cw");
-    const label = renderTaskText(row, it.task.text, this.app, noteOf(it.project, it.task));
+    const label = renderTaskText(row, this.plugin.taskLabel(it.task), this.app, noteOf(it.project, it.task));
     label.onclick = () => this.openTask(it);
     this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: it.project.name }), it.project.path);
   }

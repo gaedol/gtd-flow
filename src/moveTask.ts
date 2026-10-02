@@ -40,7 +40,7 @@ export async function moveTask(
     }
     if (leaveLink) {
       const link = app.fileManager.generateMarkdownLink(to, fromPath, "#^" + id, to.basename);
-      ls[task.line] = triagedLine(raw, current.text, link);
+      ls[task.line] = triagedLine(raw, current.inlineText ?? current.text, link); // keep the user's #tags
     } else {
       ls.splice(task.line, 1);
     }

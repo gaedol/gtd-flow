@@ -1,4 +1,5 @@
 import { Project, Task } from "./types";
+import { labelOf } from "./parser";
 
 export type DoneGroup = "project" | "day" | "none";
 
@@ -223,7 +224,7 @@ export function rangeLabel(r: DateRange): string {
 }
 
 // Static markdown snapshot: plain checklist lines that read fine without the plugin.
-export function renderDoneMarkdown(entries: DoneEntry[], range: DateRange, q: DoneQuery): string {
+export function renderDoneMarkdown(entries: DoneEntry[], range: DateRange, q: DoneQuery, inlineTags = false): string {
   const lines: string[] = [];
   const done = entries.filter((e) => e.state === "done").length;
   const dropped = entries.length - done;
@@ -240,7 +241,7 @@ export function renderDoneMarkdown(entries: DoneEntry[], range: DateRange, q: Do
       const mark = e.state === "dropped" ? "❌" : "✅";
       const where = q.group === "project" ? "" : ` _(${e.project.name})_`;
       const why = e.task.reason ? ` 💬 ${e.task.reason}` : "";
-      lines.push(`- [${e.state === "dropped" ? "-" : "x"}] ${e.task.text}${where} ${mark} ${e.date}${why}`);
+      lines.push(`- [${e.state === "dropped" ? "-" : "x"}] ${labelOf(e.task, inlineTags)}${where} ${mark} ${e.date}${why}`);
     }
   }
   return lines.join("\n");
