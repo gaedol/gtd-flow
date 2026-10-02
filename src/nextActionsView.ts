@@ -146,6 +146,7 @@ export class NextActionsView extends ItemView {
     };
     const label = renderTaskText(row, t.text, this.app, path);
     label.onclick = () => void openTaskLine(this.app, path, t.line); // jump to it in context
+    renderDueBadge(row, t, todayISO()); // e.g. a date inferred from the note's name
     this.editButton(row, path, t);
     const btn = row.createEl("button", { cls: "gtd-move-btn", attr: { "aria-label": "Move to project" } });
     setIcon(btn, "folder-input");

@@ -50,7 +50,7 @@ Task lines use [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, s
 A tag shaped like a date — `#2026-10-15` — is read as the due date, so you can date a task just by typing it. An explicit 📅 wins when both are present. The date tag isn't listed among the task's tags, 🔁 repeats advance it like a 📅 date, and saving the task from the **Edit task** modal rewrites it as `📅 2026-10-15`. The Tasks plugin doesn't understand date tags, so its queries won't see that due date.
 
 **Due date from the note's name.** With **Due date from note name** on (the default), an open task with no 📅 or date tag, in a note whose *file name* contains a `YYYY-MM-DD` date, is due on that date. Examples are `2026-10-02.md` or `2026-10-02 Standup.md`. Only the file name counts, not its folders, and the first valid date wins. Nothing is written to the note:
-- Views show the date in italics.
+- Next Actions (including the inbox) and Perspectives show the date in italics. Forecast lists the task under that day.
 - The **Edit task** modal leaves the due field empty, noting the inferred date. Setting a date there writes a real 📅 that overrides it.
 - A 🔁 task whose only date is the inferred one gets an explicit 📅 on its next occurrence, since the new line still sits in the dated note.
 - Moving the task to a project (filing it) drops the inferred date, because the date belonged to the note it came from.
