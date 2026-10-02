@@ -11,6 +11,7 @@ export interface GtdSettings {
   ignoredFolders: string[]; // never indexed in "vault" mode
   hideSomedayInNextActions: boolean; // keep #someday tasks out of the Next Actions inbox
   inferDueFromFileName: boolean; // undated tasks in a dated note are due that day
+  showInboxTags: boolean; // tag chips (and flag/important icons) on Next Actions inbox rows
   forecastDays: number;
   flagTag: string;
   importantTag: string;
@@ -45,6 +46,7 @@ export const DEFAULT_SETTINGS: GtdSettings = {
   ignoredFolders: [],
   hideSomedayInNextActions: true,
   inferDueFromFileName: true,
+  showInboxTags: true,
   forecastDays: 7,
   flagTag: "flag",
   importantTag: "important",
@@ -108,6 +110,7 @@ export class GtdSettingTab extends PluginSettingTab {
       { name: "Keep stalled tags up to date automatically", desc: "Re-mark projects whenever the index changes. Off by default — it writes to your project notes; leave it off to only mark when you run the command.", control: { type: "toggle", key: "autoMarkStalled" } },
       { name: "Someday tag", desc: "Tag (without #) that parks a single task as someday/maybe.", control: { type: "text", key: "somedayTag" } },
       { name: "Due date from note name", desc: "Open tasks without a 📅 date in a note whose file name contains a YYYY-MM-DD date are due that day. They still stay in the inbox until filed.", control: { type: "toggle", key: "inferDueFromFileName" } },
+      { name: "Show tags in the inbox", desc: "Show each inbox task's tags in Next Actions, plus the flag and star icons for flagged and important tasks.", control: { type: "toggle", key: "showInboxTags" } },
       { name: "Hide someday tasks in Next Actions", desc: "Keep tasks tagged with the someday tag (and their subtasks) out of the Next Actions inbox. Project lists never show them.", control: { type: "toggle", key: "hideSomedayInNextActions" } },
       {
         name: "Match file-explorer colors",
@@ -315,6 +318,16 @@ export class GtdSettingTab extends PluginSettingTab {
       .addToggle((t) =>
         t.setValue(this.plugin.settings.inferDueFromFileName).onChange(async (v) => {
           this.plugin.settings.inferDueFromFileName = v;
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Show tags in the inbox")
+      .setDesc("Show each inbox task's tags in Next Actions, plus the flag and star icons for flagged and important tasks.")
+      .addToggle((t) =>
+        t.setValue(this.plugin.settings.showInboxTags).onChange(async (v) => {
+          this.plugin.settings.showInboxTags = v;
           await this.plugin.saveSettings();
         })
       );
