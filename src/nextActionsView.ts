@@ -144,12 +144,9 @@ export class NextActionsView extends ItemView {
       cb.disabled = true;
       await completeTask(this.app, path, t);
     };
-    const showTags = this.plugin.settings.showInboxTags;
-    if (showTags) renderMarkers(this.plugin, row, t);
     const label = renderTaskText(row, t.text, this.app, path);
     label.onclick = () => void openTaskLine(this.app, path, t.line); // jump to it in context
     renderDueBadge(row, t, todayISO()); // e.g. a date inferred from the note's name
-    if (showTags) this.renderTagChips(row, t);
     this.editButton(row, path, t);
     const btn = row.createEl("button", { cls: "gtd-move-btn", attr: { "aria-label": "Move to project" } });
     setIcon(btn, "folder-input");
@@ -240,10 +237,6 @@ export class NextActionsView extends ItemView {
     this.editButton(row, note, task);
     if (showProject) this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: project.name }), project.path);
     renderDueBadge(row, task, today);
-    this.renderTagChips(row, task);
-  }
-
-  private renderTagChips(row: HTMLElement, task: Task) {
     // flag/important already show as icons, so don't repeat them as tag chips
     const iconTags = [this.plugin.settings.flagTag, this.plugin.settings.importantTag];
     for (const tag of task.tags) {

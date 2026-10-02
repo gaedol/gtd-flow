@@ -145,7 +145,6 @@ GTD Flow has two inbox modes, chosen with the **Inbox** setting.
 - **Capture** goes to **today's daily note**, using the folder, date format and template from the core Daily Notes plugin (or `YYYY-MM-DD.md` at the vault root when those aren't set). The note is created when it doesn't exist yet.
 - **Filing a task** into a project moves it there with a `^block-id` and replaces the original line with a plain bullet linking to it, e.g. `- Call Sam → [[Hiring#^gtdab12cd|Hiring]]`. Your daily or meeting note keeps a record of the item and where it went, and the bullet is no longer a task, so it leaves the inbox.
 - **Checkboxes in inbox notes stay plain Obsidian checkboxes**: GTD Flow's click handling (✅ dates, 🔁 next occurrences, in-progress cycling) and the right-click task menu only apply in project notes. Completing from the inbox section in Next Actions still records ✅.
-- **Tags** show on inbox rows as chips, with flag and star icons for flagged and important tasks, as in project lists. Turn **Show tags in the inbox** off for a plainer list.
 - **Someday tasks** (tagged with the someday tag, or nested under a tagged parent) are kept out of the inbox section while **Hide someday tasks in Next Actions** is on (the default), as they already are from project lists. They still appear in the Someday perspective.
 - **Ignored folders** are never indexed. The archive folder and the core Templates folder are always ignored, so archived projects and template checklists don't show up.
 
