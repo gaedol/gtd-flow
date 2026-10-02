@@ -18,7 +18,7 @@ export async function completeTask(app: App, path: string, task: Task): Promise<
       new Notice("Task moved since last index — try again");
       return content;
     }
-    const { line: done, next } = completeLine(line, todayISO());
+    const { line: done, next } = completeLine(line, todayISO(), task.dueFromFile ? task.due : undefined);
     lines[task.line] = done;
     if (next) lines.splice(task.line, 0, next);
     ok = true;

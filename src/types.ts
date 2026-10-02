@@ -9,6 +9,7 @@ export interface Task {
   indent: number; // leading whitespace chars; defines action-group nesting
   defer?: string; // ISO date, Tasks-plugin 🛫
   due?: string; // ISO date, 📅
+  dueFromFile?: boolean; // due wasn't written on the line: it comes from a date in the note's name
   completedOn?: string; // ISO date, ✅
   repeat?: string; // 🔁 rule, verbatim
   durationMin?: number; // ⏱ estimated duration in minutes

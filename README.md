@@ -52,7 +52,7 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 - **Edit right in the note** — right-click menu on task lines and checkbox clicks that record ✅ and the 🔁 next occurrence, no Tasks plugin needed
 - **Next Actions**, **Forecast**, **Timeline** (Gantt), **Review**, and **Perspectives** views, with **drag-to-reorder** in Forecast/Perspectives
 - **Quick capture** (modal, command, and URL handler) to today's daily note, and **inbox triage** from any note into projects, leaving a link behind
-- **`#YYYY-MM-DD` date tags** as a quick way to give a task a due date
+- **`#YYYY-MM-DD` date tags** as a quick way to give a task a due date, and due dates inferred from dated note names (`2026-10-02 Standup.md`)
 - **Repeat-on-complete**, **flags**, **someday/maybe**, **archiving**, an **overdue badge**, and due-task **notifications**
 - **Done queries** — a `gtd-done` block that lists what you closed in any period (presets, project/folder filters), plus an exportable report note
 - **In-note highlighting** of next/available/blocked/deferred/overdue tasks, plus an opt-in per-project **status block**

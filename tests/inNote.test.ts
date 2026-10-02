@@ -9,6 +9,12 @@ function project(extra: Partial<Project> = {}): Project {
 }
 
 describe("buildLineClasses", () => {
+  it("marks a task overdue from the note-name date when inference is on", () => {
+    const p = project({ path: "Meetings/2026-06-01 Kickoff.md" });
+    expect(buildLineClasses(p, ["- [ ] a"], TODAY, p.path, true).get(0)).toContain("gtd-ln-overdue");
+    expect(buildLineClasses(p, ["- [ ] a"], TODAY, p.path, false).get(0)).not.toContain("gtd-ln-overdue");
+  });
+
   it("blocks a member note's tasks behind the hub's open task in a sequential project", () => {
     const hubTask = { text: "hub first", path: "p.md", done: false, line: 0, indent: 0, tags: [] };
     const p = project({ flow: "sequential", members: ["m.md"], tasks: [hubTask] });

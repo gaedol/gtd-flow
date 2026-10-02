@@ -1,5 +1,5 @@
 import { Project, Task } from "./types";
-import { parseTaskLine } from "./parser";
+import { applyFileDate, parseTaskLine } from "./parser";
 import { availableTasks, isSomedayTask } from "./engine";
 
 // Re-parses doc lines so decorations track unsaved edits, not the (possibly stale)
@@ -10,12 +10,13 @@ export function buildLineClasses(
   project: Project,
   lines: string[],
   today: string,
-  path: string = project.path
+  path: string = project.path,
+  inferDue = false
 ): Map<number, string> {
   const tasks: Task[] = [];
   lines.forEach((l, i) => {
     const t = parseTaskLine(l, i);
-    if (t) tasks.push({ ...t, path });
+    if (t) tasks.push(inferDue ? applyFileDate({ ...t, path }, path) : { ...t, path });
   });
   const order = [project.path, ...(project.members ?? [])];
   const all = order.flatMap((p) => (p === path ? tasks : project.tasks.filter((t) => (t.path ?? project.path) === p)));

@@ -1,6 +1,6 @@
 import { App, CachedMetadata, TFile, Events, getLinkpath } from "obsidian";
 import { Project } from "./types";
-import { parseNoteTasks, parseProject } from "./parser";
+import { applyFileDate, parseNoteTasks, parseProject } from "./parser";
 import { assemble, BrokenLink, NoteRecord } from "./projectAssembly";
 
 // What the index covers. "vault": every note outside the ignored folders —
@@ -13,6 +13,7 @@ export interface IndexScope {
   projectsFolder: string;
   inboxNote: string;
   ignoredFolders: string[];
+  inferDueFromFileName: boolean;
 }
 
 const MEMBER_KEY = "project";
@@ -137,6 +138,7 @@ export class TaskIndex extends Events {
       const content = await this.app.vault.cachedRead(file);
       const project = parseProject(file.path, content, cache?.frontmatter);
       if (project) {
+        if (scope.inferDueFromFileName) project.tasks = project.tasks.map((t) => applyFileDate(t, file.path));
         this.notes.set(file.path, { kind: "project", project });
         return true;
       }
@@ -145,7 +147,8 @@ export class TaskIndex extends Events {
     // skip notes the metadata cache says hold no tasks, without reading them
     // (members are kept even without tasks: they still belong to the project)
     const hasTasks = !cache || !!cache.listItems?.some((li) => li.task !== undefined);
-    const tasks = hasTasks ? parseNoteTasks(file.path, await this.app.vault.cachedRead(file)) : [];
+    let tasks = hasTasks ? parseNoteTasks(file.path, await this.app.vault.cachedRead(file)) : [];
+    if (scope.inferDueFromFileName) tasks = tasks.map((t) => applyFileDate(t, file.path));
     const isInbox = scope.mode === "vault" || file.path === scope.inboxNote;
     if (member) {
       this.notes.set(file.path, { kind: "member", name: file.basename, ...member, fallbackInbox: isInbox, tasks });

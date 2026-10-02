@@ -27,7 +27,7 @@ export class EditTaskModal extends Modal {
     const flagTag = plugin.settings.flagTag;
     this.text = task.text;
     this.defer = task.defer ?? "";
-    this.due = task.due ?? "";
+    this.due = task.dueFromFile ? "" : task.due ?? ""; // an inferred date stays unwritten
     this.duration = task.durationMin ? formatDuration(task.durationMin) : "";
     this.startTime = task.startTime ?? "";
     this.reason = task.reason ?? "";
@@ -49,10 +49,11 @@ export class EditTaskModal extends Modal {
       t.inputEl.type = "date";
       t.setValue(this.defer).onChange((v) => (this.defer = v));
     });
-    new Setting(contentEl).setName("Due (📅)").addText((t) => {
+    const due = new Setting(contentEl).setName("Due (📅)").addText((t) => {
       t.inputEl.type = "date";
       t.setValue(this.due).onChange((v) => (this.due = v));
     });
+    if (this.task.dueFromFile) due.setDesc(`${this.task.due} from the note's name. Set a date to override it.`);
     new Setting(contentEl).setName("Time (⏰)").addText((t) => {
       t.inputEl.type = "time";
       t.setValue(this.startTime).onChange((v) => (this.startTime = v));

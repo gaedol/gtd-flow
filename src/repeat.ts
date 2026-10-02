@@ -46,7 +46,14 @@ function dayDiff(from: string, to: string): number {
 
 // Builds the next occurrence from the ORIGINAL (unchecked) line, or null if
 // the task doesn't recur. Recurrence needs at least one date, as in Tasks.
-export function nextOccurrenceLine(rawLine: string, today: string): string | null {
+// fallbackDue: a due date that isn't written on the line (inferred from the note
+// name); the next occurrence gets it as an explicit 📅, since the new line
+// still sits in the old, dated note
+export function nextOccurrenceLine(rawLine: string, today: string, fallbackDue?: string): string | null {
+  if (fallbackDue && ![...rawLine.matchAll(DATE_FIELD_RE)].length) {
+    // keep a trailing ^block-id last
+    rawLine = rawLine.replace(/(\s\^[A-Za-z0-9-]+)?\s*$/, (id) => ` 📅 ${fallbackDue}${id.trimEnd()}`);
+  }
   const t = parseTaskLine(rawLine, 0);
   if (!t || !t.repeat) return null;
   const rule = parseRepeat(t.repeat);

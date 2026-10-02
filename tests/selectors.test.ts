@@ -37,6 +37,11 @@ describe("selectors", () => {
     expect(groups[0].tasks.map((t) => t.text)).toEqual(["call mum"]);
   });
 
+  it("inboxGroups keeps tasks whose due date was only inferred from the note name", () => {
+    const notes = [project("2026-10-02", "Daily/2026-10-02.md", [task("call", { due: "2026-10-02", dueFromFile: true })], "inbox")];
+    expect(inboxGroups(notes, true)[0].tasks.map((t) => t.text)).toEqual(["call"]);
+  });
+
   it("inboxGroups can leave out someday tasks and their subtasks", () => {
     const notes = [
       project("N", "Notes/N.md", [

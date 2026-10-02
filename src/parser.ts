@@ -65,6 +65,24 @@ function stripMetadata(body: string): string {
     .trim();
 }
 
+// the first valid YYYY-MM-DD in a note's file name (not its folders)
+export function fileNameDate(path: string): string | undefined {
+  const name = path.replace(/.*\//, "").replace(/\.md$/, "");
+  for (const m of name.matchAll(/(?<!\d)(\d{4})-(\d{2})-(\d{2})(?!\d)/g)) {
+    const [y, mo, d] = [+m[1], +m[2], +m[3]];
+    const date = new Date(Date.UTC(y, mo - 1, d));
+    if (date.getUTCMonth() === mo - 1 && date.getUTCDate() === d) return m[0];
+  }
+  return undefined;
+}
+
+// give open tasks without a due date the date from the note's name
+export function applyFileDate(task: Task, path: string): Task {
+  if (task.done || task.due) return task;
+  const due = fileNameDate(path);
+  return due ? { ...task, due, dueFromFile: true } : task;
+}
+
 // every task line in a note, tagged with the note's path
 export function parseNoteTasks(path: string, content: string): Task[] {
   const tasks: Task[] = [];

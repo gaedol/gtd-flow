@@ -44,14 +44,15 @@ function somedayParked(tasks: Task[]): Set<Task> {
 
 // Open inbox tasks grouped by note, for the Next Actions inbox section. With
 // skipDated, tasks that already carry a 📅 due date are left out: they surface
-// in Forecast instead, so they don't need triage. With skipSomeday, tasks
-// parked as someday are left out too.
+// in Forecast instead, so they don't need triage — unless the date was only
+// inferred from the note's name. With skipSomeday, tasks parked as someday are
+// left out too.
 export function inboxGroups(snapshot: Project[], skipDated: boolean, skipSomeday = false): InboxGroup[] {
   return snapshot
     .filter((p) => p.kind === "inbox")
     .map((note) => {
       const parked = skipSomeday ? somedayParked(note.tasks) : new Set<Task>();
-      return { note, tasks: note.tasks.filter((t) => !t.done && !(skipDated && t.due) && !parked.has(t)) };
+      return { note, tasks: note.tasks.filter((t) => !t.done && !(skipDated && t.due && !t.dueFromFile) && !parked.has(t)) };
     })
     .filter((g) => g.tasks.length > 0)
     .sort((a, b) => a.note.path.localeCompare(b.note.path));

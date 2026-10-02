@@ -10,6 +10,7 @@ export interface GtdSettings {
   inboxNote: string; // the inbox in "single" mode
   ignoredFolders: string[]; // never indexed in "vault" mode
   hideSomedayInNextActions: boolean; // keep #someday tasks out of the Next Actions inbox
+  inferDueFromFileName: boolean; // undated tasks in a dated note are due that day
   forecastDays: number;
   flagTag: string;
   importantTag: string;
@@ -43,6 +44,7 @@ export const DEFAULT_SETTINGS: GtdSettings = {
   inboxNote: "GTD/Inbox.md",
   ignoredFolders: [],
   hideSomedayInNextActions: true,
+  inferDueFromFileName: true,
   forecastDays: 7,
   flagTag: "flag",
   importantTag: "important",
@@ -105,6 +107,7 @@ export class GtdSettingTab extends PluginSettingTab {
       { name: "Call a project stale after (days)", desc: "Days with nothing completed or dropped before a project counts as stale. 0 disables the staleness check (stalled projects are still marked).", control: { type: "number", key: "staleAfterDays", min: 0 } },
       { name: "Keep stalled tags up to date automatically", desc: "Re-mark projects whenever the index changes. Off by default — it writes to your project notes; leave it off to only mark when you run the command.", control: { type: "toggle", key: "autoMarkStalled" } },
       { name: "Someday tag", desc: "Tag (without #) that parks a single task as someday/maybe.", control: { type: "text", key: "somedayTag" } },
+      { name: "Due date from note name", desc: "Open tasks without a 📅 date in a note whose file name contains a YYYY-MM-DD date are due that day. They still stay in the inbox until filed.", control: { type: "toggle", key: "inferDueFromFileName" } },
       { name: "Hide someday tasks in Next Actions", desc: "Keep tasks tagged with the someday tag (and their subtasks) out of the Next Actions inbox. Project lists never show them.", control: { type: "toggle", key: "hideSomedayInNextActions" } },
       {
         name: "Match file-explorer colors",
@@ -302,6 +305,16 @@ export class GtdSettingTab extends PluginSettingTab {
       .addText((t) =>
         t.setValue(this.plugin.settings.somedayTag).onChange(async (v) => {
           this.plugin.settings.somedayTag = v.replace(/^#/, "") || "someday";
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Due date from note name")
+      .setDesc("Open tasks without a 📅 date in a note whose file name contains a YYYY-MM-DD date are due that day. They still stay in the inbox until filed.")
+      .addToggle((t) =>
+        t.setValue(this.plugin.settings.inferDueFromFileName).onChange(async (v) => {
+          this.plugin.settings.inferDueFromFileName = v;
           await this.plugin.saveSettings();
         })
       );

@@ -1,6 +1,5 @@
 import { Editor, TFile, normalizePath } from "obsidian";
 import type GtdFlowPlugin from "./main";
-import { parseTaskLine } from "./parser";
 import { completeTask } from "./completeTask";
 import { EditTaskModal } from "./editTaskModal";
 import { NewProjectModal } from "./newProjectModal";
@@ -36,7 +35,7 @@ export function registerMenus(plugin: GtdFlowPlugin): void {
       const clicked = lastContextClick(file.path);
       const lineNo = clicked?.line ?? editor.getCursor().line;
       const raw = clicked?.text ?? editor.getLine(lineNo);
-      const task = parseTaskLine(raw, lineNo);
+      const task = plugin.taskFromLine(file.path, raw, lineNo);
       if (!task) return;
       const path = file.path;
       menu.addSeparator();

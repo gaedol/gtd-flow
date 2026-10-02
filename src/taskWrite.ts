@@ -20,10 +20,10 @@ export function checkboxCharOf(raw: string): string | null {
 
 // mark done: check the box, append ✅ today, and return the next 🔁 occurrence
 // line to insert above (or null). Assumes the line is an open task.
-export function completeLine(raw: string, today: string): { line: string; next: string | null } {
+export function completeLine(raw: string, today: string, fallbackDue?: string): { line: string; next: string | null } {
   return {
     line: setCheckboxChar(raw, "x") + ` ✅ ${today}`,
-    next: nextOccurrenceLine(raw, today),
+    next: nextOccurrenceLine(raw, today, fallbackDue),
   };
 }
 

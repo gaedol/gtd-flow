@@ -28,8 +28,12 @@ export function renderMarkers(plugin: GtdFlowPlugin, row: HTMLElement, task: Tas
 // due-date badge, colored orange today / red when overdue
 export function renderDueBadge(row: HTMLElement, task: Task, today: string): void {
   if (!task.due) return;
-  row.createSpan({
+  const badge = row.createSpan({
     cls: "gtd-due" + (task.due < today ? " gtd-overdue" : task.due === today ? " gtd-due-today" : ""),
     text: task.due,
   });
+  if (task.dueFromFile) {
+    badge.addClass("gtd-due-inferred");
+    badge.setAttr("aria-label", "Due date from the note's name");
+  }
 }

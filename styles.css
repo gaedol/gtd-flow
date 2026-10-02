@@ -560,3 +560,9 @@ li.task-list-item.gtd-ln-someday {
   color: var(--text-muted);
   font-style: italic;
 }
+
+/* due date inferred from the note's name, not written on the line */
+.gtd-due.gtd-due-inferred {
+  font-style: italic;
+  opacity: 0.75;
+}

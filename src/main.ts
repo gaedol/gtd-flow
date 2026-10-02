@@ -12,7 +12,7 @@ import { dueOrOverdue, setSomedayTag } from "./engine";
 import { insertTaskLine } from "./insertLine";
 import { moveTask } from "./moveTask";
 import { todayISO } from "./dates";
-import { parseTaskLine, parseProject, parseNoteTasks } from "./parser";
+import { parseTaskLine, parseProject, parseNoteTasks, applyFileDate } from "./parser";
 import type { Task, Project } from "./types";
 import { projectNotes, taskContainers } from "./selectors";
 import { ensureTodayNote, templatesFolder } from "./dailyNote";
@@ -45,6 +45,7 @@ export default class GtdFlowPlugin extends Plugin {
       projectsFolder: normalizePath(this.settings.projectsFolder),
       inboxNote: normalizePath(this.settings.inboxNote),
       ignoredFolders: this.ignoredFolders(),
+      inferDueFromFileName: this.settings.inferDueFromFileName,
     }));
 
     if (typeof Notification !== "undefined" && Notification.permission === "default") {
@@ -170,6 +171,14 @@ export default class GtdFlowPlugin extends Plugin {
     return moveTask(this.app, fromPath, task, toPath, this.settings.insertPosition, leaveLink);
   }
 
+  // a task parsed from a line in a note, with the due date the index would
+  // infer from the note's name, so in-note actions match the views
+  taskFromLine(path: string, raw: string, lineNo: number): Task | null {
+    const task = parseTaskLine(raw, lineNo);
+    if (!task) return null;
+    return this.settings.inferDueFromFileName ? applyFileDate({ ...task, path }, path) : { ...task, path };
+  }
+
   // decide and perform what a checkbox click does on a source line; returns true
   // when GTD Flow handled it (caller should suppress the default toggle)
   routeCheckbox(path: string, lineNo: number, rawLine: string): boolean {
@@ -177,7 +186,7 @@ export default class GtdFlowPlugin extends Plugin {
     if (char === null) return false;
     const action = checkboxClickAction(char, this.settings.clickCycles);
     if (action === "none") return false;
-    const task = parseTaskLine(rawLine, lineNo);
+    const task = this.taskFromLine(path, rawLine, lineNo);
     if (!task) return false;
     if (action === "in-progress") void setTaskState(this.app, path, task, "in-progress");
     else void completeTask(this.app, path, task);

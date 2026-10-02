@@ -14,7 +14,7 @@ export function gtdEditorDecorations(plugin: GtdFlowPlugin) {
     const doc = view.state.doc;
     const lines: string[] = [];
     for (let i = 1; i <= doc.lines; i++) lines.push(doc.line(i).text);
-    const classes = buildLineClasses(project, lines, todayISO(), file.path);
+    const classes = buildLineClasses(project, lines, todayISO(), file.path, plugin.settings.inferDueFromFileName);
 
     const b = new RangeSetBuilder<Decoration>();
     for (let i = 1; i <= doc.lines; i++) {

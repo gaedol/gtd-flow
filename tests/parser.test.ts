@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseTaskLine, parseProject } from "../src/parser";
+import { parseTaskLine, parseProject, fileNameDate, applyFileDate } from "../src/parser";
 
 describe("parseTaskLine", () => {
   it("parses a plain open task", () => {
@@ -136,5 +136,34 @@ describe("parseProject", () => {
     const p = parseProject("x.md", content, { type: "project" })!;
     expect(p.status).toBe("active");
     expect(p.flow).toBe("parallel");
+  });
+});
+
+describe("fileNameDate", () => {
+  it("takes the first valid YYYY-MM-DD from the file name only", () => {
+    expect(fileNameDate("Daily/2026-10-02.md")).toBe("2026-10-02");
+    expect(fileNameDate("Meetings/2026-10-01 to 2026-10-07 sprint.md")).toBe("2026-10-01");
+    expect(fileNameDate("2026-10-02/Standup.md")).toBeUndefined(); // folder, not file name
+  });
+
+  it("skips impossible dates and dates inside longer numbers", () => {
+    expect(fileNameDate("Notes/2026-13-01 then 2026-02-28.md")).toBe("2026-02-28");
+    expect(fileNameDate("Notes/2026-02-30.md")).toBeUndefined();
+    expect(fileNameDate("Notes/12026-10-02.md")).toBeUndefined();
+  });
+});
+
+describe("applyFileDate", () => {
+  const PATH = "Meetings/2026-10-02 Standup.md";
+
+  it("gives an undated open task the note's date, marked as inferred", () => {
+    const t = applyFileDate(parseTaskLine("- [ ] send notes", 0)!, PATH);
+    expect(t).toMatchObject({ due: "2026-10-02", dueFromFile: true });
+  });
+
+  it("leaves written due dates and done tasks alone", () => {
+    expect(applyFileDate(parseTaskLine("- [ ] send notes 📅 2026-10-05", 0)!, PATH).due).toBe("2026-10-05");
+    expect(applyFileDate(parseTaskLine("- [ ] send notes #2026-10-06", 0)!, PATH).due).toBe("2026-10-06");
+    expect(applyFileDate(parseTaskLine("- [x] sent", 0)!, PATH).due).toBeUndefined();
   });
 });
