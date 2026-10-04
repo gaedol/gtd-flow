@@ -474,9 +474,25 @@ export class GtdSettingTab extends PluginSettingTab {
     toggle("important", () => p.important ?? false, (v) => (p.important = v));
     toggle("someday", () => p.someday ?? false, (v) => (p.someday = v));
     toggle("done", () => p.done ?? false, (v) => (p.done = v));
+    // the view's dropdown follows this array, so swapping neighbours reorders it
+    const list = this.plugin.settings.perspectives;
+    const move = (to: number) => {
+      [list[i], list[to]] = [list[to], list[i]];
+      void save().then(() => this.refresh());
+    };
+    s.addExtraButton((b) =>
+      b.setIcon("arrow-up").setTooltip("Move up").setDisabled(i === 0).onClick(() => move(i - 1))
+    );
+    s.addExtraButton((b) =>
+      b
+        .setIcon("arrow-down")
+        .setTooltip("Move down")
+        .setDisabled(i === list.length - 1)
+        .onClick(() => move(i + 1))
+    );
     s.addExtraButton((b) =>
       b.setIcon("trash").setTooltip("Delete perspective").onClick(async () => {
-        this.plugin.settings.perspectives.splice(i, 1);
+        list.splice(i, 1);
         await save();
         this.refresh();
       })
