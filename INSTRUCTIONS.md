@@ -135,7 +135,8 @@ Decorations follow your edits live (they re-parse the buffer, not the saved file
 ## Archiving
 
 - **Archive done tasks in this note / in all projects** — moves fully-done root subtrees (groups move whole, never partially) under a `## Archive` heading at the bottom of the same note, preserving ✅ dates. Only items completed at least *N* days ago move (**Archive tasks done for (days)** setting, default 7; 0 = everything; tasks without a ✅ date always qualify). Done children inside still-open groups stay put. Keep `## Archive` as the last section of the note.
-- **Archive current project (complete + move)** — sets `status: completed` (dropped projects keep `dropped`) and moves the note to the **Archive folder** (default `GTD/Archive`), which removes it from the index and all pickers.
+- **Archive current project** — sets `status: completed` (dropped projects keep `dropped`) and moves the note to the **Archive folder** (default `GTD/Archive`, created on demand), which removes it from the index and all pickers.
+- **Archive all done projects** — files away every project already `completed` or `dropped` in one go, without touching any status; useful at the end of a weekly review when several projects closed at once. A name collision in the archive folder gets a numeric suffix rather than overwriting.
 
 ## Using with the Tasks plugin
 

@@ -263,14 +263,37 @@ export default class GtdFlowPlugin extends Plugin {
     return moved;
   }
 
+  // close the project, then file it away
   async archiveProject(file: TFile) {
     await this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
       if (fm["status"] !== "dropped") fm["status"] = "completed";
     });
+    await this.moveToArchive(file);
+    new Notice(`Archived project: ${file.basename}`);
+  }
+
+  // move a note into the archive folder, creating it on demand; status untouched
+  async moveToArchive(file: TFile) {
     const folder = normalizePath(this.settings.archiveFolder);
     if (!this.app.vault.getFolderByPath(folder)) await this.app.vault.createFolder(folder);
-    await this.app.fileManager.renameFile(file, `${folder}/${file.name}`);
-    new Notice(`Archived project: ${file.basename}`);
+    let target = `${folder}/${file.name}`;
+    for (let n = 2; this.app.vault.getAbstractFileByPath(target); n++) {
+      target = `${folder}/${file.basename} ${n}.${file.extension}`;
+    }
+    await this.app.fileManager.renameFile(file, target);
+  }
+
+  // bulk: file away every project already closed (completed or dropped)
+  async archiveDoneProjects(): Promise<number> {
+    let moved = 0;
+    for (const p of this.projectNotes()) {
+      if (p.status !== "completed" && p.status !== "dropped") continue;
+      const file = this.app.vault.getFileByPath(p.path);
+      if (!file) continue;
+      await this.moveToArchive(file);
+      moved++;
+    }
+    return moved;
   }
 
   // native notification for due/overdue tasks; only fires for items not yet

@@ -192,12 +192,23 @@ export function registerCommands(plugin: GtdFlowPlugin): void {
   });
   add({
     id: "archive-project",
-    name: "Archive current project (complete + move)",
-    checkCallback: (checking) => {
+    name: "Archive current project",
+    // always listed, so it's findable in the palette; it reports why it can't run
+    callback: () => {
       const file = app.workspace.getActiveFile();
-      if (!file || !plugin.index.get(file.path)) return false;
-      if (!checking) void plugin.archiveProject(file);
-      return true;
+      if (!file || !plugin.index.get(file.path)) {
+        new Notice("Open a project note to archive it");
+        return;
+      }
+      void plugin.archiveProject(file);
+    },
+  });
+  add({
+    id: "archive-done-projects",
+    name: "Archive all done projects",
+    callback: async () => {
+      const n = await plugin.archiveDoneProjects();
+      new Notice(n ? `Archived ${n} project(s)` : "No completed or dropped projects to archive");
     },
   });
 }
