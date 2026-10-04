@@ -200,15 +200,23 @@ export function registerCommands(plugin: GtdFlowPlugin): void {
         new Notice("Open a project note to archive it");
         return;
       }
-      void plugin.archiveProject(file);
+      plugin.archiveProjectWithPrompt(file);
     },
   });
   add({
     id: "archive-done-projects",
     name: "Archive all done projects",
     callback: async () => {
-      const n = await plugin.archiveDoneProjects();
-      new Notice(n ? `Archived ${n} project(s)` : "No completed or dropped projects to archive");
+      const { moved, skipped } = await plugin.archiveDoneProjects();
+      if (!moved && !skipped.length) {
+        new Notice("No completed or dropped projects to archive");
+        return;
+      }
+      const parts = [`Archived ${moved} project(s)`];
+      if (skipped.length) {
+        parts.push(`skipped ${skipped.length} with unfinished tasks: ${skipped.join(", ")}`);
+      }
+      new Notice(parts.join(" — "));
     },
   });
 }

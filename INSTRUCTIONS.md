@@ -137,6 +137,7 @@ Decorations follow your edits live (they re-parse the buffer, not the saved file
 - **Archive done tasks in this note / in all projects** — moves fully-done root subtrees (groups move whole, never partially) under a `## Archive` heading at the bottom of the same note, preserving ✅ dates. Only items completed at least *N* days ago move (**Archive tasks done for (days)** setting, default 7; 0 = everything; tasks without a ✅ date always qualify). Done children inside still-open groups stay put. Keep `## Archive` as the last section of the note.
 - **Archive current project** — sets `status: completed` (dropped projects keep `dropped`) and moves the note to the **Archive folder** (default `GTD/Archive`, created on demand), which removes it from the index and all pickers.
 - **Archive all done projects** — files away every project already `completed` or `dropped` in one go, without touching any status; useful at the end of a weekly review when several projects closed at once. A name collision in the archive folder gets a numeric suffix rather than overwriting.
+- **Unfinished tasks are not buried silently.** Archiving hides a project from every view (a non-active status already does: availability, forecast, perspectives and the overdue badge all skip non-active projects), so open tasks in it would disappear without a trace. Archiving a project that still has open tasks therefore asks first, listing them, and offers to **drop them** — writing `[-]` with `❌` and `💬 project archived`, so they stay auditable in a `gtd-done` query — or to **archive anyway** and leave them as plain text. The bulk command never prompts: it skips any closed project that still holds open tasks and names them in its notice.
 
 ## Using with the Tasks plugin
 
@@ -321,6 +322,7 @@ src/
   insertLine.ts      pure: position-aware task insertion (archive-safe)
   serialize.ts       pure: task fields → line; duration parsing/formatting
   editTaskModal.ts   edit modal rewriting a task line in place
+  archiveProjectModal.ts warns about unfinished tasks before archiving a project
   reasonModal.ts     one-field 💬 reason prompt used by the drop command
   newProjectModal.ts name+flow modal creating a project note
   projectPropertiesModal.ts status/flow/review/color/banner editor writing frontmatter

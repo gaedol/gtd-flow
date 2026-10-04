@@ -15,6 +15,7 @@ import type { Task, Project } from "./types";
 import { projectNotes, taskContainers } from "./selectors";
 import { toggleTagLine, checkboxCharOf } from "./taskWrite";
 import { attentionReason } from "./stalled";
+import { ArchiveProjectModal } from "./archiveProjectModal";
 import { completeTask, setTaskState } from "./completeTask";
 import { checkboxClickAction } from "./clickCycle";
 import { ReasonModal } from "./reasonModal";
@@ -263,6 +264,33 @@ export default class GtdFlowPlugin extends Plugin {
     return moved;
   }
 
+  // tasks that would be buried by archiving (dropped ones already count as done)
+  openTasksOf(path: string): Task[] {
+    return this.index.get(path)?.tasks.filter((t) => !t.done) ?? [];
+  }
+
+  // archive, but warn first when unfinished tasks would disappear with the project
+  archiveProjectWithPrompt(file: TFile) {
+    const open = this.openTasksOf(file.path);
+    if (open.length === 0) {
+      void this.archiveProject(file);
+      return;
+    }
+    const project = this.index.get(file.path);
+    new ArchiveProjectModal(this.app, project?.name ?? file.basename, open, (choice) => {
+      if (choice === "cancel") return;
+      void (async () => {
+        if (choice === "drop") {
+          // drop in reverse order so earlier line numbers stay valid
+          for (const t of [...open].reverse()) {
+            await setTaskState(this.app, file.path, t, "dropped", "project archived");
+          }
+        }
+        await this.archiveProject(file);
+      })();
+    }).open();
+  }
+
   // close the project, then file it away
   async archiveProject(file: TFile) {
     await this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
@@ -283,17 +311,23 @@ export default class GtdFlowPlugin extends Plugin {
     await this.app.fileManager.renameFile(file, target);
   }
 
-  // bulk: file away every project already closed (completed or dropped)
-  async archiveDoneProjects(): Promise<number> {
+  // bulk: file away every closed project, skipping any that still holds
+  // unfinished tasks so a review sweep can't quietly bury them
+  async archiveDoneProjects(): Promise<{ moved: number; skipped: string[] }> {
     let moved = 0;
+    const skipped: string[] = [];
     for (const p of this.projectNotes()) {
       if (p.status !== "completed" && p.status !== "dropped") continue;
       const file = this.app.vault.getFileByPath(p.path);
       if (!file) continue;
+      if (p.tasks.some((t) => !t.done)) {
+        skipped.push(p.name);
+        continue;
+      }
       await this.moveToArchive(file);
       moved++;
     }
-    return moved;
+    return { moved, skipped };
   }
 
   // native notification for due/overdue tasks; only fires for items not yet

@@ -528,3 +528,14 @@ li.task-list-item.gtd-ln-someday {
   color: var(--text-muted);
   font-style: italic;
 }
+
+.gtd-archive-warning {
+  margin-bottom: var(--size-4-2);
+  color: var(--text-muted);
+}
+
+.gtd-archive-list {
+  margin: 0 0 var(--size-4-3) var(--size-4-4);
+  max-height: 180px;
+  overflow-y: auto;
+}
