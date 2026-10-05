@@ -152,12 +152,27 @@ export class GtdSettingTab extends PluginSettingTab {
     await this.plugin.saveSettings();
   }
 
+  // `want`, suffixed until it collides with no perspective other than `self`
+  private uniqueName(want: string, self?: Perspective): string {
+    const taken = new Set(
+      this.plugin.settings.perspectives.filter((p) => p !== self).map((p) => p.name)
+    );
+    let name = want;
+    for (let n = 2; taken.has(name); n++) name = `${want} ${n}`;
+    return name;
+  }
+
   // a blank perspective with a name not already taken (the view selects by name)
   private newPerspective(): Perspective {
-    const taken = new Set(this.plugin.settings.perspectives.map((p) => p.name));
-    let name = "New perspective";
-    for (let n = 2; taken.has(name); n++) name = `New perspective ${n}`;
-    return { name, availableOnly: true, flagged: false, tag: "", project: "", dueWithin: 0, groupBy: "project" };
+    return {
+      name: this.uniqueName("New perspective"),
+      availableOnly: true,
+      flagged: false,
+      tag: "",
+      project: "",
+      dueWithin: 0,
+      groupBy: "project",
+    };
   }
 
   // re-render whichever settings surface is active (1.13 definitions or display)
@@ -446,9 +461,26 @@ export class GtdSettingTab extends PluginSettingTab {
   private configurePerspective(s: Setting, p: Perspective, i: number) {
     const save = async () => this.plugin.saveSettings();
     s.setClass("gtd-perspective-setting");
-    s.addText((t) => t.setPlaceholder("Name").setValue(p.name).onChange(async (v) => { p.name = v; await save(); }));
+    s.addText((t) => {
+      t.setPlaceholder("Name").setValue(p.name);
+      // the view selects by name, so a duplicate would be unreachable and would
+      // share the other's saved manual order; suffix it once editing settles
+      t.inputEl.addEventListener("blur", () => {
+        const unique = this.uniqueName(t.inputEl.value.trim() || "Perspective", p);
+        if (unique !== p.name) {
+          p.name = unique;
+          t.setValue(unique);
+          void save().then(() => this.refresh());
+        }
+      });
+      t.onChange(async (v) => {
+        p.name = v;
+        await save();
+      });
+    });
     s.addText((t) => t.setPlaceholder("#tag filter").setValue(p.tag).onChange(async (v) => { p.tag = v.replace(/^#/, ""); await save(); }));
     s.addText((t) => t.setPlaceholder("Project filter").setValue(p.project).onChange(async (v) => { p.project = v; await save(); }));
+    s.addText((t) => t.setPlaceholder("Folder filter").setValue(p.folder ?? "").onChange(async (v) => { p.folder = v.trim(); await save(); }));
     s.addText((t) => {
       t.setPlaceholder("Due ≤ days").setValue(p.dueWithin ? String(p.dueWithin) : "").onChange(async (v) => {
         const n = parseInt(v, 10);

@@ -10,6 +10,7 @@ export interface Perspective {
   important?: boolean; // when true, only #important-tagged tasks
   tag: string; // context tag/hierarchy element, "" = any (e.g. "home" matches "home/plumbing")
   project: string; // substring match on project name, "" = any
+  folder?: string; // only projects under this folder, "" = any (as in gtd-done)
   dueWithin: number; // days, 0 = no date filter; with `done` it means "closed within"
   groupBy: "project" | "tag" | "due";
   somedayMode?: SomedayMode; // default "exclude"
@@ -39,6 +40,14 @@ export function tagMatches(tags: string[], filter: string): boolean {
   return tags.some((t) => t === filter || t.startsWith(filter + "/"));
 }
 
+// same rule as gtd-done's folder key: a path prefix or any intermediate folder
+export function inFolder(path: string, folder: string): boolean {
+  const f = folder.replace(/^\/+|\/+$/g, "").toLowerCase();
+  if (!f) return true;
+  const p = path.toLowerCase();
+  return p.startsWith(f + "/") || p.includes("/" + f + "/");
+}
+
 function shiftDays(iso: string, days: number): string {
   const d = new Date(iso + "T00:00:00Z");
   d.setUTCDate(d.getUTCDate() + days);
@@ -60,6 +69,7 @@ export function runPerspective(
 
   for (const project of projects) {
     if (p.project && !project.name.toLowerCase().includes(p.project.toLowerCase())) continue;
+    if (p.folder && !inFolder(project.path, p.folder)) continue;
     const open = project.tasks.filter((t) => !t.done);
     let pool: Task[];
     if (p.done) {

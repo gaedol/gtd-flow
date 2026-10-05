@@ -190,3 +190,25 @@ describe("tag grouping", () => {
     expect(g.get("#home")!.length).toBe(1);
   });
 });
+
+describe("folder filter", () => {
+  const work = project("Site", { tasks: [task("a")] });
+  const home = project("Kitchen", { tasks: [task("b")] });
+  work.path = "GTD/Projects/Work/Site.md";
+  home.path = "GTD/Projects/Home/Kitchen.md";
+
+  it("limits results to projects under the folder", () => {
+    const g = runPerspective([work, home], persp({ folder: "Work" }), TODAY, "flag");
+    expect([...g.values()].flat().map((i) => i.task.text)).toEqual(["a"]);
+  });
+
+  it("is case-insensitive and tolerates slashes", () => {
+    const g = runPerspective([work, home], persp({ folder: "/home/" }), TODAY, "flag");
+    expect([...g.values()].flat().map((i) => i.task.text)).toEqual(["b"]);
+  });
+
+  it("an empty folder filter matches everything", () => {
+    const g = runPerspective([work, home], persp({ folder: "" }), TODAY, "flag");
+    expect([...g.values()].flat().length).toBe(2);
+  });
+});
