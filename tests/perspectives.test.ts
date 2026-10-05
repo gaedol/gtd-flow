@@ -115,3 +115,78 @@ describe("runPerspective", () => {
     expect([...g.keys()]).toEqual(["#a", "#b"]);
   });
 });
+
+describe("somedayMode", () => {
+  const p = project("P", {
+    tasks: [task("normal", { tags: ["wait/foo"] }), task("parked", { tags: ["wait/foo", "someday"] })],
+  });
+
+  it("excludes parked tasks by default", () => {
+    const g = runPerspective([p], persp({ tag: "wait/foo" }), TODAY, "flag");
+    expect([...g.values()].flat().map((i) => i.task.text)).toEqual(["normal"]);
+  });
+
+  it("include adds parked tasks to the normal results", () => {
+    const g = runPerspective([p], persp({ tag: "wait/foo", somedayMode: "include" }), TODAY, "flag");
+    expect([...g.values()].flat().map((i) => i.task.text)).toEqual(["normal", "parked"]);
+  });
+
+  it("only lists parked tasks", () => {
+    const g = runPerspective([p], persp({ tag: "wait/foo", somedayMode: "only" }), TODAY, "flag");
+    expect([...g.values()].flat().map((i) => i.task.text)).toEqual(["parked"]);
+  });
+
+  it("reads a legacy someday:true as 'only'", () => {
+    const g = runPerspective([p], persp({ someday: true }), TODAY, "flag");
+    expect([...g.values()].flat().map((i) => i.task.text)).toEqual(["parked"]);
+  });
+
+  it("availableOnly filters actionable work without hiding parked work asked for", () => {
+    const seq = project("S", {
+      flow: "sequential",
+      tasks: [task("first"), task("blocked"), task("parked", { tags: ["someday"] })],
+    });
+    const g = runPerspective([seq], persp({ availableOnly: true, somedayMode: "include" }), TODAY, "flag");
+    expect([...g.values()].flat().map((i) => i.task.text)).toEqual(["first", "parked"]);
+  });
+});
+
+describe("project status scope", () => {
+  it("on-hold projects are parked, like someday — not in normal results", () => {
+    const held = project("Held", { status: "on-hold", tasks: [task("a")] });
+    const g = runPerspective([held], persp({ availableOnly: false }), TODAY, "flag");
+    expect([...g.values()].flat()).toEqual([]);
+  });
+
+  it("done results come from projects in any status", () => {
+    const dropped = project("D", { status: "dropped", tasks: [task("x", { done: true, completedOn: TODAY })] });
+    const g = runPerspective([dropped], persp({ done: true, availableOnly: false }), TODAY, "flag");
+    expect([...g.values()].flat().map((i) => i.task.text)).toEqual(["x"]);
+  });
+});
+
+describe("dueWithin on a done perspective", () => {
+  const p = project("P", {
+    tasks: [
+      task("just closed", { done: true, completedOn: TODAY }),
+      task("closed long ago", { done: true, completedOn: "2026-01-01" }),
+      task("dropped recently", { done: true, dropped: true, cancelledOn: TODAY }),
+    ],
+  });
+
+  it("filters by closure date, not due date", () => {
+    const g = runPerspective([p], persp({ done: true, availableOnly: false, dueWithin: 7 }), TODAY, "flag");
+    expect([...g.values()].flat().map((i) => i.task.text).sort()).toEqual(["dropped recently", "just closed"]);
+  });
+});
+
+describe("tag grouping", () => {
+  it("rolls hierarchical tags up to their root and lists a task once per root", () => {
+    const p = project("P", {
+      tasks: [task("multi", { tags: ["home/plumbing", "home/garden", "errand"] })],
+    });
+    const g = runPerspective([p], persp({ groupBy: "tag" }), TODAY, "flag");
+    expect([...g.keys()]).toEqual(["#errand", "#home"]);
+    expect(g.get("#home")!.length).toBe(1);
+  });
+});

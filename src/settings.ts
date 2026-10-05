@@ -1,6 +1,6 @@
 import { App, PluginSettingTab, Setting, SettingDefinitionItem, SettingGroupItem } from "obsidian";
 import type GtdFlowPlugin from "./main";
-import { Perspective, DEFAULT_PERSPECTIVES } from "./perspectives";
+import { Perspective, DEFAULT_PERSPECTIVES, SomedayMode, somedayModeOf } from "./perspectives";
 import { InsertPosition } from "./insertLine";
 import { explorerStyles } from "./projectColors";
 
@@ -123,10 +123,7 @@ export class GtdSettingTab extends PluginSettingTab {
           {
             name: "Add perspective",
             action: () => {
-              p.settings.perspectives.push({
-                name: "New perspective", availableOnly: true, flagged: false,
-                tag: "", project: "", dueWithin: 0, groupBy: "project",
-              });
+              p.settings.perspectives.push(this.newPerspective());
               void p.saveSettings().then(() => this.refresh());
             },
           },
@@ -153,6 +150,14 @@ export class GtdSettingTab extends PluginSettingTab {
     }
     s[key] = value;
     await this.plugin.saveSettings();
+  }
+
+  // a blank perspective with a name not already taken (the view selects by name)
+  private newPerspective(): Perspective {
+    const taken = new Set(this.plugin.settings.perspectives.map((p) => p.name));
+    let name = "New perspective";
+    for (let n = 2; taken.has(name); n++) name = `New perspective ${n}`;
+    return { name, availableOnly: true, flagged: false, tag: "", project: "", dueWithin: 0, groupBy: "project" };
   }
 
   // re-render whichever settings surface is active (1.13 definitions or display)
@@ -424,15 +429,7 @@ export class GtdSettingTab extends PluginSettingTab {
     this.plugin.settings.perspectives.forEach((p, i) => this.renderPerspective(containerEl, p, i));
     new Setting(containerEl).addButton((b) =>
       b.setButtonText("Add perspective").onClick(async () => {
-        this.plugin.settings.perspectives.push({
-          name: "New perspective",
-          availableOnly: true,
-          flagged: false,
-          tag: "",
-          project: "",
-          dueWithin: 0,
-          groupBy: "project",
-        });
+        this.plugin.settings.perspectives.push(this.newPerspective());
         await this.plugin.saveSettings();
         this.refresh();
       })
@@ -472,7 +469,19 @@ export class GtdSettingTab extends PluginSettingTab {
     toggle("avail", () => p.availableOnly, (v) => (p.availableOnly = v));
     toggle("flag", () => p.flagged, (v) => (p.flagged = v));
     toggle("important", () => p.important ?? false, (v) => (p.important = v));
-    toggle("someday", () => p.someday ?? false, (v) => (p.someday = v));
+    s.controlEl.createSpan({ cls: "gtd-toggle-label", text: "someday" });
+    s.addDropdown((d) =>
+      d
+        .addOption("exclude", "exclude")
+        .addOption("include", "include")
+        .addOption("only", "only")
+        .setValue(somedayModeOf(p))
+        .onChange(async (v) => {
+          p.somedayMode = v as SomedayMode;
+          delete p.someday; // legacy field no longer consulted once set explicitly
+          await save();
+        })
+    );
     toggle("done", () => p.done ?? false, (v) => (p.done = v));
     // the view's dropdown follows this array, so swapping neighbours reorders it
     const list = this.plugin.settings.perspectives;
