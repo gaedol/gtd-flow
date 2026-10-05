@@ -26,6 +26,7 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 - **Real next-action logic.** A task is *available* only when its project is active, its defer date has passed, and — in sequential projects — everything before it is done.
 - **Action groups.** Indent tasks to nest them; a group with open children isn't actionable until those children are finished.
 - **One pane for the day.** Forecast and a Mermaid-powered Gantt timeline (day / week / month) show what's due and what's coming.
+- **Nothing quietly rots.** Projects that stall are named with the reason — and archiving one that still has open tasks asks first instead of burying them.
 - **Capture without friction.** A quick-capture modal, a global command, and an `obsidian://gtd-capture` URL for grabbing tasks from anywhere.
 - **Stays out of the way.** Flags, durations, repeats, perspectives, archiving, and per-project page colors — use as much or as little as you like.
 
@@ -42,6 +43,7 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 | Contexts | hierarchical tags (`#home/plumbing`), filterable in perspectives |
 | Forecast | Forecast + Timeline views |
 | Review | per-project interval + a review queue |
+| Stalled | an active project with nothing available — surfaced with its reason, and taggable `#stalled` |
 | Inbox | a capture note you triage into projects (dated inbox items still show in Forecast) |
 
 ## Feature highlights
@@ -52,16 +54,19 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 - **Edit right in the note** — right-click menu on task lines and checkbox clicks that record ✅ and the 🔁 next occurrence, no Tasks plugin needed
 - **Next Actions**, **Forecast**, **Timeline** (Gantt), **Review**, and **Perspectives** views, with **drag-to-reorder** in Forecast/Perspectives
 - **Quick capture** (modal, command, and URL handler) and **inbox triage** into projects
-- **Repeat-on-complete**, **flags**, **someday/maybe**, **archiving**, an **overdue badge**, and due-task **notifications**
+- **Repeat-on-complete**, **flags**, **someday/maybe**, an **overdue badge**, and due-task **notifications**
+- **Stalled & stale project detection** — with reasons, and an optional `#stalled` frontmatter tag so stuck work shows up in search, Dataview and the graph
+- **Archiving** for done tasks *and* finished projects (single or bulk), with a warning before unfinished work gets filed away
+- **Ordering that's yours** — reorder tasks in the note, projects in Next Actions, and the perspective list itself
 - **Done queries** — a `gtd-done` block that lists what you closed in any period (presets, project/folder filters), plus an exportable report note
 - **In-note highlighting** of next/available/blocked/deferred/overdue tasks, plus an opt-in per-project **status block**
 - **Per-project page styling** (tint/banner) and project pills matching your **file-explorer colors**
 
 ## Install
 
-Until the community-directory listing is live, install with [BRAT](https://github.com/TfTHacker/obsidian42-brat): add this repository as a beta plugin, then enable **GTD Flow** in *Settings → Community plugins*. Works on desktop and mobile.
+From *Settings → Community plugins* → **Browse** → search **GTD Flow**, or open the [directory listing](https://obsidian.md/plugins?id=gtd-flow). Works on desktop and mobile.
 
-Manual install: download `main.js`, `manifest.json`, and `styles.css` from a [release](../../releases) into `<vault>/.obsidian/plugins/gtd-flow/` and enable the plugin.
+For pre-release builds, [BRAT](https://github.com/TfTHacker/obsidian42-brat) can track this repository. Manual install: drop `main.js`, `manifest.json` and `styles.css` from a [release](../../releases) into `<vault>/.obsidian/plugins/gtd-flow/`.
 
 ## Quick start
 
@@ -72,7 +77,7 @@ Manual install: download `main.js`, `manifest.json`, and `styles.css` from a [re
 
 ## Documentation
 
-Full usage, syntax, settings, and architecture: **[INSTRUCTIONS.md](INSTRUCTIONS.md)**.
+**[MANUAL.md](MANUAL.md)** — full usage, task syntax, every setting, and the architecture. It opens with a *"How do I…?"* table that maps what you want to do to the feature that does it.
 
 ## License
 
