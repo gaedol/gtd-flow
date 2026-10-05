@@ -360,12 +360,15 @@ src/
   menus.ts           file-explorer menu + editor task-line context menu
   integrations.ts    ribbon, status bar, code block, suggester, protocol handler,
                      editor extensions, reading-mode post-processor
+  settingsData.ts    pure: the settings shape and their defaults
   settings.ts        settings tab (declarative getSettingDefinitions + display fallback)
   dates.ts           local-timezone today
   main.ts            thin wiring: settings, index lifecycle, views + shared helpers
 ```
 
-Every module marked *pure* above (parser, engine, selectors, taskWrite, ordering, perspectives, repeat, repeatSuggest, clickCycle, doneQuery, archive, insertLine, serialize, gantt, statusBlock, dateParse, inNote, projectColors) has no Obsidian imports and is unit-tested (`npm test`, vitest — 155 tests). Views and modals stay thin wrappers over that core, so behavior is testable without a vault. Dates are compared as ISO strings throughout.
+Every module marked *pure* above (parser, engine, selectors, taskWrite, moveTaskLine, stalled, ordering, perspectives, repeat, repeatSuggest, clickCycle, doneQuery, archive, insertLine, serialize, gantt, statusBlock, dateParse, inNote, projectColors, settingsData) has no Obsidian imports and is unit-tested (`npm test`, vitest — 262 tests across 26 files). Views and modals stay thin wrappers over that core, so behavior is testable without a vault. Dates are compared as ISO strings throughout.
+
+Beyond per-module tests, the suite covers a parse → serialize **round-trip** (lossless and idempotent for every task shape), the **write paths** (completing, state changes, tag toggles keep metadata intact), **archive/insert** edges (subtrees, age thresholds, existing headings, frontmatter), **action-group** semantics (`#sequential`/`#parallel` overrides, nesting, deferred children), and an **integration** fixture — a small vault run end to end through selectors, next actions, forecast + ordering, every built-in perspective, done queries and stalled detection.
 
 ## Development
 
