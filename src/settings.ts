@@ -1,13 +1,14 @@
 import { App, PluginSettingTab, Setting, SettingDefinitionItem, SettingGroupItem } from "obsidian";
 import type GtdFlowPlugin from "./main";
-import { Perspective, DEFAULT_PERSPECTIVES, SomedayMode, somedayModeOf } from "./perspectives";
+import { Perspective, SomedayMode, somedayModeOf } from "./perspectives";
 import { InsertPosition } from "./insertLine";
 import { explorerStyles } from "./projectColors";
+import type { GtdSettings } from "./settingsData";
 
+// the settings shape and defaults live in a pure module; re-exported here so
+// existing importers of "./settings" keep working
 export type { GtdSettings } from "./settingsData";
 export { DEFAULT_SETTINGS } from "./settingsData";
-import type { GtdSettings } from "./settingsData";
-import { DEFAULT_SETTINGS } from "./settingsData";
 
 export class GtdSettingTab extends PluginSettingTab {
   constructor(app: App, private plugin: GtdFlowPlugin) {

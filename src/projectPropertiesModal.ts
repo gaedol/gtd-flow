@@ -1,5 +1,4 @@
 import { App, Modal, Setting, TFile } from "obsidian";
-import type GtdFlowPlugin from "./main";
 import { Project, ProjectStatus, ProjectFlow } from "./types";
 
 export class ProjectPropertiesModal extends Modal {
@@ -10,7 +9,7 @@ export class ProjectPropertiesModal extends Modal {
   private color: string;
   private banner: string;
 
-  constructor(app: App, private plugin: GtdFlowPlugin, private project: Project) {
+  constructor(app: App, private project: Project) {
     super(app);
     this.status = project.status;
     this.flow = project.flow;

@@ -78,7 +78,7 @@ export class ReviewView extends ItemView {
       await this.markReviewed(p);
     };
     const props = card.createEl("button", { cls: "gtd-review-btn", text: "Properties" });
-    props.onclick = () => new ProjectPropertiesModal(this.app, this.plugin, p).open();
+    props.onclick = () => new ProjectPropertiesModal(this.app, p).open();
   }
 
   private async markReviewed(p: Project) {

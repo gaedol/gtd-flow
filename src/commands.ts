@@ -148,7 +148,7 @@ export function registerCommands(plugin: GtdFlowPlugin): void {
       const file = app.workspace.getActiveFile();
       const project = file ? plugin.index.get(file.path) : undefined;
       if (!project) return false;
-      if (!checking) new ProjectPropertiesModal(app, plugin, project).open();
+      if (!checking) new ProjectPropertiesModal(app, project).open();
       return true;
     },
   });
