@@ -64,18 +64,19 @@
   color: var(--text-normal);
 }
 
-.gtd-next-actions .gtd-inbox-chevron {
+.gtd-next-actions .gtd-fold-chevron {
   display: inline-flex;
 }
 
-.gtd-next-actions .gtd-inbox-chevron svg {
+.gtd-next-actions .gtd-fold-chevron svg {
   width: var(--icon-xs);
   height: var(--icon-xs);
 }
 
-.gtd-next-actions .gtd-inbox-note-count {
+.gtd-next-actions .gtd-fold-count {
   color: var(--text-faint);
   font-size: var(--font-ui-smaller);
+  font-weight: var(--font-normal);
 }
 
 .gtd-next-actions .gtd-inbox-note .gtd-task {

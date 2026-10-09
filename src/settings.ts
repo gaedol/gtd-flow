@@ -35,6 +35,7 @@ export interface GtdSettings {
   clickCycles: boolean;
   projectSort: "alpha" | "folder" | "manual";
   projectOrder: string[]; // project paths in manual order
+  collapsedNextActions: string[]; // fold keys of collapsed Next Actions sections, projects and inbox notes
   forecastOrder: Record<string, string[]>; // dateKey -> block ids in manual order
   perspectiveOrder: Record<string, string[]>; // perspective+group key -> block ids
 }
@@ -70,6 +71,7 @@ export const DEFAULT_SETTINGS: GtdSettings = {
   clickCycles: false,
   projectSort: "alpha",
   projectOrder: [],
+  collapsedNextActions: [],
   forecastOrder: {},
   perspectiveOrder: {},
 };

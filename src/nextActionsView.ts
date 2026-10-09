@@ -12,12 +12,13 @@ import { projectNotes, inboxGroups, noteOf } from "./selectors";
 import { isSystemTag } from "./parser";
 import { openTaskLine, renderMarkers, renderDueBadge } from "./taskRow";
 import { stalledState } from "./stalled";
+import { setFolded, sectionKey, projectKey, noteKey } from "./folds";
 import { Project, Task } from "./types";
 
 export const NEXT_ACTIONS_VIEW = "gtd-next-actions";
 
 export class NextActionsView extends ItemView {
-  private collapsedInbox = new Set<string>(); // inbox note paths folded this session
+  private foldKeys: string[] = []; // every foldable header in the current render, for "Collapse all"
 
   constructor(leaf: WorkspaceLeaf, private plugin: GtdFlowPlugin) {
     super(leaf);
@@ -37,6 +38,8 @@ export class NextActionsView extends ItemView {
 
   async onOpen() {
     this.registerEvent(this.plugin.index.on("changed", () => this.render()));
+    this.addAction("chevrons-up-down", "Expand all", () => void this.fold(this.plugin.settings.collapsedNextActions, false));
+    this.addAction("chevrons-down-up", "Collapse all", () => void this.fold(this.foldKeys, true));
     this.render();
   }
 
@@ -48,6 +51,7 @@ export class NextActionsView extends ItemView {
     const root = this.contentEl;
     root.empty();
     root.addClass("gtd-next-actions");
+    this.foldKeys = [];
 
     const today = todayISO();
     const mode = this.plugin.settings.projectSort;
@@ -83,14 +87,47 @@ export class NextActionsView extends ItemView {
         setIcon(grip, "grip-vertical");
         grip.addEventListener("click", (e) => e.stopPropagation()); // don't open the note after a drag
       }
+      const collapsed = this.foldToggle(header, projectKey(project.path));
       const nameEl = header.createSpan({ text: project.name });
       this.plugin.pillFor(nameEl, project.path);
+      header.createSpan({ cls: "gtd-fold-count", text: String(tasks.length) });
       header.onclick = () => void openTaskLine(this.app, project.path);
+      if (collapsed) continue;
       for (const t of tasks) this.renderTask(section, project, t, today);
     }
     if (mode === "manual") {
       makeReorderable(list, (keys) => void this.saveProjectOrder(keys), ".gtd-project");
     }
+  }
+
+  // a chevron at the start of a header that folds the content under it;
+  // returns whether it's folded now
+  private foldToggle(header: HTMLElement, key: string): boolean {
+    this.foldKeys.push(key);
+    const collapsed = this.plugin.settings.collapsedNextActions.includes(key);
+    const chevron = header.createSpan({ cls: "gtd-fold-chevron", attr: { "aria-label": collapsed ? "Expand" : "Collapse" } });
+    setIcon(chevron, collapsed ? "chevron-right" : "chevron-down");
+    chevron.onclick = (e) => {
+      e.stopPropagation(); // fold without opening the note
+      void this.fold([key], !collapsed);
+    };
+    return collapsed;
+  }
+
+  // a section header (Inbox, Flagged, ...): it opens nothing, so the whole header folds
+  private sectionHeader(section: HTMLElement, key: string, text: string): boolean {
+    const header = section.createDiv({ cls: "gtd-project-name" });
+    const collapsed = this.foldToggle(header, key);
+    header.createSpan({ text });
+    header.onclick = () => void this.fold([key], !collapsed);
+    return collapsed;
+  }
+
+  private async fold(keys: string[], fold: boolean) {
+    const s = this.plugin.settings;
+    s.collapsedNextActions = setFolded(s.collapsedNextActions, keys, fold, (path) => this.plugin.index.has(path));
+    this.render();
+    await this.plugin.persistData();
   }
 
   private async saveProjectOrder(paths: string[]) {
@@ -108,26 +145,18 @@ export class NextActionsView extends ItemView {
     const section = root.createDiv({ cls: "gtd-project gtd-inbox" });
     if (!vault) {
       // a single inbox note: one flat list, as before
-      section.createDiv({ cls: "gtd-project-name", text: `Inbox (${count})` });
+      if (this.sectionHeader(section, sectionKey("inbox"), `Inbox (${count})`)) return;
       for (const t of groups[0].tasks) this.renderInboxTask(section, groups[0].note.path, t);
       return;
     }
     const notes = groups.length === 1 ? "1 note" : `${groups.length} notes`;
-    section.createDiv({ cls: "gtd-project-name", text: `Inbox (${count} in ${notes})` });
+    if (this.sectionHeader(section, sectionKey("inbox"), `Inbox (${count} in ${notes})`)) return;
     for (const { note, tasks } of groups) {
       const group = section.createDiv({ cls: "gtd-inbox-note" });
-      const collapsed = this.collapsedInbox.has(note.path);
       const header = group.createDiv({ cls: "gtd-inbox-note-name" });
-      const chevron = header.createSpan({ cls: "gtd-inbox-chevron", attr: { "aria-label": collapsed ? "Expand" : "Collapse" } });
-      setIcon(chevron, collapsed ? "chevron-right" : "chevron-down");
-      chevron.onclick = (e) => {
-        e.stopPropagation(); // fold without opening the note
-        if (collapsed) this.collapsedInbox.delete(note.path);
-        else this.collapsedInbox.add(note.path);
-        this.render();
-      };
+      const collapsed = this.foldToggle(header, noteKey(note.path));
       header.createSpan({ text: note.name });
-      header.createSpan({ cls: "gtd-inbox-note-count", text: String(tasks.length) });
+      header.createSpan({ cls: "gtd-fold-count", text: String(tasks.length) });
       header.onclick = () => void openTaskLine(this.app, note.path);
       if (collapsed) continue;
       for (const t of tasks) this.renderInboxTask(group, note.path, t);
@@ -166,7 +195,7 @@ export class NextActionsView extends ItemView {
       .filter((s): s is { project: Project; state: NonNullable<ReturnType<typeof stalledState>> } => !!s.state);
     if (stalled.length === 0) return;
     const section = root.createDiv({ cls: "gtd-project gtd-stalled" });
-    section.createDiv({ cls: "gtd-project-name", text: `Stalled (${stalled.length})` });
+    if (this.sectionHeader(section, sectionKey("stalled"), `Stalled (${stalled.length})`)) return;
     for (const { project, state } of stalled) {
       const row = section.createDiv({ cls: "gtd-task gtd-stalled-row" });
       const icon = row.createSpan({ cls: "gtd-stalled-icon", attr: { "aria-label": "Stalled" } });
@@ -184,7 +213,7 @@ export class NextActionsView extends ItemView {
     const broken = this.plugin.index.brokenLinks();
     if (broken.length === 0) return;
     const section = root.createDiv({ cls: "gtd-project gtd-stalled" });
-    section.createDiv({ cls: "gtd-project-name", text: `Broken project links (${broken.length})` });
+    if (this.sectionHeader(section, sectionKey("broken"), `Broken project links (${broken.length})`)) return;
     for (const b of broken) {
       const row = section.createDiv({ cls: "gtd-task gtd-stalled-row" });
       const icon = row.createSpan({ cls: "gtd-stalled-icon", attr: { "aria-label": "Broken project link" } });
@@ -206,7 +235,7 @@ export class NextActionsView extends ItemView {
     );
     if (flagged.length === 0) return;
     const section = root.createDiv({ cls: "gtd-project gtd-flagged" });
-    section.createDiv({ cls: "gtd-project-name", text: `Flagged (${flagged.length})` });
+    if (this.sectionHeader(section, sectionKey("flagged"), `Flagged (${flagged.length})`)) return;
     for (const f of flagged) {
       this.renderTask(section, f.project, f.task, today, true);
     }

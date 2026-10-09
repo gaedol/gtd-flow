@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-    "deploy": "npm run build && { [ -f .deploy.env ] && . ./.deploy.env; VAULT=\"${OBSIDIAN_VAULT:?set OBSIDIAN_VAULT (env or .deploy.env) to your vault path}\"; mkdir -p \"$VAULT/.obsidian/plugins/gtd-flow\" && cp main.js manifest.json styles.css \"$VAULT/.obsidian/plugins/gtd-flow/\"; }",
+    "deploy": "npm run build && sh scripts/deploy.sh",
     "test": "vitest run"
   },
   "devDependencies": {
