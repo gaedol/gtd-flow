@@ -17,6 +17,8 @@ export interface Task {
   cancelledOn?: string; // ❌ cancellation date
   reason?: string; // 💬 why it was closed/dropped
   blockId?: string; // trailing ^id — stable identity for manual ordering
+  id?: string; // 🆔 name other tasks can depend on (Tasks-plugin syntax)
+  blockedBy?: string[]; // ⛔ ids this task waits on
   tags: string[];
 }
 

@@ -117,6 +117,10 @@ export class EditTaskModal extends Modal {
       durationMin: this.duration.trim() ? parseDuration(this.duration) : undefined,
       startTime: this.startTime || undefined,
       reason: this.reason.trim() || undefined,
+      // not editable here, but must survive the rewrite
+      id: this.task.id,
+      blockedBy: this.task.blockedBy,
+      blockId: this.task.blockId,
     });
 
     const file = this.app.vault.getFileByPath(this.path);

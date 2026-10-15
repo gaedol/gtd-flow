@@ -1,6 +1,7 @@
 import { App, TFile, Events } from "obsidian";
 import { Project, Task } from "./types";
 import { parseProject, parseTaskLine } from "./parser";
+import { setTaskIds } from "./engine";
 
 // In-memory project index; markdown stays the source of truth
 export class TaskIndex extends Events {
@@ -37,17 +38,17 @@ export class TaskIndex extends Events {
     this.projects.clear();
     const files = this.app.vault.getMarkdownFiles().filter((f) => this.inScope(f));
     await Promise.all(files.map((f) => this.indexFile(f)));
-    this.trigger("changed");
+    this.changed();
   }
 
   async update(file: TFile): Promise<void> {
     if (!this.inScope(file)) return;
     await this.indexFile(file);
-    this.trigger("changed");
+    this.changed();
   }
 
   remove(path: string): void {
-    if (this.projects.delete(path)) this.trigger("changed");
+    if (this.projects.delete(path)) this.changed();
   }
 
   private inScope(file: TFile): boolean {
@@ -76,5 +77,11 @@ export class TaskIndex extends Events {
     const project = parseProject(file.path, content, fm);
     if (project) this.projects.set(file.path, project);
     else this.projects.delete(file.path);
+  }
+
+  // dependencies cross notes, so the id map is rebuilt from the whole index
+  private changed(): void {
+    setTaskIds(this.snapshot());
+    this.trigger("changed");
   }
 }

@@ -1,6 +1,6 @@
 import { ItemView, WorkspaceLeaf, setIcon, normalizePath } from "obsidian";
 import type GtdFlowPlugin from "./main";
-import { availableTasks } from "./engine";
+import { availableTasks, dueSoon } from "./engine";
 import { todayISO } from "./dates";
 import { completeTask } from "./completeTask";
 import { moveTask, ProjectSuggestModal } from "./moveTask";
@@ -8,8 +8,8 @@ import { EditTaskModal } from "./editTaskModal";
 import { renderTaskText } from "./linkText";
 import { applySavedOrder } from "./ordering";
 import { makeReorderable } from "./dragReorder";
-import { projectNotes, inboxTasks } from "./selectors";
-import { openTaskLine, renderMarkers, renderDueBadge } from "./taskRow";
+import { projectNotes, inboxTasks, taskContainers } from "./selectors";
+import { openTaskLine, renderMarkers, renderDueBadge, renderBlockers } from "./taskRow";
 import { stalledState } from "./stalled";
 import { Project, Task } from "./types";
 
@@ -61,6 +61,7 @@ export class NextActionsView extends ItemView {
     }
 
     this.renderInbox(root);
+    this.renderDueSoon(root, today);
     this.renderFlagged(root, projects, today);
     this.renderStalled(root, today);
 
@@ -125,6 +126,16 @@ export class NextActionsView extends ItemView {
     }
   }
 
+  // due today or within the warning window, across every project and the inbox;
+  // deferred or waiting tasks are included, since the deadline holds regardless
+  private renderDueSoon(root: HTMLElement, today: string) {
+    const items = dueSoon(taskContainers(this.plugin.index.snapshot()), today, this.plugin.settings.dueSoonDays);
+    if (items.length === 0) return;
+    const section = root.createDiv({ cls: "gtd-project gtd-due-soon-section" });
+    section.createDiv({ cls: "gtd-project-name", text: `Deadline approaching (${items.length})` });
+    for (const { project, task } of items) this.renderTask(section, project, task, today, true);
+  }
+
   // projects with nothing available are filtered out of the list above, which is
   // exactly when they need attention — so name them here
   private renderStalled(root: HTMLElement, today: string) {
@@ -186,7 +197,8 @@ export class NextActionsView extends ItemView {
     label.onclick = () => void openTaskLine(this.app, project.path, task.line);
     this.editButton(row, project.path, task);
     if (showProject) this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: project.name }), project.path);
-    renderDueBadge(row, task, today);
+    renderDueBadge(row, task, today, this.plugin.settings.dueSoonDays);
+    renderBlockers(row, task);
     // flag/important already show as icons, so don't repeat them as tag chips
     const iconTags = [this.plugin.settings.flagTag, this.plugin.settings.importantTag];
     for (const tag of task.tags) {

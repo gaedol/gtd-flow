@@ -11,7 +11,7 @@ import { TaskSuggest } from "./taskSuggest";
 import { gtdEditorDecorations } from "./editorDecorations";
 import { gtdCheckboxClicks } from "./checkboxClicks";
 import { contextClickTracker } from "./contextClick";
-import { overdueCount } from "./engine";
+import { overdueCount, dueSoon } from "./engine";
 import { taskContainers } from "./selectors";
 import { buildLineClasses } from "./inNote";
 import { todayISO } from "./dates";
@@ -73,9 +73,16 @@ export function registerIntegrations(plugin: GtdFlowPlugin): void {
   statusBar.addClass("gtd-statusbar");
   statusBar.onclick = () => plugin.activateView(FORECAST_VIEW);
   plugin.index.on("changed", () => {
-    const n = overdueCount(taskContainers(plugin.index.snapshot()), todayISO());
-    statusBar.setText(n > 0 ? `${n} overdue` : "");
-    statusBar.toggleClass("gtd-statusbar-alert", n > 0);
+    const all = taskContainers(plugin.index.snapshot());
+    const today = todayISO();
+    const late = overdueCount(all, today);
+    const soon = dueSoon(all, today, plugin.settings.dueSoonDays).length;
+    const parts: string[] = [];
+    if (late) parts.push(`${late} overdue`);
+    if (soon) parts.push(`${soon} due soon`);
+    statusBar.setText(parts.join(" · "));
+    statusBar.toggleClass("gtd-statusbar-alert", late > 0);
+    statusBar.toggleClass("gtd-statusbar-warn", late === 0 && soon > 0);
   });
 
   // opt-in: keep the markers current as the vault changes. Debounced, because

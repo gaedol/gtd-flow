@@ -14,6 +14,10 @@ const lines = [
   "- [x] finished ✅ 2026-07-20",
   "- [-] abandoned 💬 superseded ❌ 2026-07-21",
   "- [/] underway #work",
+  "- [ ] reordered task ^gtd-7f3a",
+  "- [ ] pour foundation 🆔 found1 📅 2026-08-01",
+  "- [ ] build walls ⛔ found1,permit 🔁 every week 📅 2026-08-10",
+  "- [-] waited too long 💬 vendor gone ⛔ found1 ❌ 2026-07-22 ^gtd-aa11",
 ];
 
 describe("parse → serialize round-trip", () => {

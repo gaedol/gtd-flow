@@ -34,10 +34,50 @@ export function isSomedayTask(t: Task): boolean {
   return t.tags.includes(somedayTag);
 }
 
+// 🆔 → tasks carrying it, across every indexed note. Set by the index whenever
+// it changes, like the someday tag, so availability can see across projects.
+let tasksById = new Map<string, Task[]>();
+
+export function setTaskIds(projects: Project[]): void {
+  tasksById = new Map();
+  for (const p of projects) {
+    for (const t of p.tasks) {
+      if (!t.id) continue;
+      const list = tasksById.get(t.id);
+      if (list) list.push(t);
+      else tasksById.set(t.id, [t]);
+    }
+  }
+}
+
+// unfinished tasks this one waits on. An id nobody declares doesn't block
+// (as in Tasks), nor does a task naming itself.
+export function openBlockers(t: Task): Task[] {
+  const out: Task[] = [];
+  for (const id of t.blockedBy ?? []) {
+    if (id === t.id) continue;
+    for (const b of tasksById.get(id) ?? []) if (!b.done) out.push(b);
+  }
+  return out;
+}
+
+export function isWaiting(t: Task): boolean {
+  return openBlockers(t).length > 0;
+}
+
+// every declared id, for the ⛔ suggester
+export function knownTaskIds(): { id: string; task: Task }[] {
+  const out: { id: string; task: Task }[] = [];
+  for (const [id, list] of tasksById) out.push({ id, task: list.find((t) => !t.done) ?? list[0] });
+  return out;
+}
+
 function collect(nodes: TaskNode[], flow: ProjectFlow, today: string, out: Task[]): void {
   let blocked = false;
   for (const n of nodes) {
-    const deferred = !!n.task.defer && n.task.defer > today;
+    // waiting on a ⛔ dependency behaves like a future defer: the task and its
+    // subtree aren't actionable, and in a sequence it holds up what follows
+    const deferred = (!!n.task.defer && n.task.defer > today) || isWaiting(n.task);
     const someday = isSomedayTask(n.task);
     if (!n.task.done && !someday && !blocked && !deferred) {
       const openChildren = n.children.some((c) => !c.task.done);
@@ -108,6 +148,23 @@ export function dueOrOverdue(projects: Project[], today: string): DatedTask[] {
     });
   }
   return out;
+}
+
+// open tasks in active projects due today or within the next `days` days —
+// close to their deadline but not yet late. 0 disables the warning.
+export function dueSoon(projects: Project[], today: string, days: number): DatedTask[] {
+  if (days <= 0) return [];
+  const end = addInterval(today, `${days}d`)!;
+  const out: DatedTask[] = [];
+  for (const p of projects) {
+    if (p.status !== "active") continue;
+    p.tasks.forEach((t, i) => {
+      if (datedActionable(p.tasks, i) && t.due && t.due >= today && t.due <= end) {
+        out.push({ project: p, task: t });
+      }
+    });
+  }
+  return out.sort((a, b) => a.task.due!.localeCompare(b.task.due!) || a.project.name.localeCompare(b.project.name));
 }
 
 // First available task per project — the project's next action

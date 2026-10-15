@@ -36,6 +36,7 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 |---|---|
 | Project | A note with `type: project` frontmatter |
 | Sequential / parallel | `flow:` key (overridable per action group) |
+| Dependencies | `🆔` / `⛔` (Tasks syntax) — a task waits on another, even across projects |
 | Defer / Due | 🛫 / 📅 on the task line |
 | Flag | a tag (default `#flag`) |
 | Important | a tag (default `#important`) — star in views + an Important perspective |
@@ -54,7 +55,9 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 - **Edit right in the note** — right-click menu on task lines and checkbox clicks that record ✅ and the 🔁 next occurrence, no Tasks plugin needed
 - **Next Actions**, **Forecast**, **Timeline** (Gantt), **Review**, and **Perspectives** views, with **drag-to-reorder** in Forecast/Perspectives
 - **Quick capture** (modal, command, and URL handler) and **inbox triage** into projects
-- **Repeat-on-complete**, **flags**, **someday/maybe**, an **overdue badge**, and due-task **notifications**
+- **Repeat-on-complete**, **flags**, **someday/maybe**, and due-task **notifications**
+- **Dependencies** between tasks, across projects, using the Tasks plugin's `🆔`/`⛔` markers
+- **Deadline warnings** — amber badges and a *Deadline approaching* section *before* things go red, plus `N overdue · M due soon` in the status bar
 - **Stalled & stale project detection** — with reasons, and an optional `#stalled` frontmatter tag so stuck work shows up in search, Dataview and the graph
 - **Archiving** for done tasks *and* finished projects (single or bulk), with a warning before unfinished work gets filed away
 - **Ordering that's yours** — reorder tasks in the note, projects in Next Actions, and the perspective list itself

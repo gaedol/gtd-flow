@@ -539,3 +539,25 @@ li.task-list-item.gtd-ln-someday {
   max-height: 180px;
   overflow-y: auto;
 }
+
+/* deadline approaching: amber, between orange (today) and red (overdue) */
+.gtd-due.gtd-due-soon {
+  color: var(--color-yellow);
+}
+
+.gtd-next-actions .gtd-due-soon-section .gtd-project-name {
+  color: var(--color-yellow);
+}
+
+.gtd-statusbar-warn {
+  color: var(--color-yellow);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+}
+
+/* ⛔ waiting on another task */
+.gtd-blockers {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+  font-style: italic;
+}

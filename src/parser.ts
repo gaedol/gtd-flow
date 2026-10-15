@@ -6,9 +6,11 @@ const SCHEDULED_RE = /⏳ *(\d{4}-\d{2}-\d{2})/u;
 const DUE_RE = /📅 *(\d{4}-\d{2}-\d{2})/u;
 const DONE_RE = /✅ *(\d{4}-\d{2}-\d{2})/u;
 const CANCELLED_RE = /❌ *(\d{4}-\d{2}-\d{2})/u;
-const REPEAT_RE = /🔁 *([^🛫📅✅❌⏳➕🔺⏫🔼🔽⏬⏱⏰💬#]*)/u;
+const REPEAT_RE = /🔁 *([^🛫📅✅❌⏳➕🔺⏫🔼🔽⏬⏱⏰💬🆔⛔#]*)/u;
 // reason runs until the next metadata marker / block id / end of line
-const REASON_RE = /💬 *([^🛫📅✅❌⏳➕🔁⏱⏰^]*)/u;
+const REASON_RE = /💬 *([^🛫📅✅❌⏳➕🔁⏱⏰🆔⛔^]*)/u;
+const ID_RE = /🆔 *([\w-]+)/u;
+const DEPENDS_RE = /⛔ *([\w-]+(?:\s*,\s*[\w-]+)*)/u;
 const DURATION_RE = /⏱ *(?:(\d+)h)? *(?:(\d+)m)?/u;
 const TIME_RE = /⏰ *(\d{1,2}:\d{2})/u;
 const TAG_RE = /#([\w/-]+)/gu;
@@ -45,12 +47,18 @@ export function parseTaskLine(line: string, lineNo: number): Task | null {
   task.blockId = body.match(BLOCK_ID_RE)?.[1];
   const reason = body.match(REASON_RE)?.[1].trim();
   if (reason) task.reason = reason;
+  const id = body.match(ID_RE)?.[1];
+  if (id) task.id = id;
+  const deps = body.match(DEPENDS_RE)?.[1];
+  if (deps) task.blockedBy = deps.split(",").map((d) => d.trim()).filter(Boolean);
   return task;
 }
 
 function stripMetadata(body: string): string {
   return body
     .replace(REASON_RE, "")
+    .replace(ID_RE, "")
+    .replace(DEPENDS_RE, "")
     .replace(/[🛫📅✅❌⏳➕] *\d{4}-\d{2}-\d{2}/gu, "")
     .replace(REPEAT_RE, "")
     .replace(/[🔺⏫🔼🔽⏬]/gu, "")

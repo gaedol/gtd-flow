@@ -6,7 +6,7 @@ import { completeTask } from "./completeTask";
 import { renderTaskText } from "./linkText";
 import { defaultSort, applyManualOrder } from "./ordering";
 import { taskContainers } from "./selectors";
-import { openTaskLine, renderMarkers } from "./taskRow";
+import { openTaskLine, renderMarkers, renderBlockers } from "./taskRow";
 import { makeReorderable } from "./dragReorder";
 import { ensureBlockId } from "./blockId";
 
@@ -125,6 +125,7 @@ export class ForecastView extends ItemView {
     const label = renderTaskText(row, it.task.text, this.app, it.project.path);
     if (it.task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${it.task.reason}` });
     label.onclick = () => this.openTask(it);
+    renderBlockers(row, it.task);
     this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: it.project.name }), it.project.path);
   }
 

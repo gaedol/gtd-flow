@@ -5,6 +5,7 @@ export interface GtdSettings {
   projectsFolder: string;
   inboxNote: string;
   forecastDays: number;
+  dueSoonDays: number; // amber warning window before a due date; 0 = off
   flagTag: string;
   importantTag: string;
   somedayTag: string;
@@ -35,6 +36,7 @@ export const DEFAULT_SETTINGS: GtdSettings = {
   projectsFolder: "GTD/Projects",
   inboxNote: "GTD/Inbox.md",
   forecastDays: 7,
+  dueSoonDays: 3,
   flagTag: "flag",
   importantTag: "important",
   somedayTag: "someday",

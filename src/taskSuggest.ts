@@ -12,6 +12,8 @@ import type GtdFlowPlugin from "./main";
 import { todayISO } from "./dates";
 import { dateChoices } from "./dateParse";
 import { repeatSuggestMode } from "./repeatSuggest";
+import { knownTaskIds } from "./engine";
+import { parseTaskLine } from "./parser";
 
 interface Suggestion {
   label: string;
@@ -25,9 +27,11 @@ const MARKER_DATE_RE = /[🛫📅⏳] *([\w-]*)$/u;
 const REPEAT_PARTIAL_RE = /🔁 *([a-z0-9 ]*)$/u;
 const DURATION_PARTIAL_RE = /⏱ *([\w]*)$/u;
 const TIME_PARTIAL_RE = /⏰ *([\d:]*)$/u;
+// the id being typed after ⛔, possibly after earlier comma-separated ones
+const DEPENDS_PARTIAL_RE = /⛔ *(?:[\w-]+\s*,\s*)*([\w-]*)$/u;
 const FIELD_WORD_RE = /(?:^|\s)([a-zA-Z]*)$/;
 
-type Mode = "field" | "date" | "repeat" | "duration" | "time";
+type Mode = "field" | "date" | "repeat" | "duration" | "time" | "depends";
 
 export class TaskSuggest extends EditorSuggest<Suggestion> {
   private mode: Mode = "field";
@@ -75,6 +79,11 @@ export class TaskSuggest extends EditorSuggest<Suggestion> {
       this.mode = "time";
       return this.info(cursor, tm[1]);
     }
+    const dep = before.match(DEPENDS_PARTIAL_RE);
+    if (dep) {
+      this.mode = "depends";
+      return this.info(cursor, dep[1]);
+    }
     const word = before.match(FIELD_WORD_RE);
     if (word && before.replace(TASK_LINE_RE, "").trim().length + word[1].length > 0) {
       this.mode = "field";
@@ -93,6 +102,7 @@ export class TaskSuggest extends EditorSuggest<Suggestion> {
 
   getSuggestions(ctx: EditorSuggestContext): Suggestion[] {
     const q = ctx.query.toLowerCase();
+    if (this.mode === "depends") return this.dependencyCandidates(ctx, q);
     return this.candidates().filter((s) => {
       const words = [s.label, ...(s.keywords ?? [])];
       return words.some((w) => w.toLowerCase().startsWith(q)) || s.insert.startsWith(q);
@@ -109,6 +119,8 @@ export class TaskSuggest extends EditorSuggest<Suggestion> {
         { label: "duration", detail: "⏱ estimated time", insert: "⏱ ", keywords: ["estimate", "est", "takes"] },
         { label: "time", detail: "⏰ time of day", insert: "⏰ ", keywords: ["at", "clock", "schedule"] },
         { label: "reason", detail: "💬 why closed/dropped", insert: "💬 ", keywords: ["why", "because", "closed"] },
+        { label: "id", detail: "🆔 name this task so others can wait on it", insert: `🆔 ${newTaskId()} `, keywords: ["name", "dependency"] },
+        { label: "blocked by", detail: "⛔ waits until another task is done", insert: "⛔ ", keywords: ["depends", "after", "waits", "blocker"] },
       ];
     }
     if (this.mode === "time") {
@@ -135,6 +147,16 @@ export class TaskSuggest extends EditorSuggest<Suggestion> {
     }));
   }
 
+  // ids other tasks declared with 🆔, matched on the id or the task's text; done
+  // tasks are left out (nothing to wait for) and so is this line's own id
+  private dependencyCandidates(ctx: EditorSuggestContext, q: string): Suggestion[] {
+    const own = parseTaskLine(ctx.editor.getLine(ctx.start.line), ctx.start.line)?.id;
+    return knownTaskIds()
+      .filter(({ id, task }) => !task.done && id !== own)
+      .filter(({ id, task }) => id.toLowerCase().startsWith(q) || task.text.toLowerCase().includes(q))
+      .map(({ id, task }) => ({ label: id, detail: task.text, insert: id + " " }));
+  }
+
   renderSuggestion(s: Suggestion, el: HTMLElement): void {
     el.createSpan({ text: s.label });
     if (s.detail) el.createSpan({ cls: "gtd-suggest-detail", text: " " + s.detail });
@@ -147,4 +169,13 @@ export class TaskSuggest extends EditorSuggest<Suggestion> {
     const ch = ctx.start.ch + s.insert.length;
     ctx.editor.setCursor({ line: ctx.start.line, ch });
   }
+}
+
+// short random id in the style Tasks generates, avoiding ones already in use
+function newTaskId(): string {
+  const taken = new Set(knownTaskIds().map((k) => k.id));
+  let id = "";
+  do id = Math.random().toString(36).slice(2, 8);
+  while (taken.has(id) || id.length < 6);
+  return id;
 }

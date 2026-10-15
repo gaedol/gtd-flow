@@ -105,3 +105,27 @@ describe("parseProject", () => {
     expect(proj.tasks.map((t) => t.line)).toEqual([2, 4]);
   });
 });
+
+describe("parser — dependencies (Tasks 🆔 / ⛔ syntax)", () => {
+  it("reads an id and keeps it out of the text", () => {
+    const t = p("- [ ] pour foundation 🆔 found1 📅 2026-08-01");
+    expect(t).toMatchObject({ id: "found1", text: "pour foundation", due: "2026-08-01" });
+  });
+
+  it("reads one or several blockers, tolerating spaces after commas", () => {
+    expect(p("- [ ] walls ⛔ found1")?.blockedBy).toEqual(["found1"]);
+    expect(p("- [ ] roof ⛔ walls, permit,beams")?.blockedBy).toEqual(["walls", "permit", "beams"]);
+    expect(p("- [ ] roof ⛔ walls, permit")?.text).toBe("roof");
+  });
+
+  it("does not let a repeat rule or reason swallow the markers", () => {
+    const t = p("- [-] walls 🔁 every week ⛔ found1 💬 gave up 🆔 w1");
+    expect(t).toMatchObject({ repeat: "every week", reason: "gave up", id: "w1", blockedBy: ["found1"] });
+  });
+
+  it("leaves tasks without the markers untouched", () => {
+    const t = p("- [ ] plain");
+    expect(t?.id).toBeUndefined();
+    expect(t?.blockedBy).toBeUndefined();
+  });
+});

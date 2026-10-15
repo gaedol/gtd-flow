@@ -1,5 +1,5 @@
 import { Project } from "./types";
-import { availableTasks, isSomedayTask } from "./engine";
+import { availableTasks, isSomedayTask, isWaiting } from "./engine";
 
 // A project is *stalled* when it's active but offers no action you could take
 // right now, and *stale* when nothing in it has been closed for a while. Both
@@ -29,6 +29,9 @@ export function stalledState(p: Project, today: string): Stalled | null {
   if (defers.length === open.filter((t) => !isSomedayTask(t)).length && defers.length > 0) {
     const until = defers.sort()[0];
     return { kind: "waiting", reason: `nothing starts until ${until}`, until };
+  }
+  if (open.some((t) => !isSomedayTask(t) && isWaiting(t))) {
+    return { kind: "blocked", reason: "waiting on ⛔ dependencies" };
   }
   return { kind: "blocked", reason: "open tasks are all blocked" };
 }

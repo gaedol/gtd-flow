@@ -15,6 +15,9 @@ export interface TaskFields {
   durationMin?: number;
   startTime?: string;
   reason?: string;
+  id?: string;
+  blockedBy?: string[];
+  blockId?: string;
 }
 
 export function stateOf(f: { done: boolean; dropped?: boolean; inProgress?: boolean }): TaskState {
@@ -58,7 +61,10 @@ export function serializeTask(f: TaskFields): string {
   if (f.startTime) s += ` ⏰ ${f.startTime}`;
   if (f.durationMin) s += ` ⏱ ${formatDuration(f.durationMin)}`;
   if (f.reason) s += ` 💬 ${f.reason}`;
+  if (f.id) s += ` 🆔 ${f.id}`;
+  if (f.blockedBy?.length) s += ` ⛔ ${f.blockedBy.join(",")}`;
   if (state === "done" && f.completedOn) s += ` ✅ ${f.completedOn}`;
   if (state === "dropped" && f.cancelledOn) s += ` ❌ ${f.cancelledOn}`;
+  if (f.blockId) s += ` ^${f.blockId}`; // must stay last to parse as a block id
   return s;
 }

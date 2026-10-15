@@ -29,11 +29,13 @@ GTD for Obsidian: projects with real next-action logic, defer dates, forecast an
 | Let several tasks run at once | `flow: parallel` (the default) |
 | Group subtasks under one item | Indent them — see [action groups](#action-groups) |
 | Mix orders in one project | Tag a parent line `#sequential` or `#parallel` |
+| **Make a task wait for another** — even in a different project | Name the first `🆔 tiles`, mark the second `⛔ tiles` — see [dependencies](#dependencies) |
 | **Hide a task until later** | `🛫 2026-08-01` (defer). It reappears by itself |
 | Give a task a deadline | `📅 2026-08-10` |
 | Put a task at a clock time | `⏰ 14:30`, and `⏱ 45m` for how long — used by the Day timeline |
 | Repeat a task | `🔁 every week` (or `every 2 weeks`, `every month when done`) |
 | **See the next few days** | **Forecast** view |
+| Be warned before a deadline, not after | **Deadline approaching** in Next actions, amber due badges, and `N due soon` in the status bar — window set by **Warn about deadlines within (days)** |
 | Reorder items within a day | Drag the grip handle in Forecast |
 | Reorder tasks in Next Actions | Reorder the lines: **Move task up** / **Move task down** (take a hotkey) |
 | Reorder projects in Next Actions | **Sort projects in Next Actions** → *Manual*, then drag project headers |
@@ -103,6 +105,8 @@ Task lines use [Tasks plugin](https://publish.obsidian.md/tasks) syntax, so both
 | `⏱ 1h30m` | Estimated duration | GTD Flow only; sizes Day-timeline bars |
 | `⏰ 14:30` | Time of day | GTD Flow only; pins the task in the Day timeline |
 | `💬 superseded` | Closure reason | Runs until the next marker or end of line |
+| `🆔 tiles` | Task id | A name other tasks can wait on (Tasks-plugin syntax) |
+| `⛔ tiles,permit` | Blocked by | Not available until every listed task is done |
 | `#tag` | Context / flag / important / someday | See the settings for the special tag names |
 
 `➕` created dates and priority emojis are recognised and ignored.
@@ -127,11 +131,32 @@ Indent to nest:
 - Deferring a parent defers its whole subtree.
 - **Move task up/down** moves a task *with* its children; "move task to project" moves single lines, so move children before their parent.
 
+### Dependencies
+
+Order by position only works inside one list. A dependency says *this can't start until that is done*, wherever both tasks live:
+
+```markdown
+# Kitchen.md
+- [ ] Order tiles 🆔 tiles
+
+# Contractors.md
+- [ ] Book the tiler ⛔ tiles
+```
+
+`🆔 tiles` names a task; `⛔ tiles` makes another wait on it. List several with commas (`⛔ tiles,permit`) — the task waits for all of them.
+
+- A waiting task behaves like a deferred one: not available, dimmed in the note, and in a sequential list it holds up what follows. Waiting on a parent holds back its whole group.
+- It becomes available as soon as every blocker is **done or dropped**.
+- In Forecast and Perspectives the row says *⛔ waiting on …*, so you can see why.
+- An id nobody declares doesn't block (likely a typo), nor does a task naming itself. Tasks in archived projects are no longer indexed, so they stop blocking too.
+- Typing `id` on a task line inserts `🆔` with a fresh random id; typing `blocked by` (or `depends`) inserts `⛔` and then suggests the open tasks that have an id, matched by id or by text.
+
 ### Auto-suggest
 
 On a task line in a project note or the inbox, type at the end of the line:
 
-- A word start → `🛫 defer` / `📅 due` / `🔁 repeat` / `⏳ scheduled` / `⏱ duration` / `⏰ time` / `💬 reason`. Aliases work: defer = `start`/`hide`, due = `deadline`/`by`, repeat = `recur`/`every`, duration = `estimate`/`est`.
+- A word start → `🛫 defer` / `📅 due` / `🔁 repeat` / `⏳ scheduled` / `⏱ duration` / `⏰ time` / `💬 reason` / `🆔 id` / `⛔ blocked by`. Aliases work: defer = `start`/`hide`, due = `deadline`/`by`, repeat = `recur`/`every`, duration = `estimate`/`est`, blocked by = `depends`/`after`/`waits`.
+- After `⛔` → open tasks that carry an `🆔`, matched by id or text; separate several with commas.
 - After a date marker → `today`, `tomorrow`, weekday names, `end of week`, `next week`, `in 2 weeks`, `end of month`, `in a month` — or type `YYYY-MM-DD`. Stored as a plain ISO date.
 - After `🔁` → recurrence presets; after `⏱`/`⏰` → duration and clock presets.
 
@@ -155,10 +180,10 @@ Each has a ribbon icon and an `Open …` command.
 
 The available task(s) of every active project, grouped by project.
 
-Sections run in this order, above the project list: **Inbox** (when non-empty, with a folder icon per row to file an item into a project), **Flagged** (flagged available tasks across all projects), then **Stalled** (projects that offer nothing to do, and why).
+Sections run in this order, above the project list: **Inbox** (when non-empty, with a folder icon per row to file an item into a project), **Deadline approaching** (due today or within the warning window, across all projects — including tasks you can't start yet, since the deadline holds regardless), **Flagged** (flagged available tasks across all projects), then **Stalled** (projects that offer nothing to do, and why).
 - Project sections follow **Sort projects in Next Actions**: *Alphabetical*, *By folder* (explorer-like path order), or *Manual* (drag the project headers; new projects slot into their default position).
 - Tasks appear in note order — reorder with **Move task up/down**.
-- Due badges turn orange today, red when overdue. Click a task to jump to its line.
+- Due badges turn **amber** inside the warning window, **orange** today, **red** when overdue. A task held back by a dependency shows *⛔ waiting on …*. Click a task to jump to its line.
 
 ### Forecast
 
@@ -221,7 +246,7 @@ Moves append to the target *before* deleting from the source, and verify the sou
 
 A project is **stalled** when it's active but offers nothing you could do now, and **stale** when nothing in it has closed for a while — the things a weekly review is meant to catch, and otherwise invisible, since Next actions hides a project with no available task.
 
-- The **Stalled** section in Next actions, and Review cards, give the reason: *no tasks yet*, *every task closed — finish or drop the project?*, *every task parked as someday*, *nothing starts until 2026-08-14*, or *open tasks are all blocked*.
+- The **Stalled** section in Next actions, and Review cards, give the reason: *no tasks yet*, *every task closed — finish or drop the project?*, *every task parked as someday*, *nothing starts until 2026-08-14*, *waiting on ⛔ dependencies*, or *open tasks are all blocked*.
 - **Update stalled project markers** writes `#stalled` and a `stalled-reason:` line into the affected projects' frontmatter, and clears it from recovered ones — so stuck work shows up in search, Dataview, the graph and the explorer, not only here. Only notes that actually change are touched.
 - **Staleness** counts from the most recent `✅`/`❌` date — real progress, not file edits. A project that has never closed anything counts from its creation date, so a new project isn't flagged on day one. Window: **Call a project stale after (days)** (default 30, `0` disables).
 - **Keep stalled tags up to date automatically** re-marks as the vault changes. **Off by default**, because it writes to your notes.
@@ -320,6 +345,7 @@ limit: 50
 | Call a project stale after (days) | `30` | No progress for this long = stale; `0` disables |
 | Keep stalled tags up to date automatically | off | Re-mark on vault changes (writes to notes) |
 | Forecast horizon (days) | `7` | How far Forecast looks ahead |
+| Warn about deadlines within (days) | `3` | Amber badges, the *Deadline approaching* section and the status-bar count; `0` = off |
 | Archive tasks done for (days) | `7` | Minimum age before a done task is archived; `0` = all |
 | Archive folder | `GTD/Archive` | Where archived project notes go |
 | Insert captured/moved tasks at | bottom | Top or bottom of the list, always above `## Archive` |
@@ -337,7 +363,7 @@ limit: 50
 
 On Obsidian 1.13+ all of these are findable through the built-in settings search.
 
-An **overdue badge** in the status bar shows "N overdue" whenever an active project (or the inbox) has an open task past its due date; click it to open the Forecast. With **Notify about due tasks** on, a system notification announces overdue / due-today items at startup and every 30 minutes — once per item per day, so it nudges rather than nags, and only while Obsidian is running.
+The **status bar** shows `N overdue · M due soon` — red while anything is late, amber when only deadlines are approaching, empty when neither. It counts active projects and the inbox; click it to open the Forecast. With **Notify about due tasks** on, a system notification announces overdue / due-today items at startup and every 30 minutes — once per item per day, so it nudges rather than nags, and only while Obsidian is running.
 
 ## With the Tasks plugin
 
@@ -346,6 +372,7 @@ Tasks is **optional** — nothing in GTD Flow depends on it. Running both gets y
 - **Recurrence** works from either side: complete in the note or in a GTD Flow view and the next occurrence appears. Don't worry about which.
 - **Tasks' global filter** (e.g. only `#task` lines count) is ignored by GTD Flow — every checklist line in a project note is a task here. Either don't set one, or accept that the two see different task sets.
 - **Availability** (sequential order, defer, parking) is a GTD Flow concept; Tasks queries will happily list tasks GTD Flow considers blocked.
+- **Dependencies** use Tasks' own `🆔`/`⛔` markers, so both plugins read the same links.
 
 ## Appearance
 
@@ -405,7 +432,7 @@ src/
   main.ts            thin wiring: settings, index lifecycle, views + shared helpers
 ```
 
-Every module marked *pure* has no Obsidian imports and is unit-tested — **262 tests across 26 files** (`npm test`). Beyond per-module tests the suite covers a parse → serialize round-trip (lossless and idempotent for every task shape), the write paths, archive/insert edges, action-group semantics, and an integration fixture: a small vault run end to end through selectors, next actions, forecast, every built-in perspective, done queries and stalled detection. Dates are compared as ISO strings throughout.
+Every module marked *pure* has no Obsidian imports and is unit-tested — **279 tests across 27 files** (`npm test`). Beyond per-module tests the suite covers a parse → serialize round-trip (lossless and idempotent for every task shape), the write paths, archive/insert edges, action-group semantics, and an integration fixture: a small vault run end to end through selectors, next actions, forecast, every built-in perspective, done queries and stalled detection. Dates are compared as ISO strings throughout.
 
 ## Development
 

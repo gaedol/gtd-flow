@@ -52,6 +52,7 @@ export class GtdSettingTab extends PluginSettingTab {
       },
       { name: "Default review interval", desc: "Used by 'New project' (e.g. 1w, 3d, 2m; empty = no review).", control: { type: "text", key: "defaultReviewInterval" } },
       { name: "Forecast horizon (days)", control: { type: "number", key: "forecastDays", min: 1 } },
+      { name: "Warn about deadlines within (days)", desc: "Tasks due today or within this many days get an amber badge, a 'Deadline approaching' section in Next actions and a count in the status bar. 0 turns the warning off.", control: { type: "number", key: "dueSoonDays", min: 0 } },
       { name: "Archive tasks done for (days)", desc: "'Archive done tasks' only moves items completed at least this many days ago (0 = all).", control: { type: "number", key: "archiveAfterDays", min: 0 } },
       { name: "Archive folder", desc: "Completed project notes are moved here by 'Archive current project'.", control: { type: "folder", key: "archiveFolder" } },
       { name: "Day starts at", desc: "Start time for the day timeline (HH:MM).", control: { type: "text", key: "dayStart", placeholder: "09:00" } },
@@ -222,6 +223,19 @@ export class GtdSettingTab extends PluginSettingTab {
           const n = parseInt(v, 10);
           if (!isNaN(n) && n > 0) {
             this.plugin.settings.forecastDays = n;
+            await this.plugin.saveSettings();
+          }
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Warn about deadlines within (days)")
+      .setDesc("Tasks due today or within this many days get an amber badge, a 'Deadline approaching' section in Next actions and a count in the status bar. 0 turns the warning off.")
+      .addText((t) =>
+        t.setValue(String(this.plugin.settings.dueSoonDays)).onChange(async (v) => {
+          const n = parseInt(v, 10);
+          if (!isNaN(n) && n >= 0) {
+            this.plugin.settings.dueSoonDays = n;
             await this.plugin.saveSettings();
           }
         })

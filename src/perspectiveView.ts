@@ -8,7 +8,7 @@ import { defaultSort, applyManualOrder } from "./ordering";
 import { makeReorderable } from "./dragReorder";
 import { ensureBlockId } from "./blockId";
 import { taskContainers } from "./selectors";
-import { openTaskLine, renderMarkers, renderDueBadge } from "./taskRow";
+import { openTaskLine, renderMarkers, renderDueBadge, renderBlockers } from "./taskRow";
 
 export const PERSPECTIVE_VIEW = "gtd-perspectives";
 
@@ -127,7 +127,8 @@ export class PerspectiveView extends ItemView {
     const label = renderTaskText(row, it.task.text, this.app, it.project.path);
     if (it.task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${it.task.reason}` });
     label.onclick = () => void openTaskLine(this.app, it.project.path, it.task.line);
-    renderDueBadge(row, it.task, today);
+    renderDueBadge(row, it.task, today, this.plugin.settings.dueSoonDays);
+    renderBlockers(row, it.task);
     if (showProject) this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: it.project.name }), it.project.path);
   }
 }
