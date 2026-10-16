@@ -7,6 +7,7 @@ import { Project } from "./types";
 import { projectNotes } from "./selectors";
 import { openTaskLine } from "./taskRow";
 import { stalledState } from "./stalled";
+import { labelOf } from "./projectLabel";
 
 export const REVIEW_VIEW = "gtd-review";
 
@@ -53,7 +54,7 @@ export class ReviewView extends ItemView {
 
   private renderProject(root: HTMLElement, p: Project, today: string) {
     const card = root.createDiv({ cls: "gtd-review-card" });
-    const name = card.createDiv({ cls: "gtd-project-name", text: p.name });
+    const name = card.createDiv({ cls: "gtd-project-name", text: labelOf(p) });
     this.plugin.pillFor(name, p.path);
     name.onclick = () => void openTaskLine(this.app, p.path);
 

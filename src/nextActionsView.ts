@@ -12,6 +12,7 @@ import { projectNotes, inboxTasks, taskContainers } from "./selectors";
 import { openTaskLine, renderMarkers, renderDueBadge, renderBlockers } from "./taskRow";
 import { stalledState } from "./stalled";
 import { Project, Task } from "./types";
+import { labelOf } from "./projectLabel";
 
 export const NEXT_ACTIONS_VIEW = "gtd-next-actions";
 
@@ -80,7 +81,7 @@ export class NextActionsView extends ItemView {
         setIcon(grip, "grip-vertical");
         grip.addEventListener("click", (e) => e.stopPropagation()); // don't open the note after a drag
       }
-      const nameEl = header.createSpan({ text: project.name });
+      const nameEl = header.createSpan({ text: labelOf(project) });
       this.plugin.pillFor(nameEl, project.path);
       header.onclick = () => void openTaskLine(this.app, project.path);
       for (const t of tasks) this.renderTask(section, project, t, today);
@@ -149,7 +150,7 @@ export class NextActionsView extends ItemView {
       const row = section.createDiv({ cls: "gtd-task gtd-stalled-row" });
       const icon = row.createSpan({ cls: "gtd-stalled-icon", attr: { "aria-label": "Stalled" } });
       setIcon(icon, "alert-triangle");
-      const name = row.createSpan({ cls: "gtd-task-text", text: project.name });
+      const name = row.createSpan({ cls: "gtd-task-text", text: labelOf(project) });
       this.plugin.pillFor(name, project.path);
       name.onclick = () => void openTaskLine(this.app, project.path);
       row.createSpan({ cls: "gtd-stalled-reason", text: state.reason });
@@ -196,7 +197,7 @@ export class NextActionsView extends ItemView {
     if (task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${task.reason}` });
     label.onclick = () => void openTaskLine(this.app, project.path, task.line);
     this.editButton(row, project.path, task);
-    if (showProject) this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: project.name }), project.path);
+    if (showProject) this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: labelOf(project) }), project.path);
     renderDueBadge(row, task, today, this.plugin.settings.dueSoonDays);
     renderBlockers(row, task);
     // flag/important already show as icons, so don't repeat them as tag chips

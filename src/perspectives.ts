@@ -1,5 +1,6 @@
 import { Project, Task } from "./types";
 import { availableTasks, addInterval, isSomedayTask } from "./engine";
+import { labelOf } from "./projectLabel";
 
 export type SomedayMode = "exclude" | "include" | "only";
 
@@ -114,7 +115,7 @@ export function runPerspective(
     groups.get(key)!.push(it);
   };
   for (const it of items) {
-    if (p.groupBy === "project") add(it.project.name, it);
+    if (p.groupBy === "project") add(labelOf(it.project), it);
     else if (p.groupBy === "due") add(it.task.due ?? "no due date", it);
     else {
       const tags = it.task.tags.filter((t) => t !== flagTag && t !== importantTag && t !== "sequential" && t !== "parallel");

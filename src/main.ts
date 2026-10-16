@@ -25,6 +25,7 @@ import { registerIntegrations } from "./integrations";
 import { explorerStyles, resolveStyle, applyPill } from "./projectColors";
 import { statusBlockText, upsertStatusBlock } from "./statusBlock";
 import { projectGanttSource } from "./gantt";
+import { labelOf } from "./projectLabel";
 
 export default class GtdFlowPlugin extends Plugin {
   settings!: GtdSettings;
@@ -322,7 +323,7 @@ export default class GtdFlowPlugin extends Plugin {
       const file = this.app.vault.getFileByPath(p.path);
       if (!file) continue;
       if (p.tasks.some((t) => !t.done)) {
-        skipped.push(p.name);
+        skipped.push(labelOf(p));
         continue;
       }
       await this.moveToArchive(file);

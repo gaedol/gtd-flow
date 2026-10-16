@@ -9,6 +9,7 @@ import { taskContainers } from "./selectors";
 import { openTaskLine, renderMarkers, renderBlockers } from "./taskRow";
 import { makeReorderable } from "./dragReorder";
 import { ensureBlockId } from "./blockId";
+import { labelOf } from "./projectLabel";
 
 export const FORECAST_VIEW = "gtd-forecast";
 
@@ -126,7 +127,7 @@ export class ForecastView extends ItemView {
     if (it.task.reason) label.createSpan({ cls: "gtd-reason", text: ` 💬 ${it.task.reason}` });
     label.onclick = () => this.openTask(it);
     renderBlockers(row, it.task);
-    this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: it.project.name }), it.project.path);
+    this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: labelOf(it.project) }), it.project.path);
   }
 
   // non-draggable, dimmed hint that a repeating task recurs on this day; clicking
@@ -138,7 +139,7 @@ export class ForecastView extends ItemView {
     setIcon(icon, "rotate-cw");
     const label = renderTaskText(row, it.task.text, this.app, it.project.path);
     label.onclick = () => this.openTask(it);
-    this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: it.project.name }), it.project.path);
+    this.plugin.pillFor(row.createSpan({ cls: "gtd-project-ref", text: labelOf(it.project) }), it.project.path);
   }
 
   private openTask(it: ForecastItem) {

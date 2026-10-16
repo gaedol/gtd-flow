@@ -25,6 +25,7 @@ export interface Task {
 export interface Project {
   path: string;
   name: string;
+  label?: string; // name with its folder inside the projects folder, e.g. "Work/Q4 Planning"
   status: ProjectStatus;
   flow: ProjectFlow;
   reviewInterval?: string; // e.g. "1w", "3d", "2m"

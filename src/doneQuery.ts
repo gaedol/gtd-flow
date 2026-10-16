@@ -1,4 +1,5 @@
 import { Project, Task } from "./types";
+import { labelOf } from "./projectLabel";
 
 export type DoneGroup = "project" | "day" | "none";
 
@@ -193,7 +194,7 @@ export function collectDone(projects: Project[], range: DateRange, q: DoneQuery)
       }
     }
   }
-  out.sort((a, b) => b.date.localeCompare(a.date) || a.project.name.localeCompare(b.project.name));
+  out.sort((a, b) => b.date.localeCompare(a.date) || labelOf(a.project).localeCompare(labelOf(b.project)));
   return q.limit ? out.slice(0, q.limit) : out;
 }
 
@@ -207,7 +208,7 @@ export function groupDone(entries: DoneEntry[], group: DoneGroup): DoneGroupResu
   if (group === "none") return [{ label: "", entries }];
   const map = new Map<string, DoneEntry[]>();
   for (const e of entries) {
-    const key = group === "project" ? e.project.name : e.date;
+    const key = group === "project" ? labelOf(e.project) : e.date;
     (map.get(key) ?? map.set(key, []).get(key)!).push(e);
   }
   const labels = [...map.keys()].sort((a, b) =>
@@ -240,7 +241,7 @@ export function renderDoneMarkdown(entries: DoneEntry[], range: DateRange, q: Do
     if (g.label) lines.push(`### ${g.label}`);
     for (const e of g.entries) {
       const mark = e.state === "dropped" ? "❌" : "✅";
-      const where = q.group === "project" ? "" : ` _(${e.project.name})_`;
+      const where = q.group === "project" ? "" : ` _(${labelOf(e.project)})_`;
       const why = e.task.reason ? ` 💬 ${e.task.reason}` : "";
       lines.push(`- [${e.state === "dropped" ? "-" : "x"}] ${e.task.text}${where} ${mark} ${e.date}${why}`);
     }

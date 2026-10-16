@@ -1,5 +1,6 @@
 import { App, Modal, Setting, TFile } from "obsidian";
 import { Project, ProjectStatus, ProjectFlow } from "./types";
+import { labelOf } from "./projectLabel";
 
 export class ProjectPropertiesModal extends Modal {
   private status: ProjectStatus;
@@ -21,7 +22,7 @@ export class ProjectPropertiesModal extends Modal {
 
   onOpen() {
     const { contentEl } = this;
-    this.setTitle(`Project: ${this.project.name}`);
+    this.setTitle(`Project: ${labelOf(this.project)}`);
 
     new Setting(contentEl).setName("Status").addDropdown((d) =>
       d.addOption("active", "Active")

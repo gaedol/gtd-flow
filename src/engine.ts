@@ -1,5 +1,6 @@
 import { Project, ProjectFlow, Task } from "./types";
 import { nextDueFromRule } from "./repeat";
+import { labelOf } from "./projectLabel";
 
 export interface TaskNode {
   task: Task;
@@ -164,7 +165,7 @@ export function dueSoon(projects: Project[], today: string, days: number): Dated
       }
     });
   }
-  return out.sort((a, b) => a.task.due!.localeCompare(b.task.due!) || a.project.name.localeCompare(b.project.name));
+  return out.sort((a, b) => a.task.due!.localeCompare(b.task.due!) || labelOf(a.project).localeCompare(labelOf(b.project)));
 }
 
 // First available task per project — the project's next action

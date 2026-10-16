@@ -29,6 +29,7 @@ GTD for Obsidian: projects with real next-action logic, defer dates, forecast an
 | Let several tasks run at once | `flow: parallel` (the default) |
 | Group subtasks under one item | Indent them — see [action groups](#action-groups) |
 | Mix orders in one project | Tag a parent line `#sequential` or `#parallel` |
+| Group projects into areas (Work, Home…) | Put them in subfolders of the projects folder; views label them `Work/Q4 Planning`, and *By folder* sorting and folder filters follow the same structure |
 | **Make a task wait for another** — even in a different project | Name the first `🆔 tiles`, mark the second `⛔ tiles` — see [dependencies](#dependencies) |
 | **Hide a task until later** | `🛫 2026-08-01` (defer). It reappears by itself |
 | Give a task a deadline | `📅 2026-08-10` |
@@ -67,6 +68,7 @@ GTD for Obsidian: projects with real next-action logic, defer dates, forecast an
 | Sequential / parallel | `flow:` frontmatter, overridable per action group |
 | Defer / due | `🛫` / `📅` on the task line (Tasks-plugin syntax) |
 | Next action | The first *available* task of each active project |
+| Area of focus | A folder inside the projects folder — its projects show as `Work/Q4 Planning` in every view |
 | Context | A tag, nestable: `#home/plumbing` |
 | Someday / on-hold | Parked work — `status:` on a project, `#someday` on a task |
 | Review | `review-interval` + `last-reviewed` frontmatter, plus the Review view |
@@ -411,6 +413,7 @@ src/
   inNote.ts          pure: doc lines → per-line availability CSS classes
   projectColors.ts   pure: resolve Color-Folders-and-Files styles into project pills
   settingsData.ts    pure: the settings shape and their defaults
+  projectLabel.ts    pure: a project's display name with its area folder ("Work/Q4 Planning")
   taskIndex.ts       in-memory index of project notes + the inbox (held as a synthesized
                      project), refreshed on vault events; exposes snapshot()
   completeTask.ts    task-line writes to disk via vault.process, with a stale-line guard
@@ -435,7 +438,7 @@ src/
   main.ts            thin wiring: settings, index lifecycle, views + shared helpers
 ```
 
-Every module marked *pure* has no Obsidian imports and is unit-tested — **287 tests across 27 files** (`npm test`). Beyond per-module tests the suite covers a parse → serialize round-trip (lossless and idempotent for every task shape), the write paths, archive/insert edges, action-group semantics, and an integration fixture: a small vault run end to end through selectors, next actions, forecast, every built-in perspective, done queries and stalled detection. Dates are compared as ISO strings throughout.
+Every module marked *pure* has no Obsidian imports and is unit-tested — **293 tests across 28 files** (`npm test`). Beyond per-module tests the suite covers a parse → serialize round-trip (lossless and idempotent for every task shape), the write paths, archive/insert edges, action-group semantics, and an integration fixture: a small vault run end to end through selectors, next actions, forecast, every built-in perspective, done queries and stalled detection. Dates are compared as ISO strings throughout.
 
 ## Development
 

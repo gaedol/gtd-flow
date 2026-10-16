@@ -15,6 +15,7 @@ import { DoneReportModal } from "./doneReportModal";
 import { ProjectSuggestModal, moveTask } from "./moveTask";
 import { parseTaskLine } from "./parser";
 import { moveTaskBlock } from "./moveTaskLine";
+import { labelOf } from "./projectLabel";
 
 // All command registrations. Kept out of main.ts so onload stays thin wiring.
 export function registerCommands(plugin: GtdFlowPlugin): void {
@@ -163,7 +164,7 @@ export function registerCommands(plugin: GtdFlowPlugin): void {
         void app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
           fm["status"] = fm["status"] === "on-hold" ? "active" : "on-hold";
         });
-        new Notice(`${project.name}: ${project.status === "on-hold" ? "active" : "on hold"}`);
+        new Notice(`${labelOf(project)}: ${project.status === "on-hold" ? "active" : "on hold"}`);
       }
       return true;
     },

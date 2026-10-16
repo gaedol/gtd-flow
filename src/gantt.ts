@@ -1,5 +1,6 @@
 import { Project, Task } from "./types";
 import { availableTasks, addInterval, datedVisible } from "./engine";
+import { labelOf } from "./projectLabel";
 
 export type TimelineMode = "day" | "week" | "month";
 
@@ -89,7 +90,7 @@ function rangeChart(projects: Project[], mode: "week" | "month", today: string):
     if (rows.length > 0) {
       // header row: a 0-day (zero-width) task puts the project name on its own
       // line; Mermaid's overlapping section title is hidden via CSS
-      lines.push(`  section ${clean(p.name)}`, `    ${clean(p.name)} :gtdhdr, ${today}, 0d`, ...rows);
+      lines.push(`  section ${clean(labelOf(p))}`, `    ${clean(labelOf(p))} :gtdhdr, ${today}, 0d`, ...rows);
       any = true;
     }
   }
@@ -146,7 +147,7 @@ function dayChart(projects: Project[], today: string, opts: GanttOptions): strin
   const placed: Placed[] = [];
   const occupied: [number, number][] = [];
   const meta = items.map(({ task: t, project: p, avail }) => ({
-    label: (multi ? `${label(t.text, 28)} (${clean(p.name)})` : label(t.text)) + ` :${tags(t, avail, today)}`,
+    label: (multi ? `${label(t.text, 28)} (${clean(labelOf(p))})` : label(t.text)) + ` :${tags(t, avail, today)}`,
     dur: t.durationMin ?? opts.defaultDurationMin,
     startMin: t.startTime ? toMin(t.startTime) : undefined,
   }));
@@ -211,6 +212,6 @@ export function projectGanttSource(p: Project, today: string): string {
     );
   });
   if (rows.length === 0) return "";
-  return ["gantt", "  dateFormat YYYY-MM-DD", "  axisFormat %d %b", `  section ${clean(p.name)}`, ...rows].join("\n");
+  return ["gantt", "  dateFormat YYYY-MM-DD", "  axisFormat %d %b", `  section ${clean(labelOf(p))}`, ...rows].join("\n");
 }
 

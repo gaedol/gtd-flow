@@ -12,6 +12,7 @@ import {
 import { renderTaskText } from "./linkText";
 import { openTaskLine } from "./taskRow";
 import { todayISO } from "./dates";
+import { labelOf } from "./projectLabel";
 
 // A ```gtd-done``` block: renders the closed items matching its query and
 // re-renders whenever the index changes, so the note stays a living log.
@@ -72,7 +73,7 @@ export class DoneBlock extends MarkdownRenderChild {
     // when grouped by project the heading already says where it came from
     if (q.group !== "project") {
       this.plugin.pillFor(
-        row.createSpan({ cls: "gtd-project-ref", text: e.project.name }),
+        row.createSpan({ cls: "gtd-project-ref", text: labelOf(e.project) }),
         e.project.path
       );
     }

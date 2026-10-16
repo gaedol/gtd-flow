@@ -2,6 +2,7 @@ import { App, FuzzySuggestModal, Notice, TFile } from "obsidian";
 import { Project, Task } from "./types";
 import { parseTaskLine } from "./parser";
 import { insertTaskLine, InsertPosition } from "./insertLine";
+import { labelOf } from "./projectLabel";
 
 // Append to target first, then remove from source: a duplicate beats a lost task
 export async function moveTask(
@@ -50,7 +51,7 @@ export class ProjectSuggestModal extends FuzzySuggestModal<Project> {
   }
 
   getItemText(p: Project): string {
-    return p.name;
+    return labelOf(p);
   }
 
   onChooseItem(p: Project): void {

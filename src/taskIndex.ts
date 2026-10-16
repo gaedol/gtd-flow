@@ -2,6 +2,7 @@ import { App, TFile, Events } from "obsidian";
 import { Project, Task } from "./types";
 import { parseProject, parseTaskLine } from "./parser";
 import { setTaskIds } from "./engine";
+import { projectLabelFor } from "./projectLabel";
 
 // In-memory project index; markdown stays the source of truth
 export class TaskIndex extends Events {
@@ -75,6 +76,7 @@ export class TaskIndex extends Events {
     }
     const fm = this.app.metadataCache.getFileCache(file)?.frontmatter;
     const project = parseProject(file.path, content, fm);
+    if (project) project.label = projectLabelFor(file.path, this.folder());
     if (project) this.projects.set(file.path, project);
     else this.projects.delete(file.path);
   }
