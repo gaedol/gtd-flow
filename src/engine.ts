@@ -218,7 +218,8 @@ export function forecast(projects: Project[], today: string, days: number): Fore
           // preview the next fixed-schedule occurrence if it also lands in the window
           if (t.repeat) {
             const nd = nextDueFromRule(t.repeat, t.due);
-            if (nd && nd > t.due && nd <= end) {
+            // an overdue task's next date can itself be past; today already shows it
+            if (nd && nd > t.due && nd > today && nd <= end) {
               items.push({ project: p, task: t, date: nd, kind: "due", available: false, preview: true });
             }
           }

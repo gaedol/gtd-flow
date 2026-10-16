@@ -206,6 +206,13 @@ describe("forecast", () => {
     expect(forecast([whenDone], TODAY, 7).filter((i) => i.preview)).toHaveLength(0);
   });
 
+  it("never previews a recurrence in the past for an overdue repeating task", () => {
+    const p = project({ tasks: [task("weekly chore", { due: "2026-05-01", repeat: "every week" })] });
+    const items = forecast([p], TODAY, 7);
+    expect(items.filter((i) => i.preview)).toEqual([]);
+    expect(items[0]).toMatchObject({ date: TODAY, kind: "due" }); // the task itself still surfaces today
+  });
+
   it("defer-only tasks appear on their defer date", () => {
     const p = project({ tasks: [task("later", { defer: "2026-06-14" })] });
     expect(forecast([p], TODAY, 7)[0]).toMatchObject({ kind: "becomes-available", date: "2026-06-14" });
