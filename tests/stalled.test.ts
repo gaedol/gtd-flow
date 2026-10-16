@@ -98,3 +98,12 @@ describe("attentionReason", () => {
     expect(attentionReason(p, TODAY, 14)).toBeNull();
   });
 });
+
+describe("progress ignores reopened tasks", () => {
+  it("does not count a stale ✅ date on an open task as progress", () => {
+    const p = project({
+      tasks: [task("reopened", { completedOn: "2026-07-24" }), task("real", { done: true, completedOn: "2026-05-01" })],
+    });
+    expect(lastProgressDate(p)).toBe("2026-05-01");
+  });
+});

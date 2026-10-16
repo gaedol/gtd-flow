@@ -151,3 +151,17 @@ describe("groupDone and markdown output", () => {
     expect(md).toContain("Nothing closed");
   });
 });
+
+describe("reopened tasks with a leftover date", () => {
+  // an open box with a ✅/❌ still on the line: un-ticked by hand, or by a plain toggle
+  const p = project("P", "GTD/Projects/P.md", [
+    task("reopened", { done: false, completedOn: "2026-07-14" }),
+    task("reopened drop", { done: false, cancelledOn: "2026-07-14" }),
+    task("really done", { done: true, completedOn: "2026-07-14" }),
+  ]);
+
+  it("are not reported as closed", () => {
+    const out = collectDone([p], { from: "2026-07-01", to: "2026-07-31" }, parseDoneQuery("include: dropped"));
+    expect(out.map((e) => e.task.text)).toEqual(["really done"]);
+  });
+});

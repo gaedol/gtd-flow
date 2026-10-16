@@ -179,10 +179,12 @@ export function collectDone(projects: Project[], range: DateRange, q: DoneQuery)
   for (const p of projects) {
     if (!matchesProject(p, q)) continue;
     for (const t of p.tasks) {
+      if (!t.done) continue; // the box decides; a reopened task can keep a stale date
       if (t.completedOn && t.completedOn >= range.from && t.completedOn <= range.to && !t.dropped) {
         out.push({ project: p, task: t, date: t.completedOn, state: "done" });
       } else if (
         q.includeDropped &&
+        t.dropped &&
         t.cancelledOn &&
         t.cancelledOn >= range.from &&
         t.cancelledOn <= range.to

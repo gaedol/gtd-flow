@@ -40,6 +40,7 @@ export function stalledState(p: Project, today: string): Stalled | null {
 export function lastProgressDate(p: Project): string | undefined {
   let latest: string | undefined;
   for (const t of p.tasks) {
+    if (!t.done) continue; // a reopened task may still carry a stale date
     for (const d of [t.completedOn, t.cancelledOn]) {
       if (d && (!latest || d > latest)) latest = d;
     }

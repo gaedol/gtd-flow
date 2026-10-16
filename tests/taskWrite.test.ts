@@ -48,3 +48,32 @@ describe("toggleTagLine", () => {
     expect(toggleTagLine("- [ ] task #important", ["important"], "important")).toBe("- [ ] task");
   });
 });
+
+describe("writes keep lines well-formed", () => {
+  it("completing replaces a stale ✅ instead of adding a second one", () => {
+    const { line } = completeLine("- [ ] reopened ✅ 2026-07-01", TODAY);
+    expect(line).toBe("- [x] reopened ✅ 2026-07-24");
+  });
+
+  it("collapses an earlier double date", () => {
+    expect(setStateLine("- [x] twice ✅ 2026-07-01 ✅ 2026-07-02", "todo", TODAY)).toBe("- [ ] twice");
+  });
+
+  it("keeps a ^block-id last, where it still parses", () => {
+    expect(completeLine("- [ ] ordered ^gtd-1a", TODAY).line).toBe("- [x] ordered ✅ 2026-07-24 ^gtd-1a");
+    expect(setStateLine("- [ ] ordered ^gtd-1a", "dropped", TODAY, "nope")).toBe(
+      "- [-] ordered 💬 nope ❌ 2026-07-24 ^gtd-1a"
+    );
+    expect(toggleTagLine("- [ ] ordered ^gtd-1a", [], "important")).toBe("- [ ] ordered #important ^gtd-1a");
+  });
+
+  it("a recurrence is a new task: no block id, no 🆔, no stale date", () => {
+    const { next } = completeLine("- [ ] standup 🔁 every day 🆔 su ✅ 2026-07-01 📅 2026-07-24 ^gtd-9", TODAY);
+    expect(next).toBe("- [ ] standup 🔁 every day 📅 2026-07-25");
+  });
+
+  it("a recurrence keeps what it waits on", () => {
+    const { next } = completeLine("- [ ] report ⛔ data 🔁 every week 📅 2026-07-24", TODAY);
+    expect(next).toBe("- [ ] report ⛔ data 🔁 every week 📅 2026-07-31");
+  });
+});

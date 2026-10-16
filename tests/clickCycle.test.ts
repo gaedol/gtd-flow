@@ -8,10 +8,10 @@ describe("checkboxClickAction (direct mode)", () => {
   it("completes an in-progress task", () => {
     expect(checkboxClickAction("/", false)).toBe("complete");
   });
-  it("does nothing on done or dropped", () => {
-    expect(checkboxClickAction("x", false)).toBe("none");
-    expect(checkboxClickAction("X", false)).toBe("none");
-    expect(checkboxClickAction("-", false)).toBe("none");
+  it("reopens a done or dropped task (so its date is cleared, not left behind)", () => {
+    expect(checkboxClickAction("x", false)).toBe("reopen");
+    expect(checkboxClickAction("X", false)).toBe("reopen");
+    expect(checkboxClickAction("-", false)).toBe("reopen");
   });
 });
 
@@ -22,8 +22,8 @@ describe("checkboxClickAction (cycle mode)", () => {
   it("completes from in-progress", () => {
     expect(checkboxClickAction("/", true)).toBe("complete");
   });
-  it("still does nothing on done/dropped", () => {
-    expect(checkboxClickAction("x", true)).toBe("none");
-    expect(checkboxClickAction("-", true)).toBe("none");
+  it("also reopens done/dropped tasks", () => {
+    expect(checkboxClickAction("x", true)).toBe("reopen");
+    expect(checkboxClickAction("-", true)).toBe("reopen");
   });
 });

@@ -147,6 +147,7 @@ Order by position only works inside one list. A dependency says *this can't star
 
 - A waiting task behaves like a deferred one: not available, dimmed in the note, and in a sequential list it holds up what follows. Waiting on a parent holds back its whole group.
 - It becomes available as soon as every blocker is **done or dropped**.
+- When a repeating task that carries an `🆔` is completed, its next occurrence gets no `🆔` — otherwise whatever waits on it would also wait on every future occurrence.
 - In Forecast and Perspectives the row says *⛔ waiting on …*, so you can see why.
 - An id nobody declares doesn't block (likely a typo), nor does a task naming itself. Tasks in archived projects are no longer indexed, so they stop blocking too.
 - Typing `id` on a task line inserts `🆔` with a fresh random id; typing `blocked by` (or `depends`) inserts `⛔` and then suggests the open tasks that have an id, matched by id or by text.
@@ -165,6 +166,8 @@ Picking a marker re-opens the menu in date mode, so *due → tomorrow* is two ke
 ### Completing tasks
 
 Ticking a checkbox **in your note** (Live Preview or Reading view) goes through GTD Flow: it writes `✅` and inserts the next `🔁` occurrence, exactly like completing from a view — no Tasks plugin needed. Disable with **Handle checkbox clicks in notes**. With **Click cycles to-do → in-progress → done**, the first click sets `[/]` and the second completes.
+
+Clicking a **done or dropped** task's checkbox reopens it and removes its `✅`/`❌` date, so the line can't end up open while still carrying a completion date. (If it was a repeating task, the next occurrence it created stays — delete it by hand if you didn't mean to complete it.)
 
 Right-click a task line (long-press on mobile) for **Edit task**, **Complete task**, **Drop task…**, **Move task up/down**, **Mark important**, **Mark someday**.
 
@@ -432,7 +435,7 @@ src/
   main.ts            thin wiring: settings, index lifecycle, views + shared helpers
 ```
 
-Every module marked *pure* has no Obsidian imports and is unit-tested — **279 tests across 27 files** (`npm test`). Beyond per-module tests the suite covers a parse → serialize round-trip (lossless and idempotent for every task shape), the write paths, archive/insert edges, action-group semantics, and an integration fixture: a small vault run end to end through selectors, next actions, forecast, every built-in perspective, done queries and stalled detection. Dates are compared as ISO strings throughout.
+Every module marked *pure* has no Obsidian imports and is unit-tested — **287 tests across 27 files** (`npm test`). Beyond per-module tests the suite covers a parse → serialize round-trip (lossless and idempotent for every task shape), the write paths, archive/insert edges, action-group semantics, and an integration fixture: a small vault run end to end through selectors, next actions, forecast, every built-in perspective, done queries and stalled detection. Dates are compared as ISO strings throughout.
 
 ## Development
 

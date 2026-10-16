@@ -154,6 +154,7 @@ export default class GtdFlowPlugin extends Plugin {
     const task = parseTaskLine(rawLine, lineNo);
     if (!task) return false;
     if (action === "in-progress") void setTaskState(this.app, path, task, "in-progress");
+    else if (action === "reopen") void setTaskState(this.app, path, task, "todo");
     else void completeTask(this.app, path, task);
     return true;
   }
