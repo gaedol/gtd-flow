@@ -2,7 +2,7 @@
 
 What changed in each release of GTD Flow. Newest first.
 
-## Unreleased
+## 0.9.7 — 2026-10-17
 
 ### Added
 - **Task dependencies**, using the Tasks plugin's own markers: `🆔 name` names a task, `⛔ name` makes another wait on it — across projects, with several blockers separated by commas. A waiting task is unavailable everywhere until every blocker is done or dropped, and shows *⛔ waiting on …*. The suggester inserts fresh ids and completes them by id or task text.
@@ -136,6 +136,11 @@ What changed in each release of GTD Flow. Newest first.
 
 ### Added
 - **Drag-to-reorder** in Forecast and Perspectives, defaulting to overdue → flagged → the rest.
+
+## 0.3.1 — 2026-06-18
+
+### Fixed
+- Issues flagged by the plugin review.
 
 ## 0.3.0 — 2026-06-17
 
