@@ -122,14 +122,21 @@ export class GtdSettingTab extends PluginSettingTab {
     };
   }
 
-  // re-render whichever settings surface is active (1.13 definitions or display)
+  // re-render whichever settings surface is active: update() on 1.13+, else the
+  // legacy renderer directly (we never call the deprecated display() ourselves)
   private refresh(): void {
     const update = (this as Partial<{ update: () => void }>).update;
     if (typeof update === "function") update.call(this);
-    else this.display();
+    else this.renderLegacy();
   }
 
+  // Fallback for Obsidian < 1.13 only, as the API docs prescribe: on 1.13+ it
+  // is never called, since getSettingDefinitions() returns definitions.
   display(): void {
+    this.renderLegacy();
+  }
+
+  private renderLegacy(): void {
     const { containerEl } = this;
     containerEl.empty();
 
@@ -416,7 +423,7 @@ export class GtdSettingTab extends PluginSettingTab {
     this.configurePerspective(s, p, i);
   }
 
-  // configures one perspective's editing row; shared by display() and the
+  // configures one perspective's editing row; shared by the legacy renderer and the
   // declarative render definitions
   private configurePerspective(s: Setting, p: Perspective, i: number) {
     const save = async () => this.plugin.saveSettings();

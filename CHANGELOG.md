@@ -2,6 +2,11 @@
 
 What changed in each release of GTD Flow. Newest first.
 
+## Unreleased
+
+### Changed
+- The settings tab no longer calls a method Obsidian deprecated in 1.13; nothing changes on screen.
+
 ## 0.9.7 — 2026-10-17
 
 ### Added
