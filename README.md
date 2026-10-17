@@ -82,6 +82,8 @@ For pre-release builds, [BRAT](https://github.com/TfTHacker/obsidian42-brat) can
 
 **[MANUAL.md](MANUAL.md)** — full usage, task syntax, every setting, and the architecture. It opens with a *"How do I…?"* table that maps what you want to do to the feature that does it.
 
+**[CHANGELOG.md](CHANGELOG.md)** — what changed in each release.
+
 ## License
 
 [MIT](LICENSE) © Marco Guidetti
