@@ -2,7 +2,7 @@
 
 What changed in each release of GTD Flow. Newest first.
 
-## Unreleased
+## 0.9.8 — 2026-10-20
 
 ### Added
 - Clicking the *Inbox* heading in Next actions opens the inbox note. (Thanks @peteringram0.)
