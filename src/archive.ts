@@ -1,5 +1,6 @@
 import { parseTaskLine } from "./parser";
 import { addInterval } from "./engine";
+import { blockEnd } from "./taskBlock";
 
 const ARCHIVE_HEADING_RE = /^##+\s+Archive\s*$/;
 
@@ -7,8 +8,6 @@ export interface ArchiveResult {
   content: string;
   moved: number;
 }
-
-const indentOf = (line: string): number => line.match(/^\s*/)![0].length;
 
 // Moves fully-done root subtrees (older than minAgeDays) under a trailing
 // "## Archive" heading. Indented notes and plain sub-bullets travel with their
@@ -27,21 +26,25 @@ export function archiveDoneTasks(content: string, today: string, minAgeDays: num
   };
 
   const toMove = new Set<number>();
+  let moved = 0;
   let i = 0;
   while (i < limit) {
-    const t = parseTaskLine(lines[i], i);
-    if (!t) {
+    if (!parseTaskLine(lines[i], i)) {
       i++;
       continue;
     }
-    let end = i + 1;
-    // any deeper-indented, non-blank line belongs to this task: child tasks and notes alike
-    while (end < limit && lines[end].trim() !== "" && indentOf(lines[end]) > t.indent) end++;
+    const end = blockEnd(lines, i, limit);
+    let tasks = 0;
     let all = true;
     for (let j = i; j < end; j++) {
-      if (parseTaskLine(lines[j], j) && !eligible(lines[j], j)) all = false;
+      if (!parseTaskLine(lines[j], j)) continue;
+      tasks++;
+      if (!eligible(lines[j], j)) all = false;
     }
-    if (all) for (let j = i; j < end; j++) toMove.add(j);
+    if (all) {
+      for (let j = i; j < end; j++) toMove.add(j);
+      moved += tasks;
+    }
     i = end;
   }
 
@@ -52,5 +55,5 @@ export function archiveDoneTasks(content: string, today: string, minAgeDays: num
   let out = keep.join("\n").trimEnd();
   if (headingIdx === -1) out += "\n\n## Archive";
   out += "\n" + movedLines.join("\n") + "\n";
-  return { content: out, moved: movedLines.filter((l, j) => parseTaskLine(l, j)).length };
+  return { content: out, moved };
 }

@@ -4,6 +4,13 @@ What changed in each release of GTD Flow. Newest first.
 
 ## Unreleased
 
+### Added
+- Clicking the *Inbox* heading in Next actions opens the inbox note. (Thanks @peteringram0.)
+
+### Fixed
+- Archiving done tasks left their indented notes and sub-bullets behind, and could archive a done task while an open child below a note stayed put. (Thanks @peteringram0.)
+- **Move task up/down** left a task's indented notes behind, and couldn't move a task down past a sibling with notes.
+
 ### Changed
 - The settings tab no longer calls a method Obsidian deprecated in 1.13; nothing changes on screen.
 

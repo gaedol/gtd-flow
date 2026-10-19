@@ -1,21 +1,17 @@
+import { blockEnd, indentOf } from "./taskBlock";
+
 const TASK_RE = /^(\s*)[-*] \[.\] /;
 
-function indentOf(line: string | undefined): number | null {
+function taskIndent(line: string | undefined): number | null {
   const m = line?.match(TASK_RE);
   return m ? m[1].length : null;
 }
 
-// the task at `line` plus its indented children: [start, end] inclusive
+// the task at `line` plus its indented children and notes: [start, end] inclusive
 function blockAt(lines: string[], line: number): { start: number; end: number; indent: number } | null {
-  const indent = indentOf(lines[line]);
+  const indent = taskIndent(lines[line]);
   if (indent === null) return null;
-  let end = line;
-  for (let i = line + 1; i < lines.length; i++) {
-    const ind = indentOf(lines[i]);
-    if (ind === null || ind <= indent) break;
-    end = i;
-  }
-  return { start: line, end, indent };
+  return { start: line, end: blockEnd(lines, line) - 1, indent };
 }
 
 export interface LineMove {
@@ -25,8 +21,8 @@ export interface LineMove {
   cursorLine: number; // where the moved task ends up
 }
 
-// Move a task (with its subtree) above the previous sibling, or below the next
-// one. Siblings are same-indent task lines with no intervening non-task line, so
+// Move a task (with its subtree and notes) above the previous sibling, or below the
+// next one. Siblings are same-indent tasks whose blocks touch, so
 // a move never jumps out of its list or into another action group. Returns null
 // when there is nothing to swap with.
 export function moveTaskBlock(lines: string[], line: number, dir: "up" | "down"): LineMove | null {
@@ -35,17 +31,10 @@ export function moveTaskBlock(lines: string[], line: number, dir: "up" | "down")
   const { start, end, indent } = block;
 
   if (dir === "up") {
-    // nearest preceding line at the same indent, stopping at a break in the list
-    let prev = -1;
-    for (let i = start - 1; i >= 0; i--) {
-      const ind = indentOf(lines[i]);
-      if (ind === null || ind < indent) break;
-      if (ind === indent) {
-        prev = i;
-        break;
-      }
-    }
-    if (prev < 0) return null;
+    // nearest shallower-or-equal line above; a sibling only if its block ends right here
+    let prev = start - 1;
+    while (prev >= 0 && (lines[prev].trim() === "" || indentOf(lines[prev]) > indent)) prev--;
+    if (prev < 0 || taskIndent(lines[prev]) !== indent || blockEnd(lines, prev) !== start) return null;
     const moved = lines.slice(start, end + 1);
     const displaced = lines.slice(prev, start);
     return {
@@ -57,8 +46,7 @@ export function moveTaskBlock(lines: string[], line: number, dir: "up" | "down")
   }
 
   // down: the next sibling starts immediately after this block
-  const nextIndent = indentOf(lines[end + 1]);
-  if (nextIndent === null || nextIndent !== indent) return null;
+  if (taskIndent(lines[end + 1]) !== indent) return null;
   const nextBlock = blockAt(lines, end + 1);
   if (!nextBlock) return null;
   const moved = lines.slice(start, end + 1);

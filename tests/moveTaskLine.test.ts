@@ -82,3 +82,31 @@ describe("moveTaskBlock — boundaries", () => {
     );
   });
 });
+
+describe("moveTaskBlock — notes", () => {
+  const doc = ["- [ ] a", "    - note on a", "- [ ] b", "    - note on b", "", "    - more on b", "- [ ] c"].join("\n");
+
+  it("carries a task's notes when it moves up", () => {
+    expect(apply(doc, 2, "up")).toBe(
+      ["- [ ] b", "    - note on b", "", "    - more on b", "- [ ] a", "    - note on a", "- [ ] c"].join("\n")
+    );
+  });
+
+  it("moves down past a sibling that has notes", () => {
+    expect(apply(doc, 0, "down")).toBe(
+      ["- [ ] b", "    - note on b", "", "    - more on b", "- [ ] a", "    - note on a", "- [ ] c"].join("\n")
+    );
+  });
+
+  it("swaps over a sibling whose notes span a blank line", () => {
+    expect(apply(doc, 6, "up")).toBe(
+      ["- [ ] a", "    - note on a", "- [ ] c", "- [ ] b", "    - note on b", "", "    - more on b"].join("\n")
+    );
+  });
+
+  it("still refuses to cross a blank line between siblings", () => {
+    const gap = ["- [ ] a", "    - note", "", "- [ ] b"].join("\n").split("\n");
+    expect(moveTaskBlock(gap, 3, "up")).toBeNull();
+    expect(moveTaskBlock(gap, 0, "down")).toBeNull();
+  });
+});

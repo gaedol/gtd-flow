@@ -131,7 +131,7 @@ Indent to nest:
 - A parent with open children is a container; its children are the actions. The parent becomes available once they're done.
 - Sibling order follows the project `flow`, unless the parent line carries `#sequential` or `#parallel`.
 - Deferring a parent defers its whole subtree.
-- **Move task up/down** moves a task *with* its children; "move task to project" moves single lines, so move children before their parent.
+- **Move task up/down** moves a task *with* its children and indented notes; "move task to project" moves single lines, so move children before their parent.
 
 ### Dependencies
 
@@ -185,10 +185,10 @@ Each has a ribbon icon and an `Open …` command.
 
 The available task(s) of every active project, grouped by project.
 
-Sections run in this order, above the project list: **Inbox** (when non-empty, with a folder icon per row to file an item into a project), **Deadline approaching** (due today or within the warning window, across all projects — including tasks you can't start yet, since the deadline holds regardless), **Flagged** (flagged available tasks across all projects), then **Stalled** (projects that offer nothing to do, and why).
+Sections run in this order, above the project list: **Inbox** (when non-empty; click the heading to open the inbox note, or the folder icon on a row to file that item into a project), **Deadline approaching** (due today or within the warning window, across all projects — including tasks you can't start yet, since the deadline holds regardless), **Flagged** (flagged available tasks across all projects), then **Stalled** (projects that offer nothing to do, and why).
 - Project sections follow **Sort projects in Next Actions**: *Alphabetical*, *By folder* (explorer-like path order), or *Manual* (drag the project headers; new projects slot into their default position).
 - Tasks appear in note order — reorder with **Move task up/down**.
-- Due badges turn **amber** inside the warning window, **orange** today, **red** when overdue. A task held back by a dependency shows *⛔ waiting on …*. Click a task to jump to its line.
+- Due badges turn **amber** inside the warning window, **orange** today, **red** when overdue. A task held back by a dependency shows *⛔ waiting on …*. Click a task to jump to its line, or a project heading to open the note.
 
 ### Forecast
 
@@ -239,7 +239,7 @@ Moves append to the target *before* deleting from the source, and verify the sou
 
 ### Archiving tasks
 
-**Archive done tasks in this note** / **in all projects** moves fully-done root subtrees under a `## Archive` heading at the bottom of the same note, keeping `✅` dates. Groups move whole or not at all; done children inside still-open groups stay put. Only items closed at least *N* days ago move (**Archive tasks done for (days)**, default 7; `0` = everything; tasks with no date always qualify). Keep `## Archive` as the last section.
+**Archive done tasks in this note** / **in all projects** moves fully-done root subtrees under a `## Archive` heading at the bottom of the same note, keeping `✅` dates and the notes indented under them. Groups move whole or not at all; done children inside still-open groups stay put. Only items closed at least *N* days ago move (**Archive tasks done for (days)**, default 7; `0` = everything; tasks with no date always qualify). Keep `## Archive` as the last section.
 
 ### Archiving projects
 
@@ -397,6 +397,7 @@ src/
   selectors.ts       pure: which containers each surface sees (with or without the inbox)
   taskWrite.ts       pure: the one place task-line surgery lives
   moveTaskLine.ts    pure: move a task + its subtree past a sibling, within its group
+  taskBlock.ts       pure: the lines a task owns (children and notes)
   serialize.ts       pure: task fields → line; duration parsing/formatting
   ordering.ts        pure: default sort (overdue→flagged→rest) + manual-order merge
   perspectives.ts    pure: perspective filters + grouping
@@ -438,7 +439,7 @@ src/
   main.ts            thin wiring: settings, index lifecycle, views + shared helpers
 ```
 
-Every module marked *pure* has no Obsidian imports and is unit-tested — **293 tests across 28 files** (`npm test`). Beyond per-module tests the suite covers a parse → serialize round-trip (lossless and idempotent for every task shape), the write paths, archive/insert edges, action-group semantics, and an integration fixture: a small vault run end to end through selectors, next actions, forecast, every built-in perspective, done queries and stalled detection. Dates are compared as ISO strings throughout.
+Every module marked *pure* has no Obsidian imports and is unit-tested — **303 tests across 28 files** (`npm test`). Beyond per-module tests the suite covers a parse → serialize round-trip (lossless and idempotent for every task shape), the write paths, archive/insert edges, action-group semantics, and an integration fixture: a small vault run end to end through selectors, next actions, forecast, every built-in perspective, done queries and stalled detection. Dates are compared as ISO strings throughout.
 
 ## Development
 

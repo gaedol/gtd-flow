@@ -87,6 +87,20 @@ describe("archiveDoneTasks", () => {
     const doc = "- [ ] a\n- [ ] b";
     expect(archiveDoneTasks(doc, TODAY, 7)).toEqual({ content: doc, moved: 0 });
   });
+  it("keeps a done parent whose open child sits below a note", () => {
+    const doc = ["- [x] parent ✅ 2026-07-01", "    - a note", "    - [ ] open kid"].join("\n");
+    expect(archiveDoneTasks(doc, TODAY, 7)).toEqual({ content: doc, moved: 0 });
+  });
+
+  it("keeps notes after a blank line inside the task's block", () => {
+    const doc = ["- [x] done ✅ 2026-07-01", "    - note", "", "    - later note", "- [ ] open"].join("\n");
+    const r = archiveDoneTasks(doc, TODAY, 7);
+    expect(r.moved).toBe(1);
+    const [above, below] = r.content.split("## Archive");
+    expect(above).not.toContain("note");
+    expect(below).toContain("    - later note");
+  });
+
 });
 
 describe("insertTaskLine", () => {
@@ -124,4 +138,5 @@ describe("insertTaskLine", () => {
   it("handles an empty note", () => {
     expect(insertTaskLine("", NEW, "bottom").trim()).toBe(NEW);
   });
+
 });
