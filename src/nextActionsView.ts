@@ -103,7 +103,8 @@ export class NextActionsView extends ItemView {
     if (tasks.length === 0) return;
     const inboxPath = normalizePath(this.plugin.settings.inboxNote);
     const section = root.createDiv({ cls: "gtd-project gtd-inbox" });
-    section.createDiv({ cls: "gtd-project-name", text: `Inbox (${tasks.length})` });
+    const header = section.createDiv({ cls: "gtd-project-name", text: `Inbox (${tasks.length})` });
+    header.onclick = () => void openTaskLine(this.app, inboxPath);
     for (const t of tasks) {
       const row = section.createDiv({ cls: "gtd-task" });
       const cb = row.createEl("input", { type: "checkbox" });
