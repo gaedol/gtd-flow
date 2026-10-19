@@ -47,6 +47,42 @@ describe("archiveDoneTasks", () => {
     expect(archiveDoneTasks(doc, TODAY, 7).moved).toBe(0);
   });
 
+  it("carries plain sub-bullets along with their done task", () => {
+    const doc = [
+      "- [x] Sort out my VN visa ✅ 2026-07-01",
+      "    - They keep saying its working",
+      "    - Chat not working",
+      "- [ ] open",
+    ].join("\n");
+    const r = archiveDoneTasks(doc, TODAY, 7);
+    expect(r.moved).toBe(1);
+    const [above, below] = r.content.split("## Archive");
+    expect(above).not.toContain("working");
+    expect(above).toContain("- [ ] open");
+    expect(below).toBe(
+      "\n- [x] Sort out my VN visa ✅ 2026-07-01\n    - They keep saying its working\n    - Chat not working\n",
+    );
+  });
+
+  it("moves notes and done child tasks together, counting only tasks", () => {
+    const doc = ["- [x] parent ✅ 2026-07-01", "    - a note", "    - [x] kid ✅ 2026-07-02"].join("\n");
+    const r = archiveDoneTasks(doc, TODAY, 7);
+    expect(r.moved).toBe(2);
+    expect(r.content.split("## Archive")[0]).not.toContain("a note");
+  });
+
+  it("leaves an open task and its notes in place", () => {
+    const doc = "- [ ] open\n    - a note";
+    expect(archiveDoneTasks(doc, TODAY, 7)).toEqual({ content: doc, moved: 0 });
+  });
+
+  it("stops a task's block at a blank line", () => {
+    const doc = ["- [x] done ✅ 2026-07-01", "    - note", "", "- [ ] open"].join("\n");
+    const r = archiveDoneTasks(doc, TODAY, 7);
+    expect(r.moved).toBe(1);
+    expect(r.content.split("## Archive")[0]).toContain("- [ ] open");
+  });
+
   it("is a no-op when nothing qualifies", () => {
     const doc = "- [ ] a\n- [ ] b";
     expect(archiveDoneTasks(doc, TODAY, 7)).toEqual({ content: doc, moved: 0 });
