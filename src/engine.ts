@@ -62,8 +62,28 @@ export function openBlockers(t: Task): Task[] {
   return out;
 }
 
-export function isWaiting(t: Task): boolean {
+export function isBlocked(t: Task): boolean {
   return openBlockers(t).length > 0;
+}
+
+// the tag that marks a task as waiting on someone else (configurable; default
+// "wait"), optionally naming who: #wait/anna
+let waitTag = "wait";
+export function setWaitTag(t: string): void {
+  waitTag = t || "wait";
+}
+
+function waitTagOf(t: Task): string | undefined {
+  return t.tags.find((x) => x === waitTag || x.startsWith(waitTag + "/"));
+}
+
+export function isWaitingFor(t: Task): boolean {
+  return waitTagOf(t) !== undefined;
+}
+
+// who a waiting task waits on: "#wait/anna" → "anna", a bare "#wait" → ""
+export function waitingOn(t: Task): string {
+  return waitTagOf(t)?.slice(waitTag.length + 1) ?? "";
 }
 
 // every declared id, for the ⛔ suggester
@@ -76,9 +96,9 @@ export function knownTaskIds(): { id: string; task: Task }[] {
 function collect(nodes: TaskNode[], flow: ProjectFlow, today: string, out: Task[]): void {
   let blocked = false;
   for (const n of nodes) {
-    // waiting on a ⛔ dependency behaves like a future defer: the task and its
-    // subtree aren't actionable, and in a sequence it holds up what follows
-    const deferred = (!!n.task.defer && n.task.defer > today) || isWaiting(n.task);
+    // waiting on a ⛔ dependency or on someone else behaves like a future defer:
+    // the task and its subtree aren't actionable, and in a sequence it holds up what follows
+    const deferred = (!!n.task.defer && n.task.defer > today) || isBlocked(n.task) || isWaitingFor(n.task);
     const someday = isSomedayTask(n.task);
     if (!n.task.done && !someday && !blocked && !deferred) {
       const openChildren = n.children.some((c) => !c.task.done);
@@ -168,6 +188,37 @@ export function dueSoon(projects: Project[], today: string, days: number): Dated
   return out.sort((a, b) => a.task.due!.localeCompare(b.task.due!) || labelOf(a.project).localeCompare(labelOf(b.project)));
 }
 
+export interface WaitingItem {
+  project: Project;
+  task: Task;
+  who: string;
+  since?: string; // ➕ — when it was handed over
+  followUp?: string; // 🛫 — when to chase
+  nudge: boolean; // follow-up date reached
+}
+
+// open waiting-for tasks in active projects: those due a nudge first (earliest
+// follow-up first), then the longest-waiting
+export function waitingFor(projects: Project[], today: string): WaitingItem[] {
+  const out: WaitingItem[] = [];
+  for (const p of projects) {
+    if (p.status !== "active") continue;
+    for (const t of p.tasks) {
+      if (t.done || isSomedayTask(t) || !isWaitingFor(t)) continue;
+      out.push({
+        project: p,
+        task: t,
+        who: waitingOn(t),
+        since: t.created,
+        followUp: t.defer,
+        nudge: !!t.defer && t.defer <= today,
+      });
+    }
+  }
+  const key = (i: WaitingItem) => (i.nudge ? "0" + i.followUp : "1" + (i.since ?? "9"));
+  return out.sort((a, b) => key(a).localeCompare(key(b)) || labelOf(a.project).localeCompare(labelOf(b.project)));
+}
+
 // First available task per project — the project's next action
 export function nextAction(project: Project, today: string): Task | undefined {
   return availableTasks(project, today)[0];
@@ -202,6 +253,7 @@ export interface ForecastItem {
   kind: "due" | "becomes-available";
   available: boolean; // false when the task is blocked (waiting on order/subtasks)
   preview?: boolean; // a non-actionable 🔁 next-occurrence hint, not a real task
+  followUp?: boolean; // a waiting-for task's 🛫: the day to chase, not to start
 }
 
 export function forecast(projects: Project[], today: string, days: number): ForecastItem[] {
@@ -227,7 +279,8 @@ export function forecast(projects: Project[], today: string, days: number): Fore
         }
       } else if (t.defer && t.defer >= today && t.defer <= end) {
         // defer == today surfaces in the Today column; past defers are just available (Next Actions)
-        items.push({ project: p, task: t, date: t.defer, kind: "becomes-available", available: false });
+        const followUp = isWaitingFor(t) || undefined;
+        items.push({ project: p, task: t, date: t.defer, kind: "becomes-available", available: false, followUp });
       }
     }
   }

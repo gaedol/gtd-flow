@@ -4,6 +4,7 @@ import { Task } from "./types";
 import { parseTaskLine } from "./parser";
 import { serializeTask, formatDuration, parseDuration, stateOf, TaskState } from "./serialize";
 import { todayISO } from "./dates";
+import { isWaitingFor } from "./engine";
 
 export class EditTaskModal extends Modal {
   private text: string;
@@ -45,7 +46,7 @@ export class EditTaskModal extends Modal {
       t.setValue(this.text).onChange((v) => (this.text = v));
       t.inputEl.addClass("gtd-capture-text");
     });
-    new Setting(contentEl).setName("Defer until (🛫)").addText((t) => {
+    new Setting(contentEl).setName(isWaitingFor(this.task) ? "Follow up on (🛫)" : "Defer until (🛫)").addText((t) => {
       t.inputEl.type = "date";
       t.setValue(this.defer).onChange((v) => (this.defer = v));
     });
@@ -118,6 +119,7 @@ export class EditTaskModal extends Modal {
       startTime: this.startTime || undefined,
       reason: this.reason.trim() || undefined,
       // not editable here, but must survive the rewrite
+      created: this.task.created,
       id: this.task.id,
       blockedBy: this.task.blockedBy,
       blockId: this.task.blockId,

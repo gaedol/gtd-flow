@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { availableTasks, setTaskIds, openBlockers, isWaiting, knownTaskIds, dueSoon, forecast } from "../src/engine";
+import { availableTasks, setTaskIds, openBlockers, isBlocked, knownTaskIds, dueSoon, forecast } from "../src/engine";
 import { parseProject } from "../src/parser";
 import { stalledState } from "../src/stalled";
 import { Project } from "../src/types";
@@ -39,7 +39,7 @@ describe("dependencies", () => {
     const a = proj("A", "- [x] permit 🆔 permit\n- [ ] beams 🆔 beams");
     const b = proj("B", "- [ ] roof ⛔ permit,beams");
     vault(a, b);
-    expect(isWaiting(b.tasks[0])).toBe(true);
+    expect(isBlocked(b.tasks[0])).toBe(true);
     expect(openBlockers(b.tasks[0]).map((t) => t.text)).toEqual(["beams"]);
   });
 
@@ -68,7 +68,7 @@ describe("dependencies", () => {
     const b = proj("B", "- [ ] new 🆔 dup");
     const c = proj("C", "- [ ] waits ⛔ dup");
     vault(a, b, c);
-    expect(isWaiting(c.tasks[0])).toBe(true);
+    expect(isBlocked(c.tasks[0])).toBe(true);
   });
 
   it("forecast still lists a waiting task with a deadline, marked unavailable", () => {

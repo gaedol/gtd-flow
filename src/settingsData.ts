@@ -9,6 +9,7 @@ export interface GtdSettings {
   flagTag: string;
   importantTag: string;
   somedayTag: string;
+  waitTag: string;
   stalledTag: string;
   staleAfterDays: number;
   autoMarkStalled: boolean;
@@ -40,6 +41,7 @@ export const DEFAULT_SETTINGS: GtdSettings = {
   flagTag: "flag",
   importantTag: "important",
   somedayTag: "someday",
+  waitTag: "wait",
   stalledTag: "stalled",
   staleAfterDays: 30,
   autoMarkStalled: false,

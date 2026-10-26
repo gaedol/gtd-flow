@@ -47,3 +47,23 @@ export async function setTaskState(app: App, path: string, task: Task, state: Ta
   });
   return ok;
 }
+
+// rewrite one task line in place, after checking it hasn't moved since indexing
+export async function rewriteTaskLine(app: App, path: string, task: Task, edit: (raw: string) => string): Promise<boolean> {
+  const file = app.vault.getFileByPath(path);
+  if (!(file instanceof TFile)) return false;
+  let ok = false;
+  await app.vault.process(file, (content) => {
+    const lines = content.split("\n");
+    const raw = lines[task.line];
+    const current = raw !== undefined ? parseTaskLine(raw, task.line) : null;
+    if (!current || current.text !== task.text) {
+      new Notice("Task moved since last index — try again");
+      return content;
+    }
+    lines[task.line] = edit(raw);
+    ok = true;
+    return lines.join("\n");
+  });
+  return ok;
+}

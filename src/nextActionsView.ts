@@ -1,7 +1,7 @@
 import { ItemView, WorkspaceLeaf, setIcon, normalizePath } from "obsidian";
 import type GtdFlowPlugin from "./main";
-import { availableTasks, dueSoon } from "./engine";
-import { todayISO } from "./dates";
+import { availableTasks, dueSoon, waitingFor, WaitingItem } from "./engine";
+import { todayISO, daysBetween } from "./dates";
 import { completeTask } from "./completeTask";
 import { moveTask, ProjectSuggestModal } from "./moveTask";
 import { EditTaskModal } from "./editTaskModal";
@@ -64,6 +64,7 @@ export class NextActionsView extends ItemView {
     this.renderInbox(root);
     this.renderDueSoon(root, today);
     this.renderFlagged(root, projects, today);
+    this.renderWaiting(root, today);
     this.renderStalled(root, today);
 
     if (projects.length === 0) {
@@ -175,13 +176,35 @@ export class NextActionsView extends ItemView {
     }
   }
 
+  // everything handed to someone else, across projects and the inbox; the wait
+  // tag becomes "who · since · follow-up" instead of a chip
+  private renderWaiting(root: HTMLElement, today: string) {
+    const items = waitingFor(taskContainers(this.plugin.index.snapshot()), today);
+    if (items.length === 0) return;
+    const section = root.createDiv({ cls: "gtd-project gtd-waiting-section" });
+    section.createDiv({ cls: "gtd-project-name", text: `Waiting for (${items.length})` });
+    const waitTag = this.plugin.settings.waitTag;
+    const isWaitTag = (t: string) => t === waitTag || t.startsWith(waitTag + "/");
+    for (const it of items) {
+      const row = this.renderTask(section, it.project, it.task, today, true, isWaitTag);
+      row.createSpan({ cls: "gtd-waiting-info", text: waitingLabel(it, today) });
+      if (it.followUp) {
+        row.createSpan({
+          cls: "gtd-follow-up" + (it.nudge ? " gtd-nudge" : ""),
+          text: it.nudge ? "follow up now" : `follow up ${it.followUp}`,
+        });
+      }
+    }
+  }
+
   private renderTask(
     parent: HTMLElement,
     project: Project,
     task: Task,
     today: string,
-    showProject = false
-  ) {
+    showProject = false,
+    hideTag: (tag: string) => boolean = () => false
+  ): HTMLElement {
     const row = parent.createDiv({ cls: "gtd-task" });
     const cb = row.createEl("input", { type: "checkbox" });
     if (task.inProgress) {
@@ -204,9 +227,10 @@ export class NextActionsView extends ItemView {
     // flag/important already show as icons, so don't repeat them as tag chips
     const iconTags = [this.plugin.settings.flagTag, this.plugin.settings.importantTag];
     for (const tag of task.tags) {
-      if (iconTags.includes(tag)) continue;
+      if (iconTags.includes(tag) || hideTag(tag)) continue;
       row.createSpan({ cls: "gtd-tag", text: "#" + tag });
     }
+    return row;
   }
 
   private editButton(row: HTMLElement, path: string, task: Task) {
@@ -215,4 +239,13 @@ export class NextActionsView extends ItemView {
     btn.onclick = () => new EditTaskModal(this.app, this.plugin, path, task).open();
   }
 
+}
+
+function waitingLabel(it: WaitingItem, today: string): string {
+  const parts = [it.who ? `waiting on ${it.who}` : "waiting"];
+  if (it.since) {
+    const n = daysBetween(it.since, today);
+    parts.push(n <= 0 ? "since today" : `${n} day${n === 1 ? "" : "s"}`);
+  }
+  return parts.join(" · ");
 }

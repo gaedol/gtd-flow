@@ -118,21 +118,21 @@ describe("runPerspective", () => {
 
 describe("somedayMode", () => {
   const p = project("P", {
-    tasks: [task("normal", { tags: ["wait/foo"] }), task("parked", { tags: ["wait/foo", "someday"] })],
+    tasks: [task("normal", { tags: ["errand/foo"] }), task("parked", { tags: ["errand/foo", "someday"] })],
   });
 
   it("excludes parked tasks by default", () => {
-    const g = runPerspective([p], persp({ tag: "wait/foo" }), TODAY, "flag");
+    const g = runPerspective([p], persp({ tag: "errand/foo" }), TODAY, "flag");
     expect([...g.values()].flat().map((i) => i.task.text)).toEqual(["normal"]);
   });
 
   it("include adds parked tasks to the normal results", () => {
-    const g = runPerspective([p], persp({ tag: "wait/foo", somedayMode: "include" }), TODAY, "flag");
+    const g = runPerspective([p], persp({ tag: "errand/foo", somedayMode: "include" }), TODAY, "flag");
     expect([...g.values()].flat().map((i) => i.task.text)).toEqual(["normal", "parked"]);
   });
 
   it("only lists parked tasks", () => {
-    const g = runPerspective([p], persp({ tag: "wait/foo", somedayMode: "only" }), TODAY, "flag");
+    const g = runPerspective([p], persp({ tag: "errand/foo", somedayMode: "only" }), TODAY, "flag");
     expect([...g.values()].flat().map((i) => i.task.text)).toEqual(["parked"]);
   });
 

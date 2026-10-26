@@ -31,6 +31,7 @@ GTD for Obsidian: projects with real next-action logic, defer dates, forecast an
 | Mix orders in one project | Tag a parent line `#sequential` or `#parallel` |
 | Group projects into areas (Work, Home…) | Put them in subfolders of the projects folder; views label them `Work/Q4 Planning`, and *By folder* sorting and folder filters follow the same structure |
 | **Make a task wait for another** — even in a different project | Name the first `🆔 tiles`, mark the second `⛔ tiles` — see [dependencies](#dependencies) |
+| **Track something I'm waiting on** — a reply, a delivery, someone else's step | Right-click → **Waiting for…** (or `#wait/anna` by hand) — see [waiting for](#waiting-for) |
 | **Hide a task until later** | `🛫 2026-08-01` (defer). It reappears by itself |
 | Give a task a deadline | `📅 2026-08-10` |
 | Put a task at a clock time | `⏰ 14:30`, and `⏱ 45m` for how long — used by the Day timeline |
@@ -109,9 +110,10 @@ Task lines use [Tasks plugin](https://publish.obsidian.md/tasks) syntax, so both
 | `💬 superseded` | Closure reason | Runs until the next marker or end of line |
 | `🆔 tiles` | Task id | A name other tasks can wait on (Tasks-plugin syntax) |
 | `⛔ tiles,permit` | Blocked by | Not available until every listed task is done |
-| `#tag` | Context / flag / important / someday | See the settings for the special tag names |
+| `➕ 2026-07-30` | Created on | Written by **Waiting for…** to show how long you've been waiting |
+| `#tag` | Context / flag / important / someday / waiting | See the settings for the special tag names |
 
-`➕` created dates and priority emojis are recognised and ignored.
+Priority emojis are recognised and ignored.
 
 ### Task statuses
 
@@ -154,6 +156,24 @@ Order by position only works inside one list. A dependency says *this can't star
 - An id nobody declares doesn't block (likely a typo), nor does a task naming itself. Tasks in archived projects are no longer indexed, so they stop blocking too.
 - Typing `id` on a task line inserts `🆔` with a fresh random id; typing `blocked by` (or `depends`) inserts `⛔` and then suggests the open tasks that have an id, matched by id or by text.
 
+### Waiting for
+
+Some tasks aren't yours to do: you've asked for a quote, sent a draft for review, ordered a part. Tag them `#wait`, or `#wait/anna` to say who. The task stays in its project, next to the work it holds up, and a list gathers them all.
+
+```markdown
+- [ ] Quote for the tiles #wait/anna 🛫 2026-11-03 ➕ 2026-10-22
+- [ ] Book the tiler
+```
+
+- Right-click a task → **Waiting for…** (or **Mark task under cursor as waiting for…**) asks who and when to follow up, then writes the tag, the `🛫` follow-up date and `➕` today. Run it again on a waiting task to change either. **No longer waiting** removes the tag and the follow-up date.
+- A waiting task is **not a next action**. In a sequential project it holds up what follows, since the next step usually needs the reply. Tick it when the reply arrives.
+- `🛫` on a waiting task is the **follow-up date**: until then the task sits quietly in the list; from that day it's flagged *follow up now*. Forecast shows it on that day with an hourglass. In the Edit task modal the field reads *Follow up on*.
+- The **Waiting for** section in Next actions lists every waiting task across projects and the inbox: who, how many days since `➕`, and the follow-up date. Ones due a nudge come first, then the longest-waiting. There's also a *Waiting for* perspective.
+- A project whose open work is all waiting is stalled with the reason *waiting on others*.
+- The tag is set by **Waiting-for tag** (default `wait`).
+
+A waiting-for is about a person; a [dependency](#dependencies) is about another task in your vault. Use `⛔` when the thing you're waiting on is itself a task you track.
+
 ### Auto-suggest
 
 On a task line in a project note or the inbox, type at the end of the line:
@@ -185,14 +205,14 @@ Each has a ribbon icon and an `Open …` command.
 
 The available task(s) of every active project, grouped by project.
 
-Sections run in this order, above the project list: **Inbox** (when non-empty; click the heading to open the inbox note, or the folder icon on a row to file that item into a project), **Deadline approaching** (due today or within the warning window, across all projects — including tasks you can't start yet, since the deadline holds regardless), **Flagged** (flagged available tasks across all projects), then **Stalled** (projects that offer nothing to do, and why).
+Sections run in this order, above the project list: **Inbox** (when non-empty; click the heading to open the inbox note, or the folder icon on a row to file that item into a project), **Deadline approaching** (due today or within the warning window, across all projects — including tasks you can't start yet, since the deadline holds regardless), **Flagged** (flagged available tasks across all projects), **Waiting for** (see [waiting for](#waiting-for)), then **Stalled** (projects that offer nothing to do, and why).
 - Project sections follow **Sort projects in Next Actions**: *Alphabetical*, *By folder* (explorer-like path order), or *Manual* (drag the project headers; new projects slot into their default position).
 - Tasks appear in note order — reorder with **Move task up/down**.
 - Due badges turn **amber** inside the warning window, **orange** today, **red** when overdue. A task held back by a dependency shows *⛔ waiting on …*. Click a task to jump to its line, or a project heading to open the note.
 
 ### Forecast
 
-Day by day over the **Forecast horizon**: due tasks (overdue ones surface under *Today*) and tasks becoming available on their defer date (play icon).
+Day by day over the **Forecast horizon**: due tasks (overdue ones surface under *Today*), tasks becoming available on their defer date (play icon), and waiting tasks on their follow-up date (hourglass).
 
 - Within a day: **overdue → flagged → the rest**, and you can drag the grip to any order. The arrangement is saved per day; moved tasks get an invisible `^id` so their place survives edits.
 - To move a task to another day, change its due date.
@@ -200,7 +220,7 @@ Day by day over the **Forecast horizon**: due tasks (overdue ones surface under 
 
 ### Perspectives
 
-Saved filtered lists, chosen from a dropdown and defined in settings. Built-ins: *Due soon*, *Flagged*, *Important*, *Someday*, *Done*.
+Saved filtered lists, chosen from a dropdown and defined in settings. Built-ins: *Due soon*, *Flagged*, *Important*, *Waiting for*, *Someday*, *Done*.
 
 Each perspective combines filters with a grouping (by project, tag, or due date):
 
@@ -251,7 +271,7 @@ Moves append to the target *before* deleting from the source, and verify the sou
 
 A project is **stalled** when it's active but offers nothing you could do now, and **stale** when nothing in it has closed for a while — the things a weekly review is meant to catch, and otherwise invisible, since Next actions hides a project with no available task.
 
-- The **Stalled** section in Next actions, and Review cards, give the reason: *no tasks yet*, *every task closed — finish or drop the project?*, *every task parked as someday*, *nothing starts until 2026-08-14*, *waiting on ⛔ dependencies*, or *open tasks are all blocked*.
+- The **Stalled** section in Next actions, and Review cards, give the reason: *no tasks yet*, *every task closed — finish or drop the project?*, *every task parked as someday*, *waiting on others*, *nothing starts until 2026-08-14*, *waiting on ⛔ dependencies*, or *open tasks are all blocked*.
 - **Update stalled project markers** writes `#stalled` and a `stalled-reason:` line into the affected projects' frontmatter, and clears it from recovered ones — so stuck work shows up in search, Dataview, the graph and the explorer, not only here. Only notes that actually change are touched.
 - **Staleness** counts from the most recent `✅`/`❌` date — real progress, not file edits. A project that has never closed anything counts from its creation date, so a new project isn't flagged on day one. Window: **Call a project stale after (days)** (default 30, `0` disables).
 - **Keep stalled tags up to date automatically** re-marks as the vault changes. **Off by default**, because it writes to your notes.
@@ -346,6 +366,7 @@ limit: 50
 | Flag tag | `flag` | Flag icon + Flagged section |
 | Important tag | `important` | Star icon + Important perspective |
 | Someday tag | `someday` | Parks a single task |
+| Waiting-for tag | `wait` | Marks a task as waiting on someone; `#wait/anna` names who |
 | Stalled tag | `stalled` | Written into frontmatter by the marker command |
 | Call a project stale after (days) | `30` | No progress for this long = stale; `0` disables |
 | Keep stalled tags up to date automatically | off | Re-mark on vault changes (writes to notes) |
@@ -364,7 +385,7 @@ limit: 50
 | Status block: include timeline | off | Embed a Gantt in the status block |
 | Day starts at / Day ends at | `09:00` / `22:00` | Day-timeline window |
 | Default task duration (minutes) | `30` | Used when a task has no `⏱` |
-| Perspectives | 5 built-ins | The perspective editor |
+| Perspectives | 6 built-ins | The perspective editor |
 
 On Obsidian 1.13+ all of these are findable through the built-in settings search.
 
@@ -393,7 +414,7 @@ Markdown is the source of truth. A pure, Obsidian-free core does the thinking; v
 src/
   types.ts           the shared Task / Project shapes
   parser.ts          pure: markdown line / frontmatter → Task, Project
-  engine.ts          pure: availability, next action, forecast, review-due, intervals
+  engine.ts          pure: availability, next action, forecast, waiting-for list, review-due, intervals
   selectors.ts       pure: which containers each surface sees (with or without the inbox)
   taskWrite.ts       pure: the one place task-line surgery lives
   moveTaskLine.ts    pure: move a task + its subtree past a sibling, within its group
@@ -424,6 +445,7 @@ src/
   taskRow.ts         shared row pieces: open-at-line, flag/important markers, due badge
   captureModal.ts · editTaskModal.ts · newProjectModal.ts · projectPropertiesModal.ts
   reasonModal.ts     one-field 💬 prompt used by the drop command
+  waitingForModal.ts who a task waits on and when to follow up
   archiveProjectModal.ts warns about unfinished tasks before archiving a project
   doneBlock.ts       gtd-done code-block render child (live, re-renders on index change)
   doneReportModal.ts period/filter modal writing a static done-report note
@@ -435,11 +457,11 @@ src/
   linkText.ts        renders [[wikilinks]] in task text as clickable links
   commands.ts · menus.ts · integrations.ts   registration, kept out of main
   settings.ts        settings tab (declarative getSettingDefinitions + display fallback)
-  dates.ts           local-timezone today
+  dates.ts           local-timezone today, days between dates
   main.ts            thin wiring: settings, index lifecycle, views + shared helpers
 ```
 
-Every module marked *pure* has no Obsidian imports and is unit-tested — **303 tests across 28 files** (`npm test`). Beyond per-module tests the suite covers a parse → serialize round-trip (lossless and idempotent for every task shape), the write paths, archive/insert edges, action-group semantics, and an integration fixture: a small vault run end to end through selectors, next actions, forecast, every built-in perspective, done queries and stalled detection. Dates are compared as ISO strings throughout.
+Every module marked *pure* has no Obsidian imports and is unit-tested — **321 tests across 29 files** (`npm test`). Beyond per-module tests the suite covers a parse → serialize round-trip (lossless and idempotent for every task shape), the write paths, archive/insert edges, action-group semantics, and an integration fixture: a small vault run end to end through selectors, next actions, forecast, every built-in perspective, done queries and stalled detection. Dates are compared as ISO strings throughout.
 
 ## Development
 

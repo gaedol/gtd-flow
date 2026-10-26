@@ -6,6 +6,7 @@ const SCHEDULED_RE = /⏳ *(\d{4}-\d{2}-\d{2})/u;
 const DUE_RE = /📅 *(\d{4}-\d{2}-\d{2})/u;
 const DONE_RE = /✅ *(\d{4}-\d{2}-\d{2})/u;
 const CANCELLED_RE = /❌ *(\d{4}-\d{2}-\d{2})/u;
+const CREATED_RE = /➕ *(\d{4}-\d{2}-\d{2})/u;
 const REPEAT_RE = /🔁 *([^🛫📅✅❌⏳➕🔺⏫🔼🔽⏬⏱⏰💬🆔⛔#]*)/u;
 // reason runs until the next metadata marker / block id / end of line
 const REASON_RE = /💬 *([^🛫📅✅❌⏳➕🔁⏱⏰🆔⛔^]*)/u;
@@ -13,7 +14,7 @@ const ID_RE = /🆔 *([\w-]+)/u;
 const DEPENDS_RE = /⛔ *([\w-]+(?:\s*,\s*[\w-]+)*)/u;
 const DURATION_RE = /⏱ *(?:(\d+)h)? *(?:(\d+)m)?/u;
 const TIME_RE = /⏰ *(\d{1,2}:\d{2})/u;
-const TAG_RE = /#([\w/-]+)/gu;
+const TAG_RE = /#([\p{L}\p{N}_/-]+)/gu;
 const BLOCK_ID_RE = /\s\^([A-Za-z0-9-]+)\s*$/;
 
 export function parseTaskLine(line: string, lineNo: number): Task | null {
@@ -36,6 +37,7 @@ export function parseTaskLine(line: string, lineNo: number): Task | null {
   task.due = body.match(DUE_RE)?.[1];
   task.completedOn = body.match(DONE_RE)?.[1];
   task.cancelledOn = body.match(CANCELLED_RE)?.[1];
+  task.created = body.match(CREATED_RE)?.[1];
   const rep = body.match(REPEAT_RE)?.[1].trim();
   if (rep) task.repeat = rep;
   const dur = body.match(DURATION_RE);

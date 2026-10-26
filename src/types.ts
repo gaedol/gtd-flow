@@ -9,6 +9,7 @@ export interface Task {
   defer?: string; // ISO date, Tasks-plugin 🛫
   due?: string; // ISO date, 📅
   completedOn?: string; // ISO date, ✅
+  created?: string; // ISO date, ➕
   repeat?: string; // 🔁 rule, verbatim
   durationMin?: number; // ⏱ estimated duration in minutes
   startTime?: string; // ⏰ time of day "HH:MM"

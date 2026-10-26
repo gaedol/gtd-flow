@@ -27,6 +27,7 @@ export const DEFAULT_PERSPECTIVES: Perspective[] = [
   { name: "Due soon", availableOnly: true, flagged: false, tag: "", project: "", dueWithin: 7, groupBy: "due" },
   { name: "Flagged", availableOnly: true, flagged: true, tag: "", project: "", dueWithin: 0, groupBy: "project" },
   { name: "Important", availableOnly: true, flagged: false, important: true, tag: "", project: "", dueWithin: 0, groupBy: "project" },
+  { name: "Waiting for", availableOnly: false, flagged: false, tag: "wait", project: "", dueWithin: 0, groupBy: "project" },
   { name: "Someday", availableOnly: false, flagged: false, tag: "", project: "", dueWithin: 0, groupBy: "project", someday: true },
   { name: "Done", availableOnly: false, flagged: false, tag: "", project: "", dueWithin: 0, groupBy: "project", done: true },
 ];

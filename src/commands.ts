@@ -16,6 +16,7 @@ import { ProjectSuggestModal, moveTask } from "./moveTask";
 import { parseTaskLine } from "./parser";
 import { moveTaskBlock } from "./moveTaskLine";
 import { labelOf } from "./projectLabel";
+import { isWaitingFor } from "./engine";
 
 // All command registrations. Kept out of main.ts so onload stays thin wiring.
 export function registerCommands(plugin: GtdFlowPlugin): void {
@@ -79,6 +80,22 @@ export function registerCommands(plugin: GtdFlowPlugin): void {
       const raw = editor.getLine(lineNo);
       const task = parseTaskLine(raw, lineNo);
       if (task) editor.setLine(lineNo, plugin.toggleSomedayLine(raw, task.tags));
+    },
+  });
+  add({
+    id: "mark-waiting",
+    name: "Mark task under cursor as waiting for…",
+    editorCallback: (editor, view) => {
+      const task = taskAtCursor(editor);
+      if (view.file && task) plugin.markWaiting(view.file.path, task);
+    },
+  });
+  add({
+    id: "stop-waiting",
+    name: "Stop waiting on task under cursor",
+    editorCallback: (editor, view) => {
+      const task = taskAtCursor(editor);
+      if (view.file && task && isWaitingFor(task)) plugin.stopWaiting(view.file.path, task);
     },
   });
   add({

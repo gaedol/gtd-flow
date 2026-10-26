@@ -53,8 +53,41 @@ export function setStateLine(raw: string, state: TaskState, today: string, reaso
   });
 }
 
+const escapeRe = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// `#tag` itself, or with `/sub` levels when `nested`, never a longer tag like #tagged
+function tagRe(tag: string, nested: boolean): RegExp {
+  return new RegExp(`\\s*#${escapeRe(tag)}${nested ? "(?:/[\\p{L}\\p{N}_/-]*)?" : ""}(?![\\p{L}\\p{N}_/-])`, "gu");
+}
+
 // add or remove a #tag on a task line
 export function toggleTagLine(raw: string, tags: string[], tag: string): string {
-  if (tags.includes(tag)) return raw.replace(new RegExp(`\\s*#${tag}\\b`), "");
+  if (tags.includes(tag)) return raw.replace(tagRe(tag, false), "");
   return beforeBlockId(raw, (body) => body.replace(/\s*$/, "") + ` #${tag}`);
+}
+
+const DEFER_DATE_RE = / *🛫 *\d{4}-\d{2}-\d{2}/gu;
+const CREATED_DATE_RE = /➕ *\d{4}-\d{2}-\d{2}/u;
+
+// a person's name as a tag level: "Anna Rossi" → "Anna-Rossi"
+export function waitTagFor(waitTag: string, who: string): string {
+  const name = who.trim().replace(/\s+/g, "-").replace(/[^\p{L}\p{N}_-]/gu, "");
+  return name ? `${waitTag}/${name}` : waitTag;
+}
+
+// mark a task as waiting on `who`: replaces any earlier wait tag and 🛫 with the
+// follow-up date, and stamps ➕ today unless the task already has one
+export function setWaitingLine(raw: string, waitTag: string, who: string, followUp: string | undefined, today: string): string {
+  return beforeBlockId(raw, (body) => {
+    let line = body.replace(tagRe(waitTag, true), "").replace(DEFER_DATE_RE, "").trimEnd();
+    line += ` #${waitTagFor(waitTag, who)}`;
+    if (followUp) line += ` 🛫 ${followUp}`;
+    if (!CREATED_DATE_RE.test(line)) line += ` ➕ ${today}`;
+    return line;
+  });
+}
+
+// no longer waiting: drops the wait tag and its follow-up 🛫, keeps ➕
+export function clearWaitingLine(raw: string, waitTag: string): string {
+  return beforeBlockId(raw, (body) => body.replace(tagRe(waitTag, true), "").replace(DEFER_DATE_RE, "").trimEnd());
 }

@@ -29,6 +29,7 @@ export class GtdSettingTab extends PluginSettingTab {
       { name: "Call a project stale after (days)", desc: "Days with nothing completed or dropped before a project counts as stale. 0 disables the staleness check (stalled projects are still marked).", control: { type: "number", key: "staleAfterDays", min: 0 } },
       { name: "Keep stalled tags up to date automatically", desc: "Re-mark projects whenever the index changes. Off by default — it writes to your project notes; leave it off to only mark when you run the command.", control: { type: "toggle", key: "autoMarkStalled" } },
       { name: "Someday tag", desc: "Tag (without #) that parks a single task as someday/maybe.", control: { type: "text", key: "somedayTag" } },
+      { name: "Waiting-for tag", desc: "Tag (without #) marking a task as waiting on someone else; #wait/anna names who.", control: { type: "text", key: "waitTag" } },
       {
         name: "Match file-explorer colors",
         desc: "Color project names in GTD views using your 'Color Folders and Files' styles.",
@@ -87,6 +88,7 @@ export class GtdSettingTab extends PluginSettingTab {
       flagTag: "flag",
       importantTag: "important",
       somedayTag: "someday",
+      waitTag: "wait",
       stalledTag: "stalled",
     };
     if (key in tagKeys && typeof value === "string") {
@@ -219,6 +221,16 @@ export class GtdSettingTab extends PluginSettingTab {
       .addText((t) =>
         t.setValue(this.plugin.settings.somedayTag).onChange(async (v) => {
           this.plugin.settings.somedayTag = v.replace(/^#/, "") || "someday";
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Waiting-for tag")
+      .setDesc("Tag (without #) marking a task as waiting on someone else; #wait/anna names who.")
+      .addText((t) =>
+        t.setValue(this.plugin.settings.waitTag).onChange(async (v) => {
+          this.plugin.settings.waitTag = v.replace(/^#/, "") || "wait";
           await this.plugin.saveSettings();
         })
       );

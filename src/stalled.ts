@@ -1,12 +1,13 @@
 import { Project } from "./types";
-import { availableTasks, isSomedayTask, isWaiting } from "./engine";
+import { daysBetween } from "./dates";
+import { availableTasks, isSomedayTask, isBlocked, isWaitingFor } from "./engine";
 
 // A project is *stalled* when it's active but offers no action you could take
 // right now, and *stale* when nothing in it has been closed for a while. Both
 // are the things a weekly review is supposed to catch; marking them makes them
 // visible without opening a view.
 
-export type StalledKind = "empty" | "all-closed" | "all-parked" | "waiting" | "blocked";
+export type StalledKind = "empty" | "all-closed" | "all-parked" | "waiting-for" | "waiting" | "blocked";
 
 export interface Stalled {
   kind: StalledKind;
@@ -23,6 +24,10 @@ export function stalledState(p: Project, today: string): Stalled | null {
   if (open.length === 0) return { kind: "all-closed", reason: "every task closed — finish or drop the project?" };
   if (open.every(isSomedayTask)) return { kind: "all-parked", reason: "every task parked as someday" };
 
+  if (open.some((t) => !isSomedayTask(t) && isWaitingFor(t))) {
+    return { kind: "waiting-for", reason: "waiting on others" };
+  }
+
   // something is open but unavailable: either waiting on a date, or blocked by
   // order/subtasks in a sequential project
   const defers = open.filter((t) => !isSomedayTask(t) && t.defer && t.defer > today).map((t) => t.defer!);
@@ -30,7 +35,7 @@ export function stalledState(p: Project, today: string): Stalled | null {
     const until = defers.sort()[0];
     return { kind: "waiting", reason: `nothing starts until ${until}`, until };
   }
-  if (open.some((t) => !isSomedayTask(t) && isWaiting(t))) {
+  if (open.some((t) => !isSomedayTask(t) && isBlocked(t))) {
     return { kind: "blocked", reason: "waiting on ⛔ dependencies" };
   }
   return { kind: "blocked", reason: "open tasks are all blocked" };
@@ -46,12 +51,6 @@ export function lastProgressDate(p: Project): string | undefined {
     }
   }
   return latest;
-}
-
-function daysBetween(from: string, to: string): number {
-  return Math.round(
-    (new Date(to + "T00:00:00Z").getTime() - new Date(from + "T00:00:00Z").getTime()) / 86400000
-  );
 }
 
 // Days since anything was closed. Falls back to `since` (typically the note's

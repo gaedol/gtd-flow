@@ -7,6 +7,7 @@ export interface TaskFields {
   inProgress?: boolean;
   completedOn?: string;
   cancelledOn?: string;
+  created?: string;
   text: string;
   tags: string[];
   repeat?: string;
@@ -56,6 +57,7 @@ export function serializeTask(f: TaskFields): string {
   let s = " ".repeat(f.indent) + `- [${STATE_CHAR[state]}] ${f.text}`;
   for (const t of f.tags) s += ` #${t}`;
   if (f.repeat) s += ` 🔁 ${f.repeat}`;
+  if (f.created) s += ` ➕ ${f.created}`;
   if (f.defer) s += ` 🛫 ${f.defer}`;
   if (f.due) s += ` 📅 ${f.due}`;
   if (f.startTime) s += ` ⏰ ${f.startTime}`;

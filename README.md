@@ -40,6 +40,7 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 | Defer / Due | 🛫 / 📅 on the task line |
 | Flag | a tag (default `#flag`) |
 | Important | a tag (default `#important`) — star in views + an Important perspective |
+| Waiting for | a tag (default `#wait`, `#wait/anna` for who) — out of next actions, gathered in one list with follow-up dates |
 | Someday / Maybe | `status: someday` projects and a `#someday` tag for single tasks |
 | Contexts | hierarchical tags (`#home/plumbing`), filterable in perspectives |
 | Forecast | Forecast + Timeline views |
@@ -56,6 +57,7 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 - **Next Actions**, **Forecast**, **Timeline** (Gantt), **Review**, and **Perspectives** views, with **drag-to-reorder** in Forecast/Perspectives
 - **Quick capture** (modal, command, and URL handler) and **inbox triage** into projects
 - **Repeat-on-complete**, **flags**, **someday/maybe**, and due-task **notifications**
+- **Waiting for** — tag what's in someone else's hands; it stays in its project, holds up what follows, and shows in one list with who, how long, and when to chase
 - **Dependencies** between tasks, across projects, using the Tasks plugin's `🆔`/`⛔` markers
 - **Deadline warnings** — amber badges and a *Deadline approaching* section *before* things go red, plus `N overdue · M due soon` in the status bar
 - **Stalled & stale project detection** — with reasons, and an optional `#stalled` frontmatter tag so stuck work shows up in search, Dataview and the graph

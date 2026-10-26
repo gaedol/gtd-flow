@@ -7,16 +7,17 @@ import { ReviewView, REVIEW_VIEW } from "./reviewView";
 import { PerspectiveView, PERSPECTIVE_VIEW } from "./perspectiveView";
 import { TimelineView, TIMELINE_VIEW } from "./timelineView";
 import { archiveDoneTasks } from "./archive";
-import { dueOrOverdue, setSomedayTag } from "./engine";
+import { dueOrOverdue, setSomedayTag, setWaitTag, isWaitingFor, waitingOn } from "./engine";
 import { insertTaskLine } from "./insertLine";
 import { todayISO } from "./dates";
 import { parseTaskLine, parseProject } from "./parser";
 import type { Task, Project } from "./types";
 import { projectNotes, taskContainers } from "./selectors";
-import { toggleTagLine, checkboxCharOf } from "./taskWrite";
+import { toggleTagLine, checkboxCharOf, setWaitingLine, clearWaitingLine } from "./taskWrite";
 import { attentionReason } from "./stalled";
 import { ArchiveProjectModal } from "./archiveProjectModal";
-import { completeTask, setTaskState } from "./completeTask";
+import { completeTask, setTaskState, rewriteTaskLine } from "./completeTask";
+import { WaitingForModal } from "./waitingForModal";
 import { checkboxClickAction } from "./clickCycle";
 import { ReasonModal } from "./reasonModal";
 import { registerCommands } from "./commands";
@@ -36,6 +37,7 @@ export default class GtdFlowPlugin extends Plugin {
   async onload() {
     await this.loadSettings();
     setSomedayTag(this.settings.somedayTag);
+    setWaitTag(this.settings.waitTag);
     this.pruneStaleOrders();
     this.addSettingTab(new GtdSettingTab(this.app, this));
 
@@ -169,6 +171,24 @@ export default class GtdFlowPlugin extends Plugin {
     } else {
       void setTaskState(this.app, path, task, "dropped");
     }
+  }
+
+  // ask who a task waits on and when to chase, then tag it; on a waiting task it edits both
+  markWaiting(path: string, task: Task) {
+    const people = new Set<string>();
+    for (const p of this.index.snapshot()) {
+      for (const t of p.tasks) if (isWaitingFor(t) && waitingOn(t)) people.add(waitingOn(t));
+    }
+    const current = isWaitingFor(task) ? { who: waitingOn(task), followUp: task.defer } : { who: "" };
+    new WaitingForModal(this.app, [...people].sort(), current, ({ who, followUp }) => {
+      void rewriteTaskLine(this.app, path, task, (raw) =>
+        setWaitingLine(raw, this.settings.waitTag, who, followUp, todayISO())
+      );
+    }).open();
+  }
+
+  stopWaiting(path: string, task: Task) {
+    void rewriteTaskLine(this.app, path, task, (raw) => clearWaitingLine(raw, this.settings.waitTag));
   }
 
   // toggle the someday tag on a task source line, returning the rewritten line
@@ -372,6 +392,7 @@ export default class GtdFlowPlugin extends Plugin {
   async saveSettings() {
     await this.saveData(this.settings);
     setSomedayTag(this.settings.somedayTag);
+    setWaitTag(this.settings.waitTag);
     await this.index.rebuild();
   }
 

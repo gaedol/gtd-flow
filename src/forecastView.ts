@@ -119,8 +119,9 @@ export class ForecastView extends ItemView {
       }
       if (it.task.due! < today) row.addClass("gtd-overdue-row");
     } else {
-      const icon = row.createSpan({ cls: "gtd-avail-icon", attr: { "aria-label": "Becomes available" } });
-      setIcon(icon, "play");
+      const label = it.followUp ? "Follow up" : "Becomes available";
+      const icon = row.createSpan({ cls: "gtd-avail-icon", attr: { "aria-label": label } });
+      setIcon(icon, it.followUp ? "hourglass" : "play");
     }
     renderMarkers(this.plugin, row, it.task);
     const label = renderTaskText(row, it.task.text, this.app, it.project.path);

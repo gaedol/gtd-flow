@@ -2,6 +2,23 @@
 
 What changed in each release of GTD Flow. Newest first.
 
+## Unreleased
+
+### Added
+- **Waiting for**: tag a task `#wait` (or `#wait/anna` to say who) when it's in someone else's hands. It stays in its project but is no longer a next action, and in a sequential project it holds up what follows. A *Waiting for* section in Next actions lists them all with who, days waiting and the follow-up date; a *Waiting for* perspective is added for new installs.
+- **Waiting for…** in the task context menu and as a command: asks who and when to follow up, and writes the tag, a `🛫` follow-up date and a `➕` created date. **No longer waiting** undoes it.
+- A waiting task's `🛫` is its follow-up date: Forecast shows it with an hourglass, and from that day Next actions says *follow up now*.
+- A project whose open work is all waiting is stalled with the reason *waiting on others*.
+- **Waiting-for tag** setting (default `wait`).
+
+### Changed
+- Tasks tagged `#wait` were ordinary next actions until now; they no longer appear in Next actions or *available only* perspectives.
+- Tags may contain accented letters (`#wait/Nicolò`).
+
+### Fixed
+- Removing a tag such as `#someday` from a task also mangled `#someday/…` sub-tags on the same line.
+- The Edit task modal dropped a task's `➕` created date.
+
 ## 0.9.8 — 2026-10-20
 
 ### Added

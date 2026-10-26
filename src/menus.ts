@@ -6,9 +6,10 @@ import { EditTaskModal } from "./editTaskModal";
 import { NewProjectModal } from "./newProjectModal";
 import { lastContextClick } from "./contextClick";
 import { moveTaskBlock } from "./moveTaskLine";
+import { isWaitingFor } from "./engine";
 
 // Context menus: the file-explorer menu (convert / new project) and the
-// editor task-line menu (edit / complete / drop / important / someday).
+// editor task-line menu (edit / complete / drop / important / someday / waiting).
 export function registerMenus(plugin: GtdFlowPlugin): void {
   const app = plugin.app;
 
@@ -82,6 +83,14 @@ export function registerMenus(plugin: GtdFlowPlugin): void {
           .setIcon("clock")
           .onClick(() => editor.setLine(lineNo, plugin.toggleSomedayLine(raw, task.tags)))
       );
+      menu.addItem((i) =>
+        i.setTitle("Waiting for…").setIcon("hourglass").onClick(() => plugin.markWaiting(path, task))
+      );
+      if (isWaitingFor(task)) {
+        menu.addItem((i) =>
+          i.setTitle("No longer waiting").setIcon("undo-2").onClick(() => plugin.stopWaiting(path, task))
+        );
+      }
     })
   );
 }
