@@ -10,6 +10,11 @@ What changed in each release of GTD Flow. Newest first.
 - A waiting task's `🛫` is its follow-up date: Forecast shows it with an hourglass, and from that day Next actions says *follow up now*.
 - A project whose open work is all waiting is stalled with the reason *waiting on others*.
 - **Waiting-for tag** setting (default `wait`).
+- **Inbox processing**: a ⋯ menu on each inbox row in Next actions with Complete, Move to project, Edit / defer, Waiting for…, Someday…, Turn into project, Make reference note, Drop and Delete. The same actions are on the inbox note's right-click menu and available as commands.
+- **Turn into project** creates a project note from a task (its subtasks and notes included) and opens it; it works on project tasks too.
+- **Make reference note** files an item as a note in the new **Reference folder** (default `GTD/Reference`).
+- **Delete task**: removes a task with its subtasks and notes; undoable in the note, confirmed when done from Next actions.
+- **Default project** setting: listed first in the project picker.
 
 ### Changed
 - Tasks tagged `#wait` were ordinary next actions until now; they no longer appear in Next actions or *available only* perspectives.

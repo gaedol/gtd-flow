@@ -12,7 +12,8 @@ import { EditTaskModal } from "./editTaskModal";
 import { NewProjectModal } from "./newProjectModal";
 import { ProjectPropertiesModal } from "./projectPropertiesModal";
 import { DoneReportModal } from "./doneReportModal";
-import { ProjectSuggestModal, moveTask } from "./moveTask";
+import { turnIntoProject, makeReferenceNote } from "./inboxActions";
+import { blockEnd } from "./taskBlock";
 import { parseTaskLine } from "./parser";
 import { moveTaskBlock } from "./moveTaskLine";
 import { labelOf } from "./projectLabel";
@@ -48,12 +49,7 @@ export function registerCommands(plugin: GtdFlowPlugin): void {
     name: "Move task under cursor to project",
     editorCallback: (editor, view) => {
       const task = taskAtCursor(editor);
-      if (!view.file || !task) return;
-      const file = view.file;
-      new ProjectSuggestModal(app, plugin.projectNotes(), (p) => {
-        if (p.path === file.path) return;
-        void moveTask(app, file.path, task, p.path, plugin.settings.insertPosition);
-      }).open();
+      if (view.file && task) plugin.fileTask(view.file.path, task);
     },
   });
   add({
@@ -96,6 +92,29 @@ export function registerCommands(plugin: GtdFlowPlugin): void {
     editorCallback: (editor, view) => {
       const task = taskAtCursor(editor);
       if (view.file && task && isWaitingFor(task)) plugin.stopWaiting(view.file.path, task);
+    },
+  });
+  add({
+    id: "turn-into-project",
+    name: "Turn task under cursor into a project",
+    editorCallback: (editor, view) => {
+      const task = taskAtCursor(editor);
+      if (view.file && task) void turnIntoProject(plugin, view.file.path, task);
+    },
+  });
+  add({
+    id: "make-reference-note",
+    name: "Make task under cursor a reference note",
+    editorCallback: (editor, view) => {
+      const task = taskAtCursor(editor);
+      if (view.file && task) void makeReferenceNote(plugin, view.file.path, task);
+    },
+  });
+  add({
+    id: "delete-task",
+    name: "Delete task under cursor",
+    editorCallback: (editor) => {
+      if (taskAtCursor(editor)) deleteTaskInEditor(editor, editor.getCursor().line);
     },
   });
   add({
@@ -245,4 +264,12 @@ function taskAtCursor(editor: Editor): Task | null {
   const task = parseTaskLine(editor.getLine(lineNo), lineNo);
   if (!task) new Notice("Cursor is not on a task line");
   return task;
+}
+
+// remove a task with its subtasks and notes through the editor, so Undo restores it
+export function deleteTaskInEditor(editor: Editor, line: number): void {
+  const end = blockEnd(editor.getValue().split("\n"), line);
+  if (end < editor.lineCount()) editor.replaceRange("", { line, ch: 0 }, { line: end, ch: 0 });
+  else if (line > 0) editor.replaceRange("", { line: line - 1, ch: editor.getLine(line - 1).length }, { line: end - 1, ch: editor.getLine(end - 1).length });
+  else editor.setValue("");
 }

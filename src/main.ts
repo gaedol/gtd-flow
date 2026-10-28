@@ -18,6 +18,8 @@ import { attentionReason } from "./stalled";
 import { ArchiveProjectModal } from "./archiveProjectModal";
 import { completeTask, setTaskState, rewriteTaskLine } from "./completeTask";
 import { WaitingForModal } from "./waitingForModal";
+import { ProjectSuggestModal, moveTask } from "./moveTask";
+import { findProject } from "./inboxProcess";
 import { checkboxClickAction } from "./clickCycle";
 import { ReasonModal } from "./reasonModal";
 import { registerCommands } from "./commands";
@@ -174,7 +176,7 @@ export default class GtdFlowPlugin extends Plugin {
   }
 
   // ask who a task waits on and when to chase, then tag it; on a waiting task it edits both
-  markWaiting(path: string, task: Task) {
+  markWaiting(path: string, task: Task, then?: () => void) {
     const people = new Set<string>();
     for (const p of this.index.snapshot()) {
       for (const t of p.tasks) if (isWaitingFor(t) && waitingOn(t)) people.add(waitingOn(t));
@@ -183,8 +185,21 @@ export default class GtdFlowPlugin extends Plugin {
     new WaitingForModal(this.app, [...people].sort(), current, ({ who, followUp }) => {
       void rewriteTaskLine(this.app, path, task, (raw) =>
         setWaitingLine(raw, this.settings.waitTag, who, followUp, todayISO())
-      );
+      ).then((ok) => ok && then?.());
     }).open();
+  }
+
+  // project picker with the default project pinned first
+  pickProject(onChoose: (p: Project) => void) {
+    const projects = this.projectNotes();
+    new ProjectSuggestModal(this.app, projects, onChoose, findProject(projects, this.settings.defaultProject)).open();
+  }
+
+  // file a task into a project chosen from the picker
+  fileTask(path: string, task: Task) {
+    this.pickProject((p) => {
+      if (p.path !== path) void moveTask(this.app, path, task, p.path, this.settings.insertPosition);
+    });
   }
 
   stopWaiting(path: string, task: Task) {

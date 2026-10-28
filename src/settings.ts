@@ -56,6 +56,8 @@ export class GtdSettingTab extends PluginSettingTab {
       { name: "Warn about deadlines within (days)", desc: "Tasks due today or within this many days get an amber badge, a 'Deadline approaching' section in Next actions and a count in the status bar. 0 turns the warning off.", control: { type: "number", key: "dueSoonDays", min: 0 } },
       { name: "Archive tasks done for (days)", desc: "'Archive done tasks' only moves items completed at least this many days ago (0 = all).", control: { type: "number", key: "archiveAfterDays", min: 0 } },
       { name: "Archive folder", desc: "Completed project notes are moved here by 'Archive current project'.", control: { type: "folder", key: "archiveFolder" } },
+      { name: "Reference folder", desc: "Where 'Make reference note' files inbox items that are information, not actions.", control: { type: "folder", key: "referenceFolder" } },
+      { name: "Default project", desc: "Project listed first when moving a task, e.g. your single-actions list. Name or Area/Name; empty for none.", control: { type: "text", key: "defaultProject" } },
       { name: "Day starts at", desc: "Start time for the day timeline (HH:MM).", control: { type: "text", key: "dayStart", placeholder: "09:00" } },
       { name: "Day ends at", desc: "End time for the day timeline (HH:MM).", control: { type: "text", key: "dayEnd", placeholder: "22:00" } },
       { name: "Default task duration (minutes)", desc: "Used in the day timeline when a task has no ⏱ duration.", control: { type: "number", key: "defaultDurationMin", min: 1 } },
@@ -280,6 +282,26 @@ export class GtdSettingTab extends PluginSettingTab {
         t.setValue(this.plugin.settings.archiveFolder).onChange(async (v) => {
           this.plugin.settings.archiveFolder = v;
           await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Reference folder")
+      .setDesc("Where 'Make reference note' files inbox items that are information, not actions.")
+      .addText((t) =>
+        t.setValue(this.plugin.settings.referenceFolder).onChange(async (v) => {
+          this.plugin.settings.referenceFolder = v || "GTD/Reference";
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Default project")
+      .setDesc("Project listed first when moving a task, e.g. your single-actions list. Name or Area/Name; empty for none.")
+      .addText((t) =>
+        t.setValue(this.plugin.settings.defaultProject).onChange(async (v) => {
+          this.plugin.settings.defaultProject = v;
+          await this.plugin.persistData();
         })
       );
 

@@ -39,7 +39,12 @@ export async function moveTask(
 }
 
 export class ProjectSuggestModal extends FuzzySuggestModal<Project> {
-  constructor(app: App, private projects: Project[], private onChoose: (p: Project) => void) {
+  constructor(
+    app: App,
+    private projects: Project[],
+    private onChoose: (p: Project) => void,
+    private pinned?: Project
+  ) {
     super(app);
     this.setPlaceholder("Move task to project…");
   }
@@ -47,7 +52,7 @@ export class ProjectSuggestModal extends FuzzySuggestModal<Project> {
   getItems(): Project[] {
     return this.projects
       .filter((p) => p.status === "active" || p.status === "on-hold")
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .sort((a, b) => Number(b === this.pinned) - Number(a === this.pinned) || a.name.localeCompare(b.name));
   }
 
   getItemText(p: Project): string {

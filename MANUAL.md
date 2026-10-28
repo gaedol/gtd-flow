@@ -5,7 +5,7 @@ GTD for Obsidian: projects with real next-action logic, defer dates, forecast an
 - [Quick start](#quick-start)
 - [How do I…?](#how-do-i) — task-oriented index of every feature
 - [Concepts](#concepts) · [Writing tasks](#writing-tasks) · [The views](#the-views)
-- [Capture and triage](#capture-and-triage) · [Keeping it tidy](#keeping-it-tidy) · [Reporting](#reporting)
+- [Capture and processing](#capture-and-processing) · [Keeping it tidy](#keeping-it-tidy) · [Reporting](#reporting)
 - [Settings reference](#settings-reference) · [With the Tasks plugin](#with-the-tasks-plugin) · [Appearance](#appearance)
 - [Under the hood](#under-the-hood) · [Development](#development)
 
@@ -22,8 +22,10 @@ GTD for Obsidian: projects with real next-action logic, defer dates, forecast an
 | I want to… | Do this |
 |---|---|
 | **Add a task without losing my place** | **Capture task** (ribbon `+`, or the command) — goes to the inbox or any project |
-| Capture from outside Obsidian | The `obsidian://gtd-capture?vault=…&text=…` [URI](#capture-and-triage) |
+| Capture from outside Obsidian | The `obsidian://gtd-capture?vault=…&text=…` [URI](#capture-and-processing) |
+| **Process the inbox** | The **⋯** menu on each inbox row in Next actions — see [processing the inbox](#processing-the-inbox) |
 | File an inbox item into a project | Folder icon on the inbox row in Next Actions, or **Move task under cursor to project** |
+| Turn an item into a project | **⋯** → **Turn into project**, or the command |
 | **See what to work on** | **Next actions** view — the available task(s) of each active project |
 | Work in a fixed order | Set `flow: sequential` on the project; only the first open task is available |
 | Let several tasks run at once | `flow: parallel` (the default) |
@@ -246,12 +248,33 @@ Mermaid Gantt charts with a Day / Week / Month switcher.
 
 Active projects whose `last-reviewed + review-interval` has passed (a project with an interval that's never been reviewed is always due). Each card shows open/available counts, the next action or the reason it's stalled, a **Properties** button, and **Mark reviewed**, which writes today's date into `last-reviewed`.
 
-## Capture and triage
+## Capture and processing
 
 - **Capture task** — text (Enter submits), optional defer/due, and a target: the inbox or any active project. The inbox note is created on demand.
 - **From outside Obsidian** — `obsidian://gtd-capture?vault=<name>&text=Buy+milk&due=2026-06-20&defer=2026-06-15` appends to the inbox; without `text` it opens the capture modal.
-- **Triage** — the folder icon on an inbox row, or **Move task under cursor to project** for the line under the cursor (works project → project too). Captured and moved tasks land per **Insert captured/moved tasks at**, always above `## Archive`.
+- Captured and moved tasks land per **Insert captured/moved tasks at**, always above `## Archive`.
 - Inbox tasks with a due date also appear in Forecast, perspectives, the badge and notifications — the inbox counts as an always-active project for dates, so a due-but-unfiled task can't hide.
+
+### Processing the inbox
+
+Capturing is half the job; the other half is deciding, item by item, what each one is. Every inbox row in Next actions has a **folder** icon (file it into a project) and a **⋯** menu with the whole decision:
+
+| What is it? | Action |
+|---|---|
+| Done in two minutes | **Complete** |
+| A next step of an existing project | **Move to project…** — your **Default project** is listed first |
+| Not before a date, or needs a deadline | **Edit / defer…** |
+| Someone else's move | **Waiting for…** — asks who and when to follow up, then which project it belongs to |
+| Maybe one day | **Someday…** — tags it `#someday`, then asks which project |
+| Bigger than one step | **Turn into project** — creates a project note named after the item and opens it |
+| Information, not an action | **Make reference note** — creates a note in the **Reference folder** |
+| Not worth keeping | **Drop…** (keeps a `[-]` record with a reason) or **Delete…** (removes the line, after asking) |
+
+The same actions are on the right-click menu of a line in the inbox note, and as commands (**Turn task under cursor into a project**, **Make task under cursor a reference note**, **Delete task under cursor**, **Mark task under cursor as waiting for…**, **Move task under cursor to project**). In the note, Delete is undoable with the editor's Undo. **Turn into project** also works on a task in any project, to promote it.
+
+- Subtasks and notes indented under an item go with it: into the project note, or into the reference note's body.
+- A plain one-line item becomes a project with an empty first step. An item with dates, tags or subtasks is kept as the project's first task, so nothing is lost.
+- Name clashes get a number (`Plan party 2`); wikilinks become their text in the note name.
 
 Moves append to the target *before* deleting from the source, and verify the source line is unchanged first, so a race can at worst duplicate a task (with a notice) — never lose one.
 
@@ -374,6 +397,8 @@ limit: 50
 | Warn about deadlines within (days) | `3` | Amber badges, the *Deadline approaching* section and the status-bar count; `0` = off |
 | Archive tasks done for (days) | `7` | Minimum age before a done task is archived; `0` = all |
 | Archive folder | `GTD/Archive` | Where archived project notes go |
+| Reference folder | `GTD/Reference` | Where **Make reference note** files inbox items |
+| Default project | *(none)* | Listed first in the project picker — e.g. your single-actions list. Name or `Area/Name` |
 | Insert captured/moved tasks at | bottom | Top or bottom of the list, always above `## Archive` |
 | Sort projects in Next Actions | Alphabetical | Alphabetical / By folder / Manual |
 | Default review interval | `1w` | Pre-filled for new projects |
@@ -429,6 +454,7 @@ src/
   doneQuery.ts       pure: gtd-done parsing, date presets, filtering, markdown output
   archive.ts         pure: move aged done subtrees under a ## Archive heading
   insertLine.ts      pure: position-aware task insertion (archive-safe)
+  inboxProcess.ts    pure: cut an item with its block; shape project and reference notes
   gantt.ts           pure: projects → mermaid gantt source (day/week/month)
   statusBlock.ts     pure: %% gtd:status %% summary text + upsert
   dateParse.ts       pure: natural-language date choices for the suggester
@@ -440,6 +466,7 @@ src/
                      project), refreshed on vault events; exposes snapshot()
   completeTask.ts    task-line writes to disk via vault.process, with a stale-line guard
   moveTask.ts        move a task between notes + fuzzy project picker
+  inboxActions.ts    turn into project, make reference note, delete (with confirmation)
   blockId.ts         assigns ^block-ids used as stable identity for manual order
   nextActionsView.ts · forecastView.ts · perspectiveView.ts · reviewView.ts · timelineView.ts
   taskRow.ts         shared row pieces: open-at-line, flag/important markers, due badge
@@ -461,7 +488,7 @@ src/
   main.ts            thin wiring: settings, index lifecycle, views + shared helpers
 ```
 
-Every module marked *pure* has no Obsidian imports and is unit-tested — **321 tests across 29 files** (`npm test`). Beyond per-module tests the suite covers a parse → serialize round-trip (lossless and idempotent for every task shape), the write paths, archive/insert edges, action-group semantics, and an integration fixture: a small vault run end to end through selectors, next actions, forecast, every built-in perspective, done queries and stalled detection. Dates are compared as ISO strings throughout.
+Every module marked *pure* has no Obsidian imports and is unit-tested — **331 tests across 30 files** (`npm test`). Beyond per-module tests the suite covers a parse → serialize round-trip (lossless and idempotent for every task shape), the write paths, archive/insert edges, action-group semantics, and an integration fixture: a small vault run end to end through selectors, next actions, forecast, every built-in perspective, done queries and stalled detection. Dates are compared as ISO strings throughout.
 
 ## Development
 

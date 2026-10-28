@@ -15,6 +15,8 @@ export interface GtdSettings {
   autoMarkStalled: boolean;
   archiveAfterDays: number;
   archiveFolder: string;
+  referenceFolder: string;
+  defaultProject: string; // label, name or path; pinned first in the project picker
   perspectives: Perspective[];
   dayStart: string;
   dayEnd: string;
@@ -47,6 +49,8 @@ export const DEFAULT_SETTINGS: GtdSettings = {
   autoMarkStalled: false,
   archiveAfterDays: 7,
   archiveFolder: "GTD/Archive",
+  referenceFolder: "GTD/Reference",
+  defaultProject: "",
   perspectives: DEFAULT_PERSPECTIVES,
   dayStart: "09:00",
   dayEnd: "22:00",

@@ -55,7 +55,7 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 - **Task statuses** — to-do, in-progress `[/]`, done, dropped `[-]` — with **💬 closure reasons**
 - **Edit right in the note** — right-click menu on task lines and checkbox clicks that record ✅ and the 🔁 next occurrence, no Tasks plugin needed
 - **Next Actions**, **Forecast**, **Timeline** (Gantt), **Review**, and **Perspectives** views, with **drag-to-reorder** in Forecast/Perspectives
-- **Quick capture** (modal, command, and URL handler) and **inbox triage** into projects
+- **Quick capture** (modal, command, and URL handler) and **inbox processing** — complete, file, defer, delegate, park, turn into a project, make a reference note, or delete, from one menu per item
 - **Repeat-on-complete**, **flags**, **someday/maybe**, and due-task **notifications**
 - **Waiting for** — tag what's in someone else's hands; it stays in its project, holds up what follows, and shows in one list with who, how long, and when to chase
 - **Dependencies** between tasks, across projects, using the Tasks plugin's `🆔`/`⛔` markers

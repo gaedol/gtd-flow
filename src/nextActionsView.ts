@@ -1,9 +1,10 @@
-import { ItemView, WorkspaceLeaf, setIcon, normalizePath } from "obsidian";
+import { ItemView, Menu, WorkspaceLeaf, setIcon, normalizePath } from "obsidian";
 import type GtdFlowPlugin from "./main";
 import { availableTasks, dueSoon, waitingFor, WaitingItem } from "./engine";
 import { todayISO, daysBetween } from "./dates";
-import { completeTask } from "./completeTask";
-import { moveTask, ProjectSuggestModal } from "./moveTask";
+import { completeTask, rewriteTaskLine } from "./completeTask";
+import { toggleTagLine } from "./taskWrite";
+import { turnIntoProject, makeReferenceNote, deleteTaskWithPrompt } from "./inboxActions";
 import { EditTaskModal } from "./editTaskModal";
 import { renderTaskText } from "./linkText";
 import { applySavedOrder } from "./ordering";
@@ -121,12 +122,36 @@ export class NextActionsView extends ItemView {
       this.editButton(row, inboxPath, t);
       const btn = row.createEl("button", { cls: "gtd-move-btn", attr: { "aria-label": "Move to project" } });
       setIcon(btn, "folder-input");
-      btn.onclick = () => {
-        new ProjectSuggestModal(this.app, this.projectNotes(), (p) => {
-          void moveTask(this.app, inboxPath, t, p.path, this.plugin.settings.insertPosition);
-        }).open();
-      };
+      btn.onclick = () => this.plugin.fileTask(inboxPath, t);
+      const more = row.createEl("button", { cls: "gtd-move-btn", attr: { "aria-label": "Process" } });
+      setIcon(more, "more-horizontal");
+      more.onclick = (e) => this.processMenu(inboxPath, t).showAtMouseEvent(e);
     }
+  }
+
+  // the GTD clarify questions for one inbox item, as a menu
+  private processMenu(path: string, t: Task): Menu {
+    const plugin = this.plugin;
+    const someday = plugin.settings.somedayTag;
+    const menu = new Menu();
+    const item = (title: string, icon: string, run: () => void) =>
+      menu.addItem((i) => i.setTitle(title).setIcon(icon).onClick(run));
+    item("Complete", "check", () => void completeTask(this.app, path, t));
+    item("Move to project…", "folder-input", () => plugin.fileTask(path, t));
+    item("Edit / defer…", "pencil", () => new EditTaskModal(this.app, plugin, path, t).open());
+    item("Waiting for…", "hourglass", () => plugin.markWaiting(path, t, () => plugin.fileTask(path, t)));
+    item("Someday…", "clock", () =>
+      void rewriteTaskLine(this.app, path, t, (raw) =>
+        t.tags.includes(someday) ? raw : toggleTagLine(raw, t.tags, someday)
+      ).then((ok) => ok && plugin.fileTask(path, t))
+    );
+    menu.addSeparator();
+    item("Turn into project", "folder-plus", () => void turnIntoProject(plugin, path, t));
+    item("Make reference note", "book-open", () => void makeReferenceNote(plugin, path, t));
+    menu.addSeparator();
+    item("Drop…", "x-circle", () => plugin.dropTask(path, t));
+    item("Delete…", "trash-2", () => deleteTaskWithPrompt(plugin, path, t));
+    return menu;
   }
 
   // due today or within the warning window, across every project and the inbox;

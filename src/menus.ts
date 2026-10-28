@@ -7,6 +7,8 @@ import { NewProjectModal } from "./newProjectModal";
 import { lastContextClick } from "./contextClick";
 import { moveTaskBlock } from "./moveTaskLine";
 import { isWaitingFor } from "./engine";
+import { turnIntoProject, makeReferenceNote } from "./inboxActions";
+import { deleteTaskInEditor } from "./commands";
 
 // Context menus: the file-explorer menu (convert / new project) and the
 // editor task-line menu (edit / complete / drop / important / someday / waiting).
@@ -91,6 +93,20 @@ export function registerMenus(plugin: GtdFlowPlugin): void {
           i.setTitle("No longer waiting").setIcon("undo-2").onClick(() => plugin.stopWaiting(path, task))
         );
       }
+      menu.addItem((i) =>
+        i.setTitle("Turn into project").setIcon("folder-plus").onClick(() => void turnIntoProject(plugin, path, task))
+      );
+      // the rest of processing only makes sense for unfiled items
+      if (path !== plugin.index.inboxNotePath()) return;
+      menu.addItem((i) =>
+        i.setTitle("Move to project…").setIcon("folder-input").onClick(() => plugin.fileTask(path, task))
+      );
+      menu.addItem((i) =>
+        i.setTitle("Make reference note").setIcon("book-open").onClick(() => void makeReferenceNote(plugin, path, task))
+      );
+      menu.addItem((i) =>
+        i.setTitle("Delete task").setIcon("trash-2").onClick(() => deleteTaskInEditor(editor, lineNo))
+      );
     })
   );
 }
