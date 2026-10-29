@@ -2,9 +2,7 @@
 
 **GTD-style project and task management for [Obsidian](https://obsidian.md), built on plain Markdown.**
 
-GTD Flow covers the whole loop — capture to the inbox, organise into sequential or parallel projects, see what's genuinely next, forecast the week, review on a cadence. There's no hidden database: every task stays an ordinary checklist line in your own notes, so it's greppable, portable, and still readable with the plugin turned off.
-
-It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so the two can share the same files.
+The whole GTD loop — capture, process, organise, do, review — on ordinary notes and `- [ ]` lines. No hidden database: everything stays greppable, portable and readable with the plugin off. It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so both can share the same files.
 
 ---
 
@@ -20,71 +18,42 @@ It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so
 
 ---
 
-## Why GTD Flow
+## What's new
 
-- **Your notes stay yours.** Projects are ordinary Markdown notes; tasks are ordinary `- [ ]` lines. Greppable, portable, Git-friendly, and fully usable without the plugin.
-- **Real next-action logic.** A task is *available* only when its project is active, its defer date has passed, and — in sequential projects — everything before it is done.
-- **Action groups.** Indent tasks to nest them; a group with open children isn't actionable until those children are finished.
-- **One pane for the day.** Forecast and a Mermaid-powered Gantt timeline (day / week / month) show what's due and what's coming.
-- **Nothing quietly rots.** Projects that stall are named with the reason — and archiving one that still has open tasks asks first instead of burying them.
-- **Capture without friction.** A quick-capture modal, a global command, and an `obsidian://gtd-capture` URL for grabbing tasks from anywhere.
-- **Stays out of the way.** Flags, durations, repeats, perspectives, archiving, and per-project page colors — use as much or as little as you like.
+- **Process inbox** — one item at a time, one key per decision: complete, move to a project, defer, wait for someone, park as someday, turn into a project, file as reference, drop or delete. Also a ⋯ menu on every inbox row.
+- **Waiting for** — tag a task `#wait/anna` when it's in someone else's hands. It stays in its project, stops being a next action, and shows in one list with who, how long, and when to follow up.
 
-## Core ideas
+See the [changelog](CHANGELOG.md) for everything else.
 
-| Concept | GTD Flow |
+## How it works
+
+| You want | GTD Flow |
 |---|---|
-| Project | A note with `type: project` frontmatter |
-| Sequential / parallel | `flow:` key (overridable per action group) |
-| Dependencies | `🆔` / `⛔` (Tasks syntax) — a task waits on another, even across projects |
-| Defer / Due | 🛫 / 📅 on the task line |
-| Flag | a tag (default `#flag`) |
-| Important | a tag (default `#important`) — star in views + an Important perspective |
-| Waiting for | a tag (default `#wait`, `#wait/anna` for who) — out of next actions, gathered in one list with follow-up dates |
-| Someday / Maybe | `status: someday` projects and a `#someday` tag for single tasks |
-| Contexts | hierarchical tags (`#home/plumbing`), filterable in perspectives |
-| Forecast | Forecast + Timeline views |
-| Review | per-project interval + a review queue |
-| Stalled | an active project with nothing available — surfaced with its reason, and taggable `#stalled` |
-| Inbox | a capture note you triage into projects (dated inbox items still show in Forecast) |
+| A project | a note with `type: project`; `flow: sequential` or `parallel` |
+| What to do next | **Next actions**: only tasks you can actually start now |
+| Dates | `🛫` defer, `📅` due, `⏰` time, `⏱` duration, `🔁` repeat |
+| Order across projects | `🆔` / `⛔` dependencies |
+| Contexts | nested tags (`#home/plumbing`) and saved **Perspectives** |
+| Not now | `#someday`, `#wait/who`, or `status: on-hold` |
+| The week ahead | **Forecast** and a Gantt **Timeline** |
+| Keeping it honest | **Review** queue, stalled-project detection, deadline warnings |
+| What got done | `gtd-done` blocks and an exportable report |
 
-## Feature highlights
-
-- Sequential/parallel **projects** with nested **action groups**
-- **Defer, due, time of day (⏰), duration (⏱), repeat (🔁)** on tasks, with inline auto-suggest (natural-language dates: "Thursday", "end of week"…)
-- **Task statuses** — to-do, in-progress `[/]`, done, dropped `[-]` — with **💬 closure reasons**
-- **Edit right in the note** — right-click menu on task lines and checkbox clicks that record ✅ and the 🔁 next occurrence, no Tasks plugin needed
-- **Next Actions**, **Forecast**, **Timeline** (Gantt), **Review**, and **Perspectives** views, with **drag-to-reorder** in Forecast/Perspectives
-- **Quick capture** (modal, command, and URL handler) and **inbox processing** — complete, file, defer, delegate, park, turn into a project, make a reference note, or delete, from one menu per item
-- **Repeat-on-complete**, **flags**, **someday/maybe**, and due-task **notifications**
-- **Waiting for** — tag what's in someone else's hands; it stays in its project, holds up what follows, and shows in one list with who, how long, and when to chase
-- **Dependencies** between tasks, across projects, using the Tasks plugin's `🆔`/`⛔` markers
-- **Deadline warnings** — amber badges and a *Deadline approaching* section *before* things go red, plus `N overdue · M due soon` in the status bar
-- **Stalled & stale project detection** — with reasons, and an optional `#stalled` frontmatter tag so stuck work shows up in search, Dataview and the graph
-- **Archiving** for done tasks *and* finished projects (single or bulk), with a warning before unfinished work gets filed away
-- **Ordering that's yours** — reorder tasks in the note, projects in Next Actions, and the perspective list itself
-- **Done queries** — a `gtd-done` block that lists what you closed in any period (presets, project/folder filters), plus an exportable report note
-- **In-note highlighting** of next/available/blocked/deferred/overdue tasks, plus an opt-in per-project **status block**
-- **Per-project page styling** (tint/banner) and project pills matching your **file-explorer colors**
+Plus in-note editing (right-click menu, checkbox clicks that record `✅` and the next `🔁`), archiving, quick capture from anywhere via `obsidian://gtd-capture`, and per-project colours.
 
 ## Install
 
-From *Settings → Community plugins* → **Browse** → search **GTD Flow**, or open the [directory listing](https://obsidian.md/plugins?id=gtd-flow). Works on desktop and mobile.
-
-For pre-release builds, [BRAT](https://github.com/TfTHacker/obsidian42-brat) can track this repository. Manual install: drop `main.js`, `manifest.json` and `styles.css` from a [release](../../releases) into `<vault>/.obsidian/plugins/gtd-flow/`.
+*Settings → Community plugins → Browse* → **GTD Flow**, or the [directory listing](https://obsidian.md/plugins?id=gtd-flow). Desktop and mobile. Pre-releases via [BRAT](https://github.com/TfTHacker/obsidian42-brat); manual install from a [release](../../releases) into `<vault>/.obsidian/plugins/gtd-flow/`.
 
 ## Quick start
 
-1. Set your projects folder and inbox note in the plugin settings (defaults: `GTD/Projects`, `GTD/Inbox.md`).
-2. Run **GTD Flow: New project**, or right-click the projects folder → **New GTD project**.
-3. Add tasks as `- [ ]` lines; type at the end of a line for the date/duration/repeat suggester.
-4. Open **Next actions** from the ribbon and start working.
+1. Check the projects folder and inbox note in settings (defaults `GTD/Projects`, `GTD/Inbox.md`).
+2. **New project**, then add `- [ ]` lines; type at the end of a line for dates and repeats.
+3. Capture with the ribbon **+**, empty the inbox with **Process inbox**, work from **Next actions**.
 
 ## Documentation
 
-**[MANUAL.md](MANUAL.md)** — full usage, task syntax, every setting, and the architecture. It opens with a *"How do I…?"* table that maps what you want to do to the feature that does it.
-
-**[CHANGELOG.md](CHANGELOG.md)** — what changed in each release.
+**[MANUAL.md](MANUAL.md)** — everything, starting with a *How do I…?* table. **[CHANGELOG.md](CHANGELOG.md)** — what changed in each release.
 
 ## License
 
