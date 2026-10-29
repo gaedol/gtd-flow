@@ -43,7 +43,7 @@ async function createNote(app: App, folder: string, name: string, body: string):
   return app.vault.create(path, body);
 }
 
-export async function turnIntoProject(plugin: GtdFlowPlugin, path: string, task: Task): Promise<void> {
+export async function turnIntoProject(plugin: GtdFlowPlugin, path: string, task: Task, open = true): Promise<void> {
   const app = plugin.app;
   const block = await readBlock(app, path, task);
   const name = noteNameFor(task.text);
@@ -60,7 +60,8 @@ export async function turnIntoProject(plugin: GtdFlowPlugin, path: string, task:
   ].join("\n");
   const file = await createNote(app, plugin.settings.projectsFolder, name, fm + projectBody(block));
   await removeBlock(app, path, task);
-  await app.workspace.getLeaf(false).openFile(file);
+  if (open) await app.workspace.getLeaf(false).openFile(file);
+  else new Notice(`Created project ${file.basename}`);
 }
 
 export async function makeReferenceNote(plugin: GtdFlowPlugin, path: string, task: Task): Promise<void> {
@@ -85,10 +86,15 @@ class ConfirmDeleteModal extends Modal {
 
   onOpen() {
     this.setTitle("Delete task?");
+    this.scope.register([], "Enter", () => {
+      this.close();
+      this.onConfirm();
+      return false;
+    });
     this.contentEl.createEl("p", { text: this.text });
     this.contentEl.createEl("p", {
       cls: "setting-item-description",
-      text: "The line is removed, with any subtasks and notes under it. To keep a record, drop it instead.",
+      text: "The line is removed, with any subtasks and notes under it. To keep a record, drop it instead. Enter deletes, Esc cancels.",
     });
     new Setting(this.contentEl)
       .addButton((b) =>

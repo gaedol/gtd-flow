@@ -8,6 +8,7 @@ import { REVIEW_VIEW } from "./reviewView";
 import { PERSPECTIVE_VIEW } from "./perspectiveView";
 import { TIMELINE_VIEW } from "./timelineView";
 import { CaptureModal } from "./captureModal";
+import { ProcessInboxModal } from "./processInboxModal";
 import { EditTaskModal } from "./editTaskModal";
 import { NewProjectModal } from "./newProjectModal";
 import { ProjectPropertiesModal } from "./projectPropertiesModal";
@@ -36,6 +37,7 @@ export function registerCommands(plugin: GtdFlowPlugin): void {
   }
 
   add({ id: "capture-to-inbox", name: "Capture task", callback: () => new CaptureModal(app, plugin).open() });
+  add({ id: "process-inbox", name: "Process inbox", callback: () => new ProcessInboxModal(app, plugin).open() });
   add({ id: "new-project", name: "New project", callback: () => new NewProjectModal(app, plugin).open() });
   add({ id: "export-done-report", name: "Export done report", callback: () => new DoneReportModal(app, plugin).open() });
   add({

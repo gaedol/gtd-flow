@@ -6,7 +6,7 @@ GTD for Obsidian: projects with real next-action logic, defer dates, forecast an
 - [How do I…?](#how-do-i) — task-oriented index of every feature
 - [Concepts](#concepts) · [Writing tasks](#writing-tasks) · [The views](#the-views)
 - [Capture and processing](#capture-and-processing) · [Keeping it tidy](#keeping-it-tidy) · [Reporting](#reporting)
-- [Settings reference](#settings-reference) · [With the Tasks plugin](#with-the-tasks-plugin) · [Appearance](#appearance)
+- [Settings reference](#settings-reference) · [Suggested hotkeys](#suggested-hotkeys) · [With the Tasks plugin](#with-the-tasks-plugin) · [Appearance](#appearance)
 - [Under the hood](#under-the-hood) · [Development](#development)
 
 ## Quick start
@@ -23,7 +23,8 @@ GTD for Obsidian: projects with real next-action logic, defer dates, forecast an
 |---|---|
 | **Add a task without losing my place** | **Capture task** (ribbon `+`, or the command) — goes to the inbox or any project |
 | Capture from outside Obsidian | The `obsidian://gtd-capture?vault=…&text=…` [URI](#capture-and-processing) |
-| **Process the inbox** | The **⋯** menu on each inbox row in Next actions — see [processing the inbox](#processing-the-inbox) |
+| **Process the inbox** | **Process inbox** — one item at a time, one key per decision; or the **⋯** menu on each inbox row — see [processing the inbox](#processing-the-inbox) |
+| Use keyboard shortcuts | Bind the commands in **Settings → Hotkeys** — see [suggested hotkeys](#suggested-hotkeys) |
 | File an inbox item into a project | Folder icon on the inbox row in Next Actions, or **Move task under cursor to project** |
 | Turn an item into a project | **⋯** → **Turn into project**, or the command |
 | **See what to work on** | **Next actions** view — the available task(s) of each active project |
@@ -270,6 +271,18 @@ Capturing is half the job; the other half is deciding, item by item, what each o
 | Information, not an action | **Make reference note** — creates a note in the **Reference folder** |
 | Not worth keeping | **Drop…** (keeps a `[-]` record with a reason) or **Delete…** (removes the line, after asking) |
 
+**Process inbox** (the command, or the **Process** button on the Inbox heading) goes through the inbox one item at a time, keyboard only. Each answer is one key, and the next item appears as soon as the note is updated:
+
+| Key | | Key | |
+|---|---|---|---|
+| `C` | Complete | `P` | Turn into project (created, not opened) |
+| `M` | Move to project | `R` | Reference note |
+| `E` | Edit / defer | `D` | Drop |
+| `W` | Waiting for | `X` | Delete (Enter confirms) |
+| `S` | Someday | `→` or `N` | Skip — stays in the inbox for next time |
+
+The keys only work while that window is open, so they never clash with other shortcuts. On mobile, tap the buttons.
+
 The same actions are on the right-click menu of a line in the inbox note, and as commands (**Turn task under cursor into a project**, **Make task under cursor a reference note**, **Delete task under cursor**, **Mark task under cursor as waiting for…**, **Move task under cursor to project**). In the note, Delete is undoable with the editor's Undo. **Turn into project** also works on a task in any project, to promote it.
 
 - Subtasks and notes indented under an item go with it: into the project note, or into the reference note's body.
@@ -416,6 +429,24 @@ On Obsidian 1.13+ all of these are findable through the built-in settings search
 
 The **status bar** shows `N overdue · M due soon` — red while anything is late, amber when only deadlines are approaching, empty when neither. It counts active projects and the inbox; click it to open the Forecast. With **Notify about due tasks** on, a system notification announces overdue / due-today items at startup and every 30 minutes — once per item per day, so it nudges rather than nags, and only while Obsidian is running.
 
+## Suggested hotkeys
+
+GTD Flow sets no hotkeys of its own, so it never clashes with yours or with other plugins. In **Settings → Hotkeys**, search for *GTD Flow* and bind what you use. A consistent set, all on Cmd+Alt (Ctrl+Alt on Windows and Linux) to stay clear of Obsidian's own Cmd+Shift shortcuts:
+
+| Command | Suggested |
+|---|---|
+| Capture task | `Cmd+Alt+C` |
+| Process inbox | `Cmd+Alt+Enter` |
+| Open next actions | `Cmd+Alt+A` |
+| New project | `Cmd+Alt+N` |
+| Move task under cursor to project | `Cmd+Alt+M` |
+| Mark task under cursor as waiting for… | `Cmd+Alt+W` |
+| Turn task under cursor into a project | `Cmd+Alt+P` |
+| Edit task under cursor | `Cmd+Alt+E` |
+| Move task up / Move task down | `Alt+↑` / `Alt+↓` |
+
+Check each one isn't already taken: Obsidian shows a conflict warning when you assign it.
+
 ## With the Tasks plugin
 
 Tasks is **optional** — nothing in GTD Flow depends on it. Running both gets you Tasks' in-note rendering, its edit modal and `tasks` query blocks alongside GTD Flow's views.
@@ -467,6 +498,7 @@ src/
   completeTask.ts    task-line writes to disk via vault.process, with a stale-line guard
   moveTask.ts        move a task between notes + fuzzy project picker
   inboxActions.ts    turn into project, make reference note, delete (with confirmation)
+  processInboxModal.ts one item at a time, one key per decision
   blockId.ts         assigns ^block-ids used as stable identity for manual order
   nextActionsView.ts · forecastView.ts · perspectiveView.ts · reviewView.ts · timelineView.ts
   taskRow.ts         shared row pieces: open-at-line, flag/important markers, due badge

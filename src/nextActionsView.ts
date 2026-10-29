@@ -2,8 +2,8 @@ import { ItemView, Menu, WorkspaceLeaf, setIcon, normalizePath } from "obsidian"
 import type GtdFlowPlugin from "./main";
 import { availableTasks, dueSoon, waitingFor, WaitingItem } from "./engine";
 import { todayISO, daysBetween } from "./dates";
-import { completeTask, rewriteTaskLine } from "./completeTask";
-import { toggleTagLine } from "./taskWrite";
+import { completeTask } from "./completeTask";
+import { ProcessInboxModal } from "./processInboxModal";
 import { turnIntoProject, makeReferenceNote, deleteTaskWithPrompt } from "./inboxActions";
 import { EditTaskModal } from "./editTaskModal";
 import { renderTaskText } from "./linkText";
@@ -107,6 +107,11 @@ export class NextActionsView extends ItemView {
     const section = root.createDiv({ cls: "gtd-project gtd-inbox" });
     const header = section.createDiv({ cls: "gtd-project-name", text: `Inbox (${tasks.length})` });
     header.onclick = () => void openTaskLine(this.app, inboxPath);
+    const process = header.createEl("button", { cls: "gtd-process-btn", text: "Process" });
+    process.onclick = (e) => {
+      e.stopPropagation();
+      new ProcessInboxModal(this.app, this.plugin).open();
+    };
     for (const t of tasks) {
       const row = section.createDiv({ cls: "gtd-task" });
       const cb = row.createEl("input", { type: "checkbox" });
@@ -132,7 +137,6 @@ export class NextActionsView extends ItemView {
   // the GTD clarify questions for one inbox item, as a menu
   private processMenu(path: string, t: Task): Menu {
     const plugin = this.plugin;
-    const someday = plugin.settings.somedayTag;
     const menu = new Menu();
     const item = (title: string, icon: string, run: () => void) =>
       menu.addItem((i) => i.setTitle(title).setIcon(icon).onClick(run));
@@ -140,11 +144,7 @@ export class NextActionsView extends ItemView {
     item("Move to project…", "folder-input", () => plugin.fileTask(path, t));
     item("Edit / defer…", "pencil", () => new EditTaskModal(this.app, plugin, path, t).open());
     item("Waiting for…", "hourglass", () => plugin.markWaiting(path, t, () => plugin.fileTask(path, t)));
-    item("Someday…", "clock", () =>
-      void rewriteTaskLine(this.app, path, t, (raw) =>
-        t.tags.includes(someday) ? raw : toggleTagLine(raw, t.tags, someday)
-      ).then((ok) => ok && plugin.fileTask(path, t))
-    );
+    item("Someday…", "clock", () => plugin.markSomeday(path, t, () => plugin.fileTask(path, t)));
     menu.addSeparator();
     item("Turn into project", "folder-plus", () => void turnIntoProject(plugin, path, t));
     item("Make reference note", "book-open", () => void makeReferenceNote(plugin, path, t));

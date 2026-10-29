@@ -202,6 +202,14 @@ export default class GtdFlowPlugin extends Plugin {
     });
   }
 
+  // park a task as someday (if it isn't already), then run `then`
+  markSomeday(path: string, task: Task, then?: () => void) {
+    const tag = this.settings.somedayTag;
+    void rewriteTaskLine(this.app, path, task, (raw) =>
+      task.tags.includes(tag) ? raw : toggleTagLine(raw, task.tags, tag)
+    ).then((ok) => ok && then?.());
+  }
+
   stopWaiting(path: string, task: Task) {
     void rewriteTaskLine(this.app, path, task, (raw) => clearWaitingLine(raw, this.settings.waitTag));
   }

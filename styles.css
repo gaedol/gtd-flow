@@ -576,3 +576,36 @@ li.task-list-item.gtd-ln-someday {
   color: var(--color-orange);
   font-weight: var(--font-semibold);
 }
+
+.gtd-next-actions .gtd-process-btn {
+  margin-left: auto;
+  font-size: var(--font-ui-smaller);
+  padding: 0 var(--size-4-2);
+  height: auto;
+}
+
+.gtd-process-inbox .gtd-process-count {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.gtd-process-inbox .gtd-process-item {
+  font-size: var(--font-ui-large);
+  margin: var(--size-4-3) 0;
+}
+
+.gtd-process-inbox .gtd-process-meta {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  margin-top: var(--size-4-1);
+}
+
+.gtd-process-inbox .gtd-process-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--size-4-2);
+}
+
+.gtd-process-inbox .gtd-process-actions button {
+  justify-content: flex-start;
+}
