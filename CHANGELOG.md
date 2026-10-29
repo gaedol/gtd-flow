@@ -2,7 +2,7 @@
 
 What changed in each release of GTD Flow. Newest first.
 
-## Unreleased
+## 0.10.0 — 2026-10-29
 
 ### Added
 - **Waiting for**: tag a task `#wait` (or `#wait/anna` to say who) when it's in someone else's hands. It stays in its project but is no longer a next action, and in a sequential project it holds up what follows. A *Waiting for* section in Next actions lists them all with who, days waiting and the follow-up date; a *Waiting for* perspective is added for new installs.
