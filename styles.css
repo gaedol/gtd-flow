@@ -608,4 +608,5 @@ li.task-list-item.gtd-ln-someday {
 
 .gtd-process-inbox .gtd-process-actions button {
   justify-content: flex-start;
+  gap: var(--size-4-2);
 }

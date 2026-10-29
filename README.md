@@ -23,6 +23,8 @@ The whole GTD loop — capture, process, organise, do, review — on ordinary no
 - **Process inbox** — one item at a time, one key per decision: complete, move to a project, defer, wait for someone, park as someday, turn into a project, file as reference, drop or delete. Also a ⋯ menu on every inbox row.
 - **Waiting for** — tag a task `#wait/anna` when it's in someone else's hands. It stays in its project, stops being a next action, and shows in one list with who, how long, and when to follow up.
 
+![Process inbox](docs/img/process-inbox.png)
+
 See the [changelog](CHANGELOG.md) for everything else.
 
 ## How it works

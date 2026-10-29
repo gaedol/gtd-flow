@@ -100,7 +100,7 @@ export class ProcessInboxModal extends Modal {
     const button = (key: string, label: string, onClick: () => void) => {
       const b = grid.createEl("button");
       b.createEl("kbd", { text: key.toUpperCase() });
-      b.createSpan({ text: ` ${label}` });
+      b.createSpan({ text: label });
       b.onclick = onClick;
     };
     for (const a of this.actions()) button(a.key, a.label, () => this.act(a));
