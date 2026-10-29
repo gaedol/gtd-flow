@@ -266,7 +266,7 @@ Capturing is half the job; the other half is deciding, item by item, what each o
 | A next step of an existing project | **Move to project…** — your **Default project** is listed first |
 | Not before a date, or needs a deadline | **Edit / defer…** |
 | Someone else's move | **Waiting for…** — asks who and when to follow up, then which project it belongs to |
-| Maybe one day | **Someday…** — tags it `#someday`, then asks which project |
+| Maybe one day | **Someday** — tags it `#someday`; it leaves the inbox list and lives in the *Someday* perspective (or move it into a project later) |
 | Bigger than one step | **Turn into project** — creates a project note named after the item and opens it |
 | Information, not an action | **Make reference note** — creates a note in the **Reference folder** |
 | Not worth keeping | **Drop…** (keeps a `[-]` record with a reason) or **Delete…** (removes the line, after asking) |
