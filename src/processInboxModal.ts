@@ -29,7 +29,7 @@ export class ProcessInboxModal extends Modal {
       { key: "c", label: "Complete", run: (path, t) => void completeTask(this.app, path, t) },
       { key: "m", label: "Move to project", run: (path, t) => p.fileTask(path, t) },
       { key: "e", label: "Edit / defer", run: (path, t) => new EditTaskModal(this.app, p, path, t).open() },
-      { key: "w", label: "Waiting for", run: (path, t) => p.markWaiting(path, t, () => p.fileTask(path, t)) },
+      { key: "w", label: "Waiting for", run: (path, t) => p.markWaiting(path, t) },
       { key: "s", label: "Someday", run: (path, t) => p.markSomeday(path, t) },
       { key: "p", label: "Turn into project", run: (path, t) => void turnIntoProject(p, path, t, false) },
       { key: "r", label: "Reference note", run: (path, t) => void makeReferenceNote(p, path, t) },

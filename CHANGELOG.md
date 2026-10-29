@@ -15,6 +15,7 @@ What changed in each release of GTD Flow. Newest first.
 - **Make reference note** files an item as a note in the new **Reference folder** (default `GTD/Reference`).
 - **Delete task**: removes a task with its subtasks and notes; undoable in the note, confirmed when done from Next actions.
 - **Default project** setting: listed first in the project picker.
+- An inbox item marked someday or waiting counts as processed: it leaves the Inbox list and *Process inbox*, and shows in the *Someday* perspective or under *Waiting for*.
 - **Process inbox**: a command (and a *Process* button on the Inbox heading) that shows one inbox item at a time; each decision is a single key — C complete, M move, E edit, W waiting, S someday, P project, R reference, D drop, X delete, → skip.
 - The manual lists suggested hotkeys for the main commands.
 

@@ -30,9 +30,10 @@ describe("selectors", () => {
     expect(inboxTasks(snapshot, INBOX).map((t) => t.text)).toEqual(["buy milk"]);
   });
 
-  it("inboxTasks leaves out items parked as someday", () => {
+  it("inboxTasks leaves out items parked as someday or waiting on someone", () => {
     const inbox = { ...snapshot.find((p) => p.path === INBOX)!, tasks: [
       { text: "later", done: false, line: 0, indent: 0, tags: ["someday"] },
+      { text: "refund", done: false, line: 2, indent: 0, tags: ["wait/airline"] },
       { text: "now", done: false, line: 1, indent: 0, tags: [] },
     ] };
     expect(inboxTasks([inbox], INBOX).map((t) => t.text)).toEqual(["now"]);

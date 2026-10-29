@@ -143,7 +143,7 @@ export class NextActionsView extends ItemView {
     item("Complete", "check", () => void completeTask(this.app, path, t));
     item("Move to project…", "folder-input", () => plugin.fileTask(path, t));
     item("Edit / defer…", "pencil", () => new EditTaskModal(this.app, plugin, path, t).open());
-    item("Waiting for…", "hourglass", () => plugin.markWaiting(path, t, () => plugin.fileTask(path, t)));
+    item("Waiting for…", "hourglass", () => plugin.markWaiting(path, t));
     item("Someday", "clock", () => plugin.markSomeday(path, t));
     menu.addSeparator();
     item("Turn into project", "folder-plus", () => void turnIntoProject(plugin, path, t));
