@@ -18,6 +18,7 @@ import { attentionReason } from "./stalled";
 import { ArchiveProjectModal } from "./archiveProjectModal";
 import { completeTask, setTaskState, rewriteTaskLine } from "./completeTask";
 import { WaitingForModal } from "./waitingForModal";
+import { WelcomeModal } from "./welcomeModal";
 import { ProjectSuggestModal, moveTask } from "./moveTask";
 import { findProject } from "./inboxProcess";
 import { checkboxClickAction } from "./clickCycle";
@@ -54,6 +55,11 @@ export default class GtdFlowPlugin extends Plugin {
     }
     this.app.workspace.onLayoutReady(() => {
       void this.index.rebuild().then(() => this.notifyDue());
+      if (!this.settings.welcomed) {
+        this.settings.welcomed = true;
+        void this.persistData();
+        new WelcomeModal(this.app, this).open();
+      }
     });
     // re-check periodically while Obsidian is open (dedupe prevents repeats)
     this.registerInterval(window.setInterval(() => this.notifyDue(), 30 * 60 * 1000));
@@ -409,7 +415,10 @@ export default class GtdFlowPlugin extends Plugin {
   }
 
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, (await this.loadData()) as Partial<GtdSettings>);
+    const saved = (await this.loadData()) as Partial<GtdSettings> | null;
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
+    // saved data from a version before the welcome screen means it isn't a first run
+    if (saved && saved.welcomed === undefined) this.settings.welcomed = true;
   }
 
   async saveSettings() {

@@ -3,7 +3,7 @@
   "name": "GTD Flow",
   "version": "0.10.0",
   "minAppVersion": "1.7.2",
-  "description": "The full GTD loop in plain Markdown: capture, projects, next actions, forecast, review.",
+  "description": "GTD in plain Markdown, compatible with the Tasks plugin: an inbox you can empty, next actions you can trust, and a weekly review.",
   "author": "Marco Guidetti",
   "isDesktopOnly": false
 }

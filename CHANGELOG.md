@@ -2,6 +2,14 @@
 
 What changed in each release of GTD Flow. Newest first.
 
+## Unreleased
+
+### Added
+- A **welcome screen** on first install: create a starter setup (an inbox with three items and two example projects that show sequential order, defer, deadlines, waiting-for and someday), or follow steps to use your own notes. **Show welcome screen** reopens it. Existing users don't see it.
+
+### Changed
+- New plugin description and a shorter README that leads with what GTD Flow does, with a privacy note and links that also work on the plugin listing.
+
 ## 0.10.0 — 2026-10-29
 
 ### Added

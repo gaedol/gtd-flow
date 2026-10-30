@@ -12,10 +12,11 @@ GTD for Obsidian: projects with real next-action logic, defer dates, forecast an
 ## Quick start
 
 1. Install **GTD Flow** from *Settings → Community plugins*, and enable it.
-2. Open its settings and check **Projects folder** (default `GTD/Projects`) and **Inbox note** (default `GTD/Inbox.md`). Everything else has a sane default.
-3. Run **New project**, or right-click your projects folder → **New GTD project**.
-4. Add task lines: `- [ ] Measure the space 📅 2026-06-16`. Typing at the end of a task line opens a suggester for dates, repeats and durations.
-5. Open **Next actions** from the ribbon (list-checks icon) and start working.
+2. The first time, a **welcome screen** offers a **starter setup** (an inbox with three items and two example projects, never overwriting anything) or steps for using your own notes. Reopen it any time with **Show welcome screen**.
+3. Open its settings and check **Projects folder** (default `GTD/Projects`) and **Inbox note** (default `GTD/Inbox.md`). Everything else has a sane default.
+4. Run **New project**, or right-click your projects folder → **New GTD project**.
+5. Add task lines: `- [ ] Measure the space 📅 2026-06-16`. Typing at the end of a task line opens a suggester for dates, repeats and durations.
+6. Open **Next actions** from the ribbon (list-checks icon) and start working.
 
 ## How do I…?
 
@@ -492,6 +493,7 @@ src/
   inNote.ts          pure: doc lines → per-line availability CSS classes
   projectColors.ts   pure: resolve Color-Folders-and-Files styles into project pills
   settingsData.ts    pure: the settings shape and their defaults
+  starter.ts         pure: the example inbox and projects of the starter setup
   projectLabel.ts    pure: a project's display name with its area folder ("Work/Q4 Planning")
   taskIndex.ts       in-memory index of project notes + the inbox (held as a synthesized
                      project), refreshed on vault events; exposes snapshot()
@@ -504,6 +506,7 @@ src/
   taskRow.ts         shared row pieces: open-at-line, flag/important markers, due badge
   captureModal.ts · editTaskModal.ts · newProjectModal.ts · projectPropertiesModal.ts
   reasonModal.ts     one-field 💬 prompt used by the drop command
+  welcomeModal.ts    first-run screen: starter setup or how to use your own notes
   waitingForModal.ts who a task waits on and when to follow up
   archiveProjectModal.ts warns about unfinished tasks before archiving a project
   doneBlock.ts       gtd-done code-block render child (live, re-renders on index change)
@@ -520,7 +523,7 @@ src/
   main.ts            thin wiring: settings, index lifecycle, views + shared helpers
 ```
 
-Every module marked *pure* has no Obsidian imports and is unit-tested — **331 tests across 30 files** (`npm test`). Beyond per-module tests the suite covers a parse → serialize round-trip (lossless and idempotent for every task shape), the write paths, archive/insert edges, action-group semantics, and an integration fixture: a small vault run end to end through selectors, next actions, forecast, every built-in perspective, done queries and stalled detection. Dates are compared as ISO strings throughout.
+Every module marked *pure* has no Obsidian imports and is unit-tested — **336 tests across 31 files** (`npm test`). Beyond per-module tests the suite covers a parse → serialize round-trip (lossless and idempotent for every task shape), the write paths, archive/insert edges, action-group semantics, and an integration fixture: a small vault run end to end through selectors, next actions, forecast, every built-in perspective, done queries and stalled detection. Dates are compared as ISO strings throughout.
 
 ## Development
 

@@ -1,62 +1,53 @@
 # GTD Flow
 
-**GTD-style project and task management for [Obsidian](https://obsidian.md), built on plain Markdown.**
+**Empty your inbox, see what's next, review every week — in plain Markdown you already understand.**
 
-The whole GTD loop — capture, process, organise, do, review — on ordinary notes and `- [ ]` lines. No hidden database: everything stays greppable, portable and readable with the plugin off. It speaks the [Tasks plugin](https://publish.obsidian.md/tasks) emoji syntax, so both can share the same files.
+GTD Flow brings the whole Getting Things Done loop to [Obsidian](https://obsidian.md): capture, process, organise, do, review. Tasks stay ordinary `- [ ]` lines in your own notes, written in the [Tasks plugin](https://publish.obsidian.md/tasks) syntax, so both plugins share the same files and nothing is locked away.
 
----
+![Process inbox](https://raw.githubusercontent.com/gaedol/gtd-flow/main/docs/img/process-inbox.png)
+
+## Start in a minute
+
+1. Install from *Settings → Community plugins → Browse* → **GTD Flow** (desktop and mobile).
+2. The welcome screen offers a **starter setup**: an inbox with a few items and two example projects. Or use your own notes: right-click any note → **Convert to GTD project**.
+3. Run **Process inbox**: one item at a time, one key per decision.
+4. Work from **Next actions**. Open **Review** once a week.
+
+## What you get
+
+| You want | GTD Flow |
+|---|---|
+| An inbox you actually empty | **Process inbox**: complete, move to a project, defer, wait for someone, park as someday, turn into a project, file as reference, drop or delete |
+| To know what to do now | **Next actions**: only tasks you can start now, per project; sequential projects show one step at a time |
+| To track what others owe you | **Waiting for**: `#wait/anna`, with how long and when to follow up |
+| Dates that mean something | `🛫` defer, `📅` due, `⏰` time, `⏱` duration, `🔁` repeat, and `🆔`/`⛔` dependencies |
+| The week ahead | **Forecast** and a Gantt **Timeline** |
+| Contexts and custom lists | nested tags (`#home/plumbing`) and saved **Perspectives** |
+| Nothing slipping | weekly **Review**, stalled-project detection, deadline warnings |
+| A record of what got done | `gtd-done` blocks and an exportable report |
+
+Plus editing right in the note (right-click menu, checkbox clicks that record `✅` and the next `🔁`), archiving, capture from anywhere via `obsidian://gtd-capture`, and per-project colours.
 
 ## Screenshots
 
 | Next actions | Forecast | Timeline |
 |---|---|---|
-| ![Next actions](docs/img/next-actions.png) | ![Forecast](docs/img/forecast.png) | ![Timeline](docs/img/timeline.png) |
+| ![Next actions](https://raw.githubusercontent.com/gaedol/gtd-flow/main/docs/img/next-actions.png) | ![Forecast](https://raw.githubusercontent.com/gaedol/gtd-flow/main/docs/img/forecast.png) | ![Timeline](https://raw.githubusercontent.com/gaedol/gtd-flow/main/docs/img/timeline.png) |
 
 | Review | Perspectives | Capture |
 |---|---|---|
-| ![Review](docs/img/review.png) | ![Perspectives](docs/img/perspectives.png) | ![Capture](docs/img/capture.png) |
+| ![Review](https://raw.githubusercontent.com/gaedol/gtd-flow/main/docs/img/review.png) | ![Perspectives](https://raw.githubusercontent.com/gaedol/gtd-flow/main/docs/img/perspectives.png) | ![Capture](https://raw.githubusercontent.com/gaedol/gtd-flow/main/docs/img/capture.png) |
 
----
+## Privacy
 
-## What's new
+GTD Flow makes no network requests of its own and collects nothing; it only reads and edits notes in your vault. (A project banner you set to a web address loads like any image.)
 
-- **Process inbox** — one item at a time, one key per decision: complete, move to a project, defer, wait for someone, park as someday, turn into a project, file as reference, drop or delete. Also a ⋯ menu on every inbox row.
-- **Waiting for** — tag a task `#wait/anna` when it's in someone else's hands. It stays in its project, stops being a next action, and shows in one list with who, how long, and when to follow up.
+## More
 
-![Process inbox](docs/img/process-inbox.png)
-
-See the [changelog](CHANGELOG.md) for everything else.
-
-## How it works
-
-| You want | GTD Flow |
-|---|---|
-| A project | a note with `type: project`; `flow: sequential` or `parallel` |
-| What to do next | **Next actions**: only tasks you can actually start now |
-| Dates | `🛫` defer, `📅` due, `⏰` time, `⏱` duration, `🔁` repeat |
-| Order across projects | `🆔` / `⛔` dependencies |
-| Contexts | nested tags (`#home/plumbing`) and saved **Perspectives** |
-| Not now | `#someday`, `#wait/who`, or `status: on-hold` |
-| The week ahead | **Forecast** and a Gantt **Timeline** |
-| Keeping it honest | **Review** queue, stalled-project detection, deadline warnings |
-| What got done | `gtd-done` blocks and an exportable report |
-
-Plus in-note editing (right-click menu, checkbox clicks that record `✅` and the next `🔁`), archiving, quick capture from anywhere via `obsidian://gtd-capture`, and per-project colours.
-
-## Install
-
-*Settings → Community plugins → Browse* → **GTD Flow**, or the [directory listing](https://obsidian.md/plugins?id=gtd-flow). Desktop and mobile. Pre-releases via [BRAT](https://github.com/TfTHacker/obsidian42-brat); manual install from a [release](../../releases) into `<vault>/.obsidian/plugins/gtd-flow/`.
-
-## Quick start
-
-1. Check the projects folder and inbox note in settings (defaults `GTD/Projects`, `GTD/Inbox.md`).
-2. **New project**, then add `- [ ]` lines; type at the end of a line for dates and repeats.
-3. Capture with the ribbon **+**, empty the inbox with **Process inbox**, work from **Next actions**.
-
-## Documentation
-
-**[MANUAL.md](MANUAL.md)** — everything, starting with a *How do I…?* table. **[CHANGELOG.md](CHANGELOG.md)** — what changed in each release.
+- **[Manual](https://github.com/gaedol/gtd-flow/blob/main/MANUAL.md)**: everything, starting with a *How do I…?* table.
+- **[Changelog](https://github.com/gaedol/gtd-flow/blob/main/CHANGELOG.md)**: what changed in each release.
+- Pre-releases via [BRAT](https://github.com/TfTHacker/obsidian42-brat); manual install from a [release](https://github.com/gaedol/gtd-flow/releases) into `<vault>/.obsidian/plugins/gtd-flow/`.
 
 ## License
 
-[MIT](LICENSE) © Marco Guidetti
+[MIT](https://github.com/gaedol/gtd-flow/blob/main/LICENSE) © Marco Guidetti

@@ -33,6 +33,7 @@ export interface GtdSettings {
   projectOrder: string[]; // project paths in manual order
   forecastOrder: Record<string, string[]>; // dateKey -> block ids in manual order
   perspectiveOrder: Record<string, string[]>; // perspective+group key -> block ids
+  welcomed: boolean; // first-run welcome screen already shown
 }
 
 export const DEFAULT_SETTINGS: GtdSettings = {
@@ -67,4 +68,5 @@ export const DEFAULT_SETTINGS: GtdSettings = {
   projectOrder: [],
   forecastOrder: {},
   perspectiveOrder: {},
+  welcomed: false,
 };
