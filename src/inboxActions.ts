@@ -2,7 +2,8 @@ import { App, Modal, Notice, Setting, TFile, normalizePath } from "obsidian";
 import type GtdFlowPlugin from "./main";
 import { Task } from "./types";
 import { parseTaskLine } from "./parser";
-import { cutTaskBlock, noteNameFor, projectBody, referenceBody } from "./inboxProcess";
+import { cutTaskBlock, noteNameFor, referenceBody } from "./inboxProcess";
+import { renderProjectTemplate } from "./projectTemplate";
 
 // Inbox processing actions that turn an item into something else. Each writes the
 // new note first and only then removes the item: a duplicate beats a lost task.
@@ -48,17 +49,8 @@ export async function turnIntoProject(plugin: GtdFlowPlugin, path: string, task:
   const block = await readBlock(app, path, task);
   const name = noteNameFor(task.text);
   if (!block || !name) return;
-  const fm = [
-    "---",
-    "type: project",
-    "status: active",
-    "flow: parallel",
-    `review-interval: ${plugin.settings.defaultReviewInterval}`,
-    "last-reviewed: ",
-    "---",
-    "",
-  ].join("\n");
-  const file = await createNote(app, plugin.settings.projectsFolder, name, fm + projectBody(block));
+  const body = renderProjectTemplate(plugin.settings.projectTemplate, block, plugin.settings.defaultReviewInterval, name);
+  const file = await createNote(app, plugin.settings.projectsFolder, name, body);
   await removeBlock(app, path, task);
   if (open) await app.workspace.getLeaf(false).openFile(file);
   else new Notice(`Created project ${file.basename}`);
