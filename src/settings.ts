@@ -22,6 +22,7 @@ export class GtdSettingTab extends PluginSettingTab {
     const p = this.plugin;
     return [
       { name: "Projects folder", desc: "Folder containing project notes (one note per project).", control: { type: "folder", key: "projectsFolder" } },
+      { name: "Project template", render: (setting: Setting) => this.configureProjectTemplate(setting) },
       { name: "Inbox note", desc: "Note where quick-captured tasks are appended.", control: { type: "file", key: "inboxNote" } },
       { name: "Flag tag", desc: "Tag (without #) marking a task as flagged.", control: { type: "text", key: "flagTag" } },
       { name: "Important tag", desc: "Tag (without #) marking a task as important (star).", control: { type: "text", key: "importantTag" } },
@@ -140,9 +141,24 @@ export class GtdSettingTab extends PluginSettingTab {
     this.renderLegacy();
   }
 
+  private configureProjectTemplate(setting: Setting): void {
+    setting
+      .setName("Project template")
+      .setDesc("Markdown for 'Turn into project' with project properties. {{reviewInterval}} = default review interval; {{tasks}} = task block.")
+      .addTextArea((t) => {
+        t.setValue(this.plugin.settings.projectTemplate).onChange(async (value) => {
+          this.plugin.settings.projectTemplate = value;
+          await this.plugin.persistData();
+        });
+        t.inputEl.rows = 12;
+        t.inputEl.cols = 50;
+      });
+  }
+
   private renderLegacy(): void {
     const { containerEl } = this;
     containerEl.empty();
+    this.configureProjectTemplate(new Setting(containerEl));
 
     new Setting(containerEl)
       .setName("Projects folder")

@@ -1,8 +1,10 @@
 import { Perspective, DEFAULT_PERSPECTIVES } from "./perspectives";
 import { InsertPosition } from "./insertLine";
+import { DEFAULT_PROJECT_TEMPLATE } from "./projectTemplate";
 
 export interface GtdSettings {
   projectsFolder: string;
+  projectTemplate: string;
   inboxNote: string;
   forecastDays: number;
   dueSoonDays: number; // amber warning window before a due date; 0 = off
@@ -38,6 +40,7 @@ export interface GtdSettings {
 
 export const DEFAULT_SETTINGS: GtdSettings = {
   projectsFolder: "GTD/Projects",
+  projectTemplate: DEFAULT_PROJECT_TEMPLATE,
   inboxNote: "GTD/Inbox.md",
   forecastDays: 7,
   dueSoonDays: 3,
