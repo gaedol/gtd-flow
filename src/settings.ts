@@ -144,7 +144,7 @@ export class GtdSettingTab extends PluginSettingTab {
   private configureProjectTemplate(setting: Setting): void {
     setting
       .setName("Project template")
-      .setDesc("Markdown for 'Turn into project' with project properties. {{reviewInterval}} = default review interval; {{tasks}} = task block.")
+      .setDesc("Markdown for 'Turn into project' with project properties. {{projectName}} = project name; {{reviewInterval}} = default review interval; {{tasks}} = task block.")
       .addTextArea((t) => {
         t.setValue(this.plugin.settings.projectTemplate).onChange(async (value) => {
           this.plugin.settings.projectTemplate = value;

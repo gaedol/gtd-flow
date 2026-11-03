@@ -49,7 +49,7 @@ export async function turnIntoProject(plugin: GtdFlowPlugin, path: string, task:
   const block = await readBlock(app, path, task);
   const name = noteNameFor(task.text);
   if (!block || !name) return;
-  const body = renderProjectTemplate(plugin.settings.projectTemplate, block, plugin.settings.defaultReviewInterval);
+  const body = renderProjectTemplate(plugin.settings.projectTemplate, block, plugin.settings.defaultReviewInterval, name);
   const file = await createNote(app, plugin.settings.projectsFolder, name, body);
   await removeBlock(app, path, task);
   if (open) await app.workspace.getLeaf(false).openFile(file);

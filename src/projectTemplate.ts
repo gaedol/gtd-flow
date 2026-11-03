@@ -11,12 +11,11 @@ export const DEFAULT_PROJECT_TEMPLATE = [
   "{{tasks}}",
 ].join("\n");
 
-export function renderProjectTemplate(template: string, block: string[], reviewInterval: string): string {
+export function renderProjectTemplate(template: string, block: string[], reviewInterval: string, projectName: string): string {
   const source = template.trim() ? template : DEFAULT_PROJECT_TEMPLATE;
   const tasks = projectBody(block);
-  const content = source.replace(/\{\{(reviewInterval|tasks)\}\}/g, (_, key: string) =>
-    key === "tasks" ? tasks : reviewInterval
-  );
+  const values: Record<string, string> = { reviewInterval, tasks, projectName };
+  const content = source.replace(/\{\{(reviewInterval|tasks|projectName)\}\}/g, (_, key: string) => values[key]);
   if (source.includes("{{tasks}}")) return content;
   return content + (content.endsWith("\n") ? "" : "\n") + tasks;
 }
